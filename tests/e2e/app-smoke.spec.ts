@@ -30,6 +30,22 @@ test.describe('InvestClaw Electron smoke flows', () => {
     await expect(page.locator('textarea')).not.toHaveValue('');
   });
 
+  test('can open the skills marketplace without showing legacy marketplace branding', async ({ page }) => {
+    await expect(page.getByTestId('setup-page')).toBeVisible();
+    await page.getByTestId('setup-skip-button').click();
+
+    await expect(page.getByTestId('main-layout')).toBeVisible();
+    await page.getByTestId('sidebar-nav-skills').click();
+
+    await expect(page.getByTestId('skills-page')).toBeVisible();
+    await expect(page.getByTestId('skills-page-title')).toBeVisible();
+
+    await page.getByTestId('skills-open-install-button').click();
+    await expect(page.getByTestId('skills-install-sheet')).toBeVisible();
+    await expect(page.getByTestId('skills-marketplace-source')).toBeVisible();
+    await expect(page.getByText('ClawHub')).toHaveCount(0);
+  });
+
   test('persists skipped setup across relaunch for the same isolated profile', async ({ electronApp, launchElectronApp }) => {
     const firstWindow = await electronApp.firstWindow();
     await firstWindow.waitForLoadState('domcontentloaded');

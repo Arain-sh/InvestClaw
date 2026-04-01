@@ -57,7 +57,7 @@
         "noDeliveryTargets": "No delivery targets are available for the selected Feishu account.",
         "deliveryTargetPlaceholder": "Enter the delivery target for this channel",
         "deliveryTargetPlaceholderFeishu": "e.g., user:ou_xxx or chat:oc_xxx",
-        "deliveryTargetDesc": "This maps to delivery.to in OpenClaw and is sent as-is.",
+        "deliveryTargetDesc": "This maps to the runtime delivery target and is sent as-is.",
         "deliveryTargetDescFeishu": "Use a Feishu user target like user:ou_xxx or a chat target like chat:oc_xxx.",
         "deliveryTargetDescAuto": "Select from targets discovered for the chosen channel account.",
         "deliveryTargetDescFeishuSelect": "Select a verified Feishu recipient from the available users or chats.",

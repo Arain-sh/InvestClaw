@@ -6,7 +6,7 @@
 <h1 align="center">InvestClaw</h1>
 
 <p align="center">
-  <strong>The AI Investment Research Desk Built on OpenClaw</strong>
+  <strong>The AI Investment Research Desk by arain</strong>
 </p>
 
 <p align="center">
@@ -34,11 +34,11 @@
 
 ## Overview
 
-**InvestClaw** is a desktop workspace for investors who want OpenClaw's agent runtime without the command-line overhead. It turns multi-step market research, filings review, watchlist maintenance, and idea generation into a guided GUI workflow.
+**InvestClaw** is a desktop workspace for investors who want a dedicated research desk without command-line overhead. It turns multi-step market research, filings review, watchlist maintenance, and idea generation into a guided GUI workflow.
 
 Whether you're running a morning market brief, dissecting an earnings release, or automating recurring portfolio checklists, InvestClaw gives you one place to organize those flows.
 
-InvestClaw ships with OpenClaw integration, multi-provider setup, document skills, and desktop-native controls. You can still fine-tune advanced behavior via **Settings → Advanced → Developer Mode**.
+InvestClaw ships with embedded runtime services, multi-provider setup, document skills, and desktop-native controls. You can still fine-tune advanced behavior via **Settings → Advanced → Developer Mode**.
 
 > InvestClaw is a research assistant. It does not provide financial advice, and you should validate any investment decision independently.
 
@@ -83,11 +83,11 @@ Investment research should feel like a repeatable workflow, not a pile of tabs a
 | Switching models/providers manually | Unified provider configuration with fallback support |
 | Hard-to-audit AI workflows | Session history, explicit agent routing, and runtime visibility |
 
-### OpenClaw Inside
+### Embedded Runtime
 
-InvestClaw is built directly upon the official **OpenClaw** core. Instead of requiring a separate installation, we embed the runtime within the application to provide a seamless "battery-included" experience.
+InvestClaw bundles its runtime inside the desktop application, so installation, upgrades, and daily use stay inside one product workflow.
 
-We are committed to maintaining strict alignment with the upstream OpenClaw project, ensuring that you always have access to the latest capabilities, stability improvements, and ecosystem compatibility provided by the official releases.
+The result is a smoother setup path for research work: fewer moving parts, fewer manual steps, and a more consistent desktop experience.
 
 ---
 
@@ -98,13 +98,13 @@ Complete the entire setup—from installation to your first AI interaction—thr
 
 ### 💬 Intelligent Chat Interface
 Communicate with AI agents through a modern chat experience. Support for multiple conversation contexts, message history, rich content rendering with Markdown, and direct `@agent` routing in the main composer for multi-agent setups.
-When you target another agent with `@agent`, InvestClaw switches into that agent's own conversation context directly instead of relaying through the default agent. Agent workspaces stay separate by default, and stronger isolation depends on OpenClaw sandbox settings.
+When you target another agent with `@agent`, InvestClaw switches into that agent's own conversation context directly instead of relaying through the default agent. Agent workspaces stay separate by default, and stronger isolation depends on runtime sandbox settings.
 Each agent can also override its own `provider/model` runtime setting; agents without overrides continue inheriting the global default model.
 
 ### 📡 Multi-Channel Management
 Configure and monitor multiple AI channels simultaneously. Each channel operates independently, allowing you to run specialized agents for different tasks.
 Each channel now supports multiple accounts, per-account agent binding, and switching the channel default account directly from the Channels page.
-InvestClaw now also bundles Tencent's official personal WeChat channel plugin, so you can link WeChat directly from the Channels page with an in-app QR flow.
+InvestClaw now also includes a personal WeChat channel bridge, so you can link WeChat directly from the Channels page with an in-app QR flow.
 
 ### ⏰ Cron-Based Automation
 Schedule AI tasks to run automatically. Define triggers, set intervals, and let your AI agents work around the clock without manual intervention.
@@ -113,8 +113,8 @@ Known limitation: WeChat is intentionally excluded from supported cron delivery 
 
 ### 🧩 Extensible Skill System
 Extend your AI agents with pre-built skills. Browse, install, and manage skills through the integrated skill panel—no package managers required.
-InvestClaw also pre-bundles full document-processing skills (`pdf`, `xlsx`, `docx`, `pptx`), deploys them automatically to the managed skills directory (default `~/.openclaw/skills`) on startup, and enables them by default on first install. Additional bundled skills (`find-skills`, `self-improving-agent`, `tavily-search`, `brave-web-search`) are also enabled by default; if required API keys are missing, OpenClaw will surface configuration errors in runtime.  
-The Skills page can display skills discovered from multiple OpenClaw sources (managed dir, workspace, and extra skill dirs), and now shows each skill's actual location so you can open the real folder directly.
+InvestClaw also pre-bundles full document-processing skills (`pdf`, `xlsx`, `docx`, `pptx`), deploys them automatically to the managed skills directory (default `~/.openclaw/skills`) on startup, and enables them by default on first install. Additional bundled skills (`find-skills`, `self-improving-agent`, `tavily-search`, `brave-web-search`) are also enabled by default; if required API keys are missing, the runtime will surface configuration errors.  
+The Skills page can display skills discovered from multiple runtime sources (managed dir, workspace, and extra skill dirs), and now shows each skill's actual location so you can open the real folder directly.
 
 Environment variables for bundled search skills:
 - `BRAVE_SEARCH_API_KEY` for `brave-web-search`
@@ -172,11 +172,11 @@ When you launch InvestClaw for the first time, the **Setup Wizard** will guide y
 The wizard preselects your system language when it is supported, and falls back to English otherwise.
 
 > Note for Moonshot (Kimi): InvestClaw keeps Kimi web search enabled by default.  
-> When Moonshot is configured, InvestClaw also syncs Kimi web search to the China endpoint (`https://api.moonshot.cn/v1`) in OpenClaw config.
+> When Moonshot is configured, InvestClaw also syncs Kimi web search to the China endpoint (`https://api.moonshot.cn/v1`) in runtime config.
 
 ### Proxy Settings
 
-InvestClaw includes built-in proxy settings for environments where Electron, the OpenClaw Gateway, or channels such as Telegram need to reach the internet through a local proxy client.
+InvestClaw includes built-in proxy settings for environments where Electron, the InvestClaw gateway, or channels such as Telegram need to reach the internet through a local proxy client.
 
 Open **Settings → Gateway → Proxy** and configure:
 
@@ -197,10 +197,10 @@ Notes:
 - A bare `host:port` value is treated as HTTP.
 - If advanced proxy fields are left empty, InvestClaw falls back to `Proxy Server`.
 - Saving proxy settings reapplies Electron networking immediately and restarts the Gateway automatically.
-- InvestClaw also syncs the proxy to OpenClaw's Telegram channel config when Telegram is enabled.
+- InvestClaw also syncs the proxy to the runtime's Telegram channel config when Telegram is enabled.
 - Gateway restarts preserve an existing Telegram channel proxy if InvestClaw proxy is currently disabled.
-- To explicitly clear Telegram channel proxy from OpenClaw config, save proxy settings with proxy disabled.
-- In **Settings → Advanced → Developer**, you can run **OpenClaw Doctor** to execute `openclaw doctor --json` and inspect the diagnostic output without leaving the app.
+- To explicitly clear Telegram channel proxy from runtime config, save proxy settings with proxy disabled.
+- In **Settings → Advanced → Developer**, you can run **Runtime Diagnostics** to execute `openclaw doctor --json` and inspect the diagnostic output without leaving the app.
 - On packaged Windows builds, the bundled `openclaw` CLI/TUI runs via the shipped `node.exe` entrypoint to keep terminal input behavior stable.
 
 ---
@@ -245,7 +245,7 @@ InvestClaw employs a **dual-process architecture** with a unified host API layer
                                │ WS / HTTP / IPC fallback
                                ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                     OpenClaw Gateway                             │
+│                     InvestClaw Gateway                           │
 │                                                                  │
 │  • AI agent runtime and orchestration                           │
 │  • Message channel management                                    │
@@ -267,7 +267,7 @@ InvestClaw employs a **dual-process architecture** with a unified host API layer
 - InvestClaw is an Electron app, so **one app instance normally appears as multiple OS processes** (main/renderer/zygote/utility). This is expected.
 - Single-instance protection uses Electron's lock plus a local process-file lock fallback, preventing duplicate app launch in environments where desktop IPC/session bus is unstable.
 - During rolling upgrades, mixed old/new app versions can still have asymmetric protection behavior. For best reliability, upgrade all desktop clients to the same version.
-- The OpenClaw Gateway listener should still be **single-owner**: only one process should listen on `127.0.0.1:18789`.
+- The InvestClaw gateway listener should still be **single-owner**: only one process should listen on `127.0.0.1:18789`.
 - To verify the active listener:
   - macOS/Linux: `lsof -nP -iTCP:18789 -sTCP:LISTEN`
   - Windows (PowerShell): `Get-NetTCPConnection -LocalPort 18789 -State Listen`
@@ -310,7 +310,7 @@ Chain multiple skills together to create sophisticated automation pipelines. Pro
 │   ├── shared/              # Shared provider schemas/constants
 │   │   └── providers/
 │   ├── main/                # App entry, windows, IPC registration
-│   ├── gateway/             # OpenClaw Gateway process manager
+│   ├── gateway/             # Gateway process manager
 │   ├── preload/             # Secure IPC bridge
 │   └── utils/               # Utilities (storage, auth, paths)
 ├── src/                      # React Renderer Process
@@ -418,18 +418,6 @@ We welcome contributions! Whether it's bug fixes, new features, documentation im
 - Write tests for new functionality
 - Update documentation as needed
 - Keep commits atomic and descriptive
-
----
-
-## Acknowledgments
-
-InvestClaw is built on the shoulders of excellent open-source projects:
-
-- [OpenClaw](https://github.com/OpenClaw) – The AI agent runtime
-- [Electron](https://www.electronjs.org/) – Cross-platform desktop framework
-- [React](https://react.dev/) – UI component library
-- [shadcn/ui](https://ui.shadcn.com/) – Beautifully designed components
-- [Zustand](https://github.com/pmndrs/zustand) – Lightweight state management
 
 ---
 

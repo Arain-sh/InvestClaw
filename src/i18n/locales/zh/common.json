@@ -11,7 +11,7 @@
         "devConsole": "开发者控制台",
         "models": "模型",
         "deleteSessionConfirm": "确定要删除对话 \"{{label}}\" 吗？",
-        "openClawPage": "OpenClaw 控制台"
+        "openClawPage": "运行时控制台"
     },
     "actions": {
         "save": "保存",
@@ -53,7 +53,7 @@
     },
     "gateway": {
         "notRunning": "网关未运行",
-        "notRunningDesc": "OpenClaw 网关需要运行才能使用 InvestClaw 的相关功能。它会自动启动，或者您也可以在设置中手动启动。",
+        "notRunningDesc": "InvestClaw 网关需要运行才能使用该功能。它会自动启动，或者您也可以在设置中手动启动。",
         "warning": "网关未运行。"
     }
 }

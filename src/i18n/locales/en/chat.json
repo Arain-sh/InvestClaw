@@ -1,6 +1,6 @@
 {
     "gatewayNotRunning": "Gateway Not Running",
-    "gatewayRequired": "The OpenClaw Gateway needs to be running to use chat. It will start automatically, or you can start it from Settings.",
+    "gatewayRequired": "The InvestClaw gateway needs to be running to use chat. It will start automatically, or you can start it from Settings.",
     "welcome": {
         "title": "InvestClaw Research",
         "subtitle": "What should we analyze today?",

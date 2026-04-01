@@ -101,7 +101,7 @@
     "meta": {
         "telegram": {
             "description": "使用 @BotFather 提供的机器人令牌连接 Telegram",
-            "docsUrl": "https://icnnp7d0dymg.feishu.cn/wiki/TjiGwxsMWi7hpDkDAQBc0ydMnEf#PL8ndvsEwoYVWIx1T4mcB1EvnSb",
+            "docsUrl": "https://github.com/Arain-sh/InvestClaw#readme",
             "fields": {
                 "botToken": {
                     "label": "机器人令牌",
@@ -123,7 +123,7 @@
         },
         "discord": {
             "description": "使用开发者门户提供的机器人令牌连接 Discord",
-            "docsUrl": "https://icnnp7d0dymg.feishu.cn/wiki/BkOywJYCAiYRN9k4KTTceKPMnxg#C9zjdBRT1oqZ4VxF8q7ceRxQnLk",
+            "docsUrl": "https://github.com/Arain-sh/InvestClaw#readme",
             "fields": {
                 "token": {
                     "label": "机器人令牌",
@@ -151,7 +151,7 @@
         },
         "whatsapp": {
             "description": "通过扫描二维码连接 WhatsApp（无需手机号）",
-            "docsUrl": "https://icnnp7d0dymg.feishu.cn/wiki/ES7fwUfH8iGl8FkHYfFcyWB3n4d#doxcnsDDFbeEzqgjN6HSlyonLvc",
+            "docsUrl": "https://github.com/Arain-sh/InvestClaw#readme",
             "instructions": [
                 "在手机上打开 WhatsApp",
                 "前往 设置 > 已关联设备 >包含连接设备",
@@ -160,18 +160,18 @@
             ]
         },
         "wechat": {
-            "description": "通过腾讯官方 OpenClaw 插件扫码连接个人微信",
-            "docsUrl": "https://icnnp7d0dymg.feishu.cn/wiki/GHYZwuPCriF0gWkXwkFcJ9zon3b",
+            "description": "通过内置二维码流程连接个人微信",
+            "docsUrl": "https://github.com/Arain-sh/InvestClaw#readme",
             "instructions": [
-                "点击生成二维码，InvestClaw 会在 OpenClaw 中安装并启用官方微信插件",
+                "点击生成二维码后，InvestClaw 会安装并启用所需的微信桥接能力",
                 "使用微信扫描下方二维码，并在手机上确认连接",
-                "连接成功后，微信里会自动出现新的「微信 ClawBot」对话",
+                "连接成功后，微信里会自动出现新的「InvestClaw 微信助手」对话",
                 "之后可再次通过扫码流程添加更多微信账号，或重新连接已有账号"
             ]
         },
         "dingtalk": {
-            "description": "通过 OpenClaw 渠道插件连接钉钉（Stream 模式）",
-            "docsUrl": "https://icnnp7d0dymg.feishu.cn/wiki/Y5eNwiSiZidkLskrwtJc1rUln0b#doxcnr8KfaA2mNPeQUeHO83eDPh",
+            "description": "通过内置渠道桥接连接钉钉（Stream 模式）",
+            "docsUrl": "https://github.com/Arain-sh/InvestClaw#readme",
             "fields": {
                 "clientId": {
                     "label": "Client ID (AppKey)",
@@ -195,7 +195,7 @@
                 }
             },
             "instructions": [
-                "先在 OpenClaw 安装并启用 dingtalk 插件",
+                "先在运行时中安装并启用 dingtalk 桥接",
                 "在钉钉开发者后台创建企业内部应用并开启 Stream 模式",
                 "填写 Client ID 和 Client Secret（必填）",
                 "根据你的应用配置按需填写 Robot Code / Corp ID / Agent ID"
@@ -203,7 +203,7 @@
         },
         "signal": {
             "description": "使用 signal-cli 连接 Signal",
-            "docsUrl": "https://docs.openclaw.ai/zh-CN/channels/signal",
+            "docsUrl": "https://github.com/Arain-sh/InvestClaw#readme",
             "fields": {
                 "phoneNumber": {
                     "label": "手机号码",
@@ -217,8 +217,8 @@
             ]
         },
         "feishu": {
-            "description": "通过飞书官方推出的 OpenClaw 插件连接飞书/Lark 机器人",
-            "docsUrl": "https://icnnp7d0dymg.feishu.cn/wiki/GKn8wOvHnibpPNkNkPzcAvGlnzK#Py88dTltfoJc1jxAhIBcW3Pkn7b",
+            "description": "通过内置桥接能力连接飞书/Lark 机器人",
+            "docsUrl": "https://github.com/Arain-sh/InvestClaw#readme",
             "fields": {
                 "appId": {
                     "label": "应用 ID (App ID)",
@@ -239,7 +239,7 @@
         },
         "wecom": {
             "description": "通过插件连接企业微信机器人",
-            "docsUrl": "https://icnnp7d0dymg.feishu.cn/wiki/JTGnwoV0RixKPtkr4w7c7gpAnDc",
+            "docsUrl": "https://github.com/Arain-sh/InvestClaw#readme",
             "fields": {
                 "botId": {
                     "label": "机器人 Bot ID",
@@ -258,7 +258,7 @@
         },
         "imessage": {
             "description": "通过 BlueBubbles (macOS) 连接 iMessage",
-            "docsUrl": "https://docs.openclaw.ai/zh-CN/channels/bluebubbles",
+            "docsUrl": "https://github.com/Arain-sh/InvestClaw#readme",
             "fields": {
                 "serverUrl": {
                     "label": "BlueBubbles 服务器地址",
@@ -277,7 +277,7 @@
         },
         "matrix": {
             "description": "连接到 Matrix 协议",
-            "docsUrl": "https://docs.openclaw.ai/zh-CN/channels/matrix",
+            "docsUrl": "https://github.com/Arain-sh/InvestClaw#readme",
             "fields": {
                 "homeserver": {
                     "label": "Homeserver 地址",
@@ -296,7 +296,7 @@
         },
         "line": {
             "description": "连接 LINE Messaging API",
-            "docsUrl": "https://docs.openclaw.ai/channels/line",
+            "docsUrl": "https://github.com/Arain-sh/InvestClaw#readme",
             "fields": {
                 "channelAccessToken": {
                     "label": "频道访问令牌",
@@ -315,7 +315,7 @@
         },
         "msteams": {
             "description": "通过 Bot Framework 连接 Microsoft Teams",
-            "docsUrl": "https://docs.openclaw.ai/channels/msteams",
+            "docsUrl": "https://github.com/Arain-sh/InvestClaw#readme",
             "fields": {
                 "appId": {
                     "label": "应用 ID",
@@ -335,7 +335,7 @@
         },
         "googlechat": {
             "description": "通过 Webhook 连接 Google Chat",
-            "docsUrl": "https://docs.openclaw.ai/channels/googlechat",
+            "docsUrl": "https://github.com/Arain-sh/InvestClaw#readme",
             "fields": {
                 "serviceAccountKey": {
                     "label": "服务账号 JSON 路径",
@@ -351,7 +351,7 @@
         },
         "mattermost": {
             "description": "通过 Bot API 连接 Mattermost",
-            "docsUrl": "https://docs.openclaw.ai/channels/mattermost",
+            "docsUrl": "https://github.com/Arain-sh/InvestClaw#readme",
             "fields": {
                 "serverUrl": {
                     "label": "服务器地址",
@@ -370,7 +370,7 @@
         },
         "qqbot": {
             "description": "通过 @tencent-connect/openclaw-qqbot 插件连接 QQ 机器人",
-            "docsUrl": "https://icnnp7d0dymg.feishu.cn/wiki/KPIJwlyiGiupMrkiS9ice39Zn2c",
+            "docsUrl": "https://github.com/Arain-sh/InvestClaw#readme",
             "fields": {
                 "appId": {
                     "label": "App ID",

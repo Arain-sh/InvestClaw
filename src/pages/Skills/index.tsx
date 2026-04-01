@@ -16,7 +16,6 @@ import {
   RefreshCw,
   FolderOpen,
   FileCode,
-  Globe,
   Copy,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -93,11 +92,6 @@ function SkillDetailDialog({ skill, isOpen, onClose, onToggle, onUninstall, onOp
       setEnvVars([]);
     }
   }, [skill]);
-
-  const handleOpenClawhub = async () => {
-    if (!skill?.slug) return;
-    await invokeIpc('shell:openExternal', `https://clawhub.ai/s/${skill.slug}`);
-  };
 
   const handleOpenEditor = async () => {
     if (!skill?.id) return;
@@ -336,13 +330,9 @@ function SkillDetailDialog({ skill, isOpen, onClose, onToggle, onUninstall, onOp
               </div>
             )}
 
-            {/* External Links */}
+            {/* Skill Actions */}
             {skill.slug && !skill.isBundled && !skill.isCore && (
               <div className="flex gap-2 justify-center pt-8">
-                <Button variant="outline" size="sm" className="h-[28px] text-[11px] font-medium px-3 gap-1.5 rounded-full border-black/10 dark:border-white/10 bg-transparent hover:bg-black/5 dark:hover:bg-white/5 shadow-none text-foreground/70" onClick={handleOpenClawhub}>
-                  <Globe className="h-[12px] w-[12px]" />
-                  ClawHub
-                </Button>
                 <Button variant="outline" size="sm" className="h-[28px] text-[11px] font-medium px-3 gap-1.5 rounded-full border-black/10 dark:border-white/10 bg-transparent hover:bg-black/5 dark:hover:bg-white/5 shadow-none text-foreground/70" onClick={handleOpenEditor}>
                   <FileCode className="h-[12px] w-[12px]" />
                   {t('detail.openManual')}
@@ -611,13 +601,13 @@ export function Skills() {
   }
 
   return (
-    <div className="flex flex-col -m-6 dark:bg-background h-[calc(100vh-2.5rem)] overflow-hidden">
+    <div data-testid="skills-page" className="flex flex-col -m-6 dark:bg-background h-[calc(100vh-2.5rem)] overflow-hidden">
       <div className="w-full max-w-5xl mx-auto flex flex-col h-full p-10 pt-16">
 
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-start justify-between mb-6 shrink-0 gap-4">
           <div>
-            <h1 className="text-5xl md:text-6xl font-serif text-foreground mb-3 font-normal tracking-tight" style={{ fontFamily: 'Georgia, Cambria, "Times New Roman", Times, serif' }}>
+            <h1 data-testid="skills-page-title" className="text-5xl md:text-6xl font-serif text-foreground mb-3 font-normal tracking-tight" style={{ fontFamily: 'Georgia, Cambria, "Times New Roman", Times, serif' }}>
               {t('title')}
             </h1>
             <p className="text-[17px] text-foreground/70 font-medium">
@@ -716,6 +706,7 @@ export function Skills() {
                 setInstallQuery('');
                 setInstallSheetOpen(true);
               }}
+              data-testid="skills-open-install-button"
               className="h-8 text-[13px] font-medium rounded-md px-3 border-black/10 dark:border-white/10 bg-transparent hover:bg-black/5 dark:hover:bg-white/5 shadow-none"
             >
               {t('actions.installSkill')}
@@ -811,6 +802,7 @@ export function Skills() {
 
       <Sheet open={installSheetOpen} onOpenChange={setInstallSheetOpen}>
         <SheetContent
+          data-testid="skills-install-sheet"
           className="w-full sm:max-w-[560px] p-0 flex flex-col border-l border-black/10 dark:border-white/10 bg-[#f3f1e9] dark:bg-card shadow-[0_0_40px_rgba(0,0,0,0.2)]"
           side="right"
         >
@@ -839,9 +831,10 @@ export function Skills() {
               <Button
                 variant="outline"
                 disabled
+                data-testid="skills-marketplace-source"
                 className="h-10 rounded-xl border-black/10 dark:border-white/10 bg-transparent text-muted-foreground"
               >
-                {t('marketplace.sourceLabel')}: {t('marketplace.sourceClawHub')}
+                {t('marketplace.sourceLabel')}: {t('marketplace.sourceMarketplace')}
               </Button>
             </div>
           </div>
@@ -874,8 +867,7 @@ export function Skills() {
                   return (
                     <div
                       key={skill.slug}
-                      className="group flex flex-row items-center justify-between py-3.5 px-3 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer border-b border-black/5 dark:border-white/5 last:border-0"
-                      onClick={() => invokeIpc('shell:openExternal', `https://clawhub.ai/s/${skill.slug}`)}
+                      className="group flex flex-row items-center justify-between py-3.5 px-3 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors border-b border-black/5 dark:border-white/5 last:border-0"
                     >
                       <div className="flex items-start gap-4 flex-1 overflow-hidden pr-4">
                         <div className="h-10 w-10 shrink-0 flex items-center justify-center text-xl bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-xl overflow-hidden">

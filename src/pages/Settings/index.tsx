@@ -136,7 +136,7 @@ export function Settings() {
     }
   };
 
-  const handleRunOpenClawDoctor = async (mode: 'diagnose' | 'fix') => {
+  const handleRunRuntimeDoctor = async (mode: 'diagnose' | 'fix') => {
     setDoctorRunningMode(mode);
     try {
       const result = await hostApiFetch<{
@@ -247,7 +247,7 @@ export function Settings() {
           setOpenclawCliError(null);
         } else {
           setOpenclawCliCommand('');
-          setOpenclawCliError(result.error || 'OpenClaw CLI unavailable');
+          setOpenclawCliError(result.error || 'Runtime command unavailable');
         }
       } catch (error) {
         if (cancelled) return;
@@ -274,7 +274,7 @@ export function Settings() {
       'openclaw:cli-installed',
       (...args: unknown[]) => {
         const installedPath = typeof args[0] === 'string' ? args[0] : '';
-        toast.success(`openclaw CLI installed at ${installedPath}`);
+        toast.success(`openclaw command installed at ${installedPath}`);
       },
     );
     return () => { unsubscribe?.(); };
@@ -857,7 +857,7 @@ export function Settings() {
                         <Button
                           type="button"
                           variant="outline"
-                          onClick={() => void handleRunOpenClawDoctor('diagnose')}
+                          onClick={() => void handleRunRuntimeDoctor('diagnose')}
                           disabled={doctorRunningMode !== null}
                           className="rounded-xl h-10 px-4 bg-transparent border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5"
                         >
@@ -867,7 +867,7 @@ export function Settings() {
                         <Button
                           type="button"
                           variant="outline"
-                          onClick={() => void handleRunOpenClawDoctor('fix')}
+                          onClick={() => void handleRunRuntimeDoctor('fix')}
                           disabled={doctorRunningMode !== null}
                           className="rounded-xl h-10 px-4 bg-transparent border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5"
                         >

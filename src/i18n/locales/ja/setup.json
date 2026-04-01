@@ -27,7 +27,7 @@
     },
     "welcome": {
         "title": "InvestClawへようこそ",
-        "description": "InvestClaw は OpenClaw を、マーケット分析、決算レビュー、ウォッチリスト管理、継続的な投資調査に使いやすいデスクトップ環境へ変えます。",
+        "description": "InvestClaw は、マーケット分析、決算レビュー、ウォッチリスト管理、継続的な投資調査に使いやすいデスクトップ環境を提供します。",
         "features": {
             "noCommand": "コマンドライン設定不要",
             "modernUI": "投資調査向けのワークフロー",
@@ -40,7 +40,7 @@
         "viewLogs": "ログを表示",
         "recheck": "再チェック",
         "nodejs": "Node.js ランタイム",
-        "openclaw": "OpenClaw パッケージ",
+        "openclaw": "ランタイムパッケージ",
         "gateway": "ゲートウェイサービス",
         "startGateway": "ゲートウェイを起動",
         "status": {
@@ -48,11 +48,11 @@
             "success": "Node.js は利用可能です",
             "error": "失敗",
             "gatewayRunning": "ポート {{port}} で実行中",
-            "packageReady": "OpenClaw パッケージ準備完了"
+            "packageReady": "ランタイムパッケージ準備完了"
         },
         "issue": {
             "title": "環境の問題が検出されました",
-            "desc": "OpenClawが正しくインストールされていることを確認してください。詳細はログを確認してください。"
+            "desc": "組み込みランタイムが正しくインストールされていることを確認してください。詳細はログを確認してください。"
         },
         "logs": {
             "title": "アプリケーションログ",

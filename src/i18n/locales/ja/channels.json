@@ -101,7 +101,7 @@
     "meta": {
         "telegram": {
             "description": "@BotFather からのボットトークンを使用して Telegram に接続します",
-            "docsUrl": "https://icnnp7d0dymg.feishu.cn/wiki/TjiGwxsMWi7hpDkDAQBc0ydMnEf#MEkKdqXP1orZU2x4SrFcdUHgnl1",
+            "docsUrl": "https://github.com/Arain-sh/InvestClaw#readme",
             "fields": {
                 "botToken": {
                     "label": "ボットトークン",
@@ -123,7 +123,7 @@
         },
         "discord": {
             "description": "Developer Portal からのボットトークンを使用して Discord に接続します",
-            "docsUrl": "https://icnnp7d0dymg.feishu.cn/wiki/BkOywJYCAiYRN9k4KTTceKPMnxg#QS6LdxnA2oNtfcxtFc8cgabnnNd",
+            "docsUrl": "https://github.com/Arain-sh/InvestClaw#readme",
             "fields": {
                 "token": {
                     "label": "ボットトークン",
@@ -151,7 +151,7 @@
         },
         "whatsapp": {
             "description": "QRコードをスキャンして WhatsApp に接続します（電話番号は不要です）",
-            "docsUrl": "https://icnnp7d0dymg.feishu.cn/wiki/ES7fwUfH8iGl8FkHYfFcyWB3n4d#doxcnUElomBZLi0NnKLUzn6zLbd",
+            "docsUrl": "https://github.com/Arain-sh/InvestClaw#readme",
             "instructions": [
                 "携帯電話で WhatsApp を開きます",
                 "設定 > リンクされたデバイス > デバイスをリンク に移動します",
@@ -160,18 +160,18 @@
             ]
         },
         "wechat": {
-            "description": "Tencent 公式の OpenClaw プラグインを使い、QRコードをスキャンして個人 WeChat に接続します",
-            "docsUrl": "https://icnnp7d0dymg.feishu.cn/wiki/GHYZwuPCriF0gWkXwkFcJ9zon3b",
+            "description": "組み込みの QR フローで個人 WeChat に接続します",
+            "docsUrl": "https://github.com/Arain-sh/InvestClaw#readme",
             "instructions": [
-                "QRコードを生成すると、InvestClaw が OpenClaw に公式 WeChat プラグインをインストールして有効化します",
+                "QRコードを生成すると、InvestClaw が必要な WeChat ブリッジをインストールして有効化します",
                 "以下の QR コードを WeChat でスキャンし、スマートフォン側で接続を確認します",
-                "接続が完了すると、WeChat に新しい「WeChat ClawBot」チャットが自動で表示されます",
+                "接続が完了すると、WeChat に新しい「InvestClaw WeChat」チャットが自動で表示されます",
                 "後から同じ QR フローを使って、別の WeChat アカウントを追加したり既存アカウントを再接続したりできます"
             ]
         },
         "dingtalk": {
-            "description": "OpenClaw のチャンネルプラグイン経由で DingTalk に接続します（Stream モード）",
-            "docsUrl": "https://icnnp7d0dymg.feishu.cn/wiki/Y5eNwiSiZidkLskrwtJc1rUln0b#doxcnDgA78n43DbkiQjI1OqUA7b",
+            "description": "組み込みのチャンネルブリッジ経由で DingTalk に接続します（Stream モード）",
+            "docsUrl": "https://github.com/Arain-sh/InvestClaw#readme",
             "fields": {
                 "clientId": {
                     "label": "Client ID (AppKey)",
@@ -195,7 +195,7 @@
                 }
             },
             "instructions": [
-                "まず OpenClaw に dingtalk プラグインをインストールして有効化します",
+                "まずランタイムに dingtalk ブリッジをインストールして有効化します",
                 "DingTalk 開発者コンソールで社内アプリを作成し Stream モードを有効にします",
                 "Client ID と Client Secret を入力します（必須）",
                 "必要に応じて Robot Code / Corp ID / Agent ID を入力します"
@@ -214,11 +214,11 @@
                 "電話番号を登録またはリンクします",
                 "以下に電話番号を入力します"
             ],
-            "docsUrl": "https://docs.openclaw.ai/channels/signal"
+            "docsUrl": "https://github.com/Arain-sh/InvestClaw#readme"
         },
         "feishu": {
             "description": "WebSocket 経由で Feishu/Lark ボットに接続します",
-            "docsUrl": "https://icnnp7d0dymg.feishu.cn/wiki/GKn8wOvHnibpPNkNkPzcAvGlnzK#GdHUdp9t9oqyegxwV8ScLvVGn1c",
+            "docsUrl": "https://github.com/Arain-sh/InvestClaw#readme",
             "fields": {
                 "appId": {
                     "label": "App ID",
@@ -238,7 +238,7 @@
         },
         "wecom": {
             "description": "プラグイン経由で WeCom Bot (企業微信) に接続します",
-            "docsUrl": "https://icnnp7d0dymg.feishu.cn/wiki/JTGnwoV0RixKPtkr4w7c7gpAnDc",
+            "docsUrl": "https://github.com/Arain-sh/InvestClaw#readme",
             "fields": {
                 "botId": {
                     "label": "ボット ID",
@@ -272,7 +272,7 @@
                 "サーバーURLとパスワードをメモします",
                 "以下に接続詳細を入力します"
             ],
-            "docsUrl": "https://docs.openclaw.ai/channels/bluebubbles"
+            "docsUrl": "https://github.com/Arain-sh/InvestClaw#readme"
         },
         "matrix": {
             "description": "Matrix プロトコルに接続します",
@@ -291,7 +291,7 @@
                 "クライアントからアクセストークンを取得します",
                 "以下にホームサーバーとトークンを入力します"
             ],
-            "docsUrl": "https://docs.openclaw.ai/channels/matrix"
+            "docsUrl": "https://github.com/Arain-sh/InvestClaw#readme"
         },
         "line": {
             "description": "LINE Messaging API に接続します",
@@ -310,7 +310,7 @@
                 "Messaging API チャンネルを作成します",
                 "チャンネルアクセストークンとシークレットを取得します"
             ],
-            "docsUrl": "https://docs.openclaw.ai/channels/line"
+            "docsUrl": "https://github.com/Arain-sh/InvestClaw#readme"
         },
         "msteams": {
             "description": "Bot Framework 経由で Microsoft Teams に接続します",
@@ -330,7 +330,7 @@
                 "App ID を取得し、パスワードを作成します",
                 "Teams チャンネルを設定します"
             ],
-            "docsUrl": "https://docs.openclaw.ai/channels/msteams"
+            "docsUrl": "https://github.com/Arain-sh/InvestClaw#readme"
         },
         "googlechat": {
             "description": "Webhook 経由で Google Chat に接続します",
@@ -346,7 +346,7 @@
                 "サービスアカウントを作成します",
                 "JSON キーファイルをダウンロードします"
             ],
-            "docsUrl": "https://docs.openclaw.ai/channels/googlechat"
+            "docsUrl": "https://github.com/Arain-sh/InvestClaw#readme"
         },
         "mattermost": {
             "description": "Bot API 経由で Mattermost に接続します",
@@ -365,7 +365,7 @@
                 "新しい Bot アカウントを作成します",
                 "アクセストークンをコピーします"
             ],
-            "docsUrl": "https://docs.openclaw.ai/channels/mattermost"
+            "docsUrl": "https://github.com/Arain-sh/InvestClaw#readme"
         },
         "qqbot": {
             "description": "@tencent-connect/openclaw-qqbot プラグイン経由で QQ ボットに接続します",
@@ -384,7 +384,7 @@
                 "App ID と Client Secret を取得します",
                 "認証情報を入力します"
             ],
-            "docsUrl": "https://icnnp7d0dymg.feishu.cn/wiki/KPIJwlyiGiupMrkiS9ice39Zn2c"
+            "docsUrl": "https://github.com/Arain-sh/InvestClaw#readme"
         }
     },
     "viewDocs": "ドキュメントを表示"

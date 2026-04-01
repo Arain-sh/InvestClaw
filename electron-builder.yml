@@ -22,14 +22,14 @@ extraResources:
       - "!icons/*.svg"
       - "!bin/**"
       - "!screenshot/**"
-  # OpenClaw package (node_modules copied separately by afterPack hook
+  # Bundled runtime package (node_modules copied separately by afterPack hook
   # because electron-builder respects .gitignore which excludes node_modules/)
   - from: build/openclaw/
     to: openclaw/
   # Pre-bundled third-party skills (full directories, not only SKILL.md)
   - from: build/preinstalled-skills/
     to: resources/preinstalled-skills/
-  # NOTE: OpenClaw plugin mirrors (dingtalk, etc.) are bundled by the
+  # NOTE: Runtime plugin mirrors (dingtalk, etc.) are bundled by the
   # afterPack hook (after-pack.cjs) directly from node_modules, so they
   # don't need an extraResources entry here.
 
@@ -158,12 +158,12 @@ linux:
   category: Utility
   maintainer: arain
   vendor: arain
-  synopsis: AI investment research desk powered by OpenClaw
-  description: InvestClaw is a desktop investment research workspace that uses OpenClaw to analyze market data, filings, watchlists, and multi-step portfolio workflows.
+  synopsis: AI investment research desk by arain
+  description: InvestClaw is a desktop investment research workspace for market analysis, filings review, watchlists, and multi-step portfolio workflows.
   desktop:
     entry:
       Name: InvestClaw
-      Comment: AI investment research desk powered by OpenClaw
+      Comment: AI investment research desk by arain
       Categories: Utility;Network;
       Keywords: ai;investment;research;markets;automation;
       StartupWMClass: investclaw

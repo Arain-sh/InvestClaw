@@ -140,7 +140,7 @@ export async function launchGatewayProcess(options: {
       cwd: openclawDir,
       stdio: 'pipe',
       env: runtimeEnv as NodeJS.ProcessEnv,
-      serviceName: 'OpenClaw Gateway',
+      serviceName: 'InvestClaw Gateway',
     });
 
     let settled = false;

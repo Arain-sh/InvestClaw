@@ -11,7 +11,7 @@
         "devConsole": "開発者コンソール",
         "models": "モデル",
         "deleteSessionConfirm": "セッション \"{{label}}\" を削除してもよろしいですか？",
-        "openClawPage": "OpenClaw コンソール"
+        "openClawPage": "ランタイムコンソール"
     },
     "actions": {
         "save": "保存",
@@ -53,7 +53,7 @@
     },
     "gateway": {
         "notRunning": "ゲートウェイが停止中",
-        "notRunningDesc": "この InvestClaw 機能を使うには OpenClaw ゲートウェイが動作している必要があります。自動起動するか、設定から起動できます。",
+        "notRunningDesc": "この機能を使うには InvestClaw ゲートウェイが動作している必要があります。自動起動するか、設定から起動できます。",
         "warning": "ゲートウェイが停止中です。"
     }
 }

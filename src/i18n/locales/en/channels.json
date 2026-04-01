@@ -101,7 +101,7 @@
     "meta": {
         "telegram": {
             "description": "Connect Telegram using a bot token from @BotFather",
-            "docsUrl": "https://icnnp7d0dymg.feishu.cn/wiki/TjiGwxsMWi7hpDkDAQBc0ydMnEf#MEkKdqXP1orZU2x4SrFcdUHgnl1",
+            "docsUrl": "https://github.com/Arain-sh/InvestClaw#readme",
             "fields": {
                 "botToken": {
                     "label": "Bot Token",
@@ -123,7 +123,7 @@
         },
         "discord": {
             "description": "Connect Discord using a bot token from Developer Portal",
-            "docsUrl": "https://icnnp7d0dymg.feishu.cn/wiki/BkOywJYCAiYRN9k4KTTceKPMnxg#QS6LdxnA2oNtfcxtFc8cgabnnNd",
+            "docsUrl": "https://github.com/Arain-sh/InvestClaw#readme",
             "fields": {
                 "token": {
                     "label": "Bot Token",
@@ -151,7 +151,7 @@
         },
         "whatsapp": {
             "description": "Connect WhatsApp by scanning a QR code (no phone number required)",
-            "docsUrl": "https://icnnp7d0dymg.feishu.cn/wiki/ES7fwUfH8iGl8FkHYfFcyWB3n4d#doxcnUElomBZLi0NnKLUzn6zLbd",
+            "docsUrl": "https://github.com/Arain-sh/InvestClaw#readme",
             "instructions": [
                 "Open WhatsApp on your phone",
                 "Go to Settings > Linked Devices > Link a Device",
@@ -160,18 +160,18 @@
             ]
         },
         "wechat": {
-            "description": "Connect personal WeChat with Tencent's official OpenClaw plugin by scanning a QR code",
-            "docsUrl": "https://icnnp7d0dymg.feishu.cn/wiki/GHYZwuPCriF0gWkXwkFcJ9zon3b",
+            "description": "Connect personal WeChat with the built-in QR flow",
+            "docsUrl": "https://github.com/Arain-sh/InvestClaw#readme",
             "instructions": [
-                "Click Generate QR Code to install and enable the official WeChat plugin inside OpenClaw",
+                "Click Generate QR Code and InvestClaw will install and enable the required WeChat bridge",
                 "Scan the QR code below with WeChat and confirm the connection on your phone",
-                "After linking succeeds, a new WeChat ClawBot chat will appear in WeChat automatically",
+                "After linking succeeds, a new InvestClaw WeChat chat will appear in WeChat automatically",
                 "You can repeat the QR flow later to add another WeChat account or reconnect an existing one"
             ]
         },
         "dingtalk": {
-            "description": "Connect DingTalk via OpenClaw channel plugin (Stream mode)",
-            "docsUrl": "https://icnnp7d0dymg.feishu.cn/wiki/Y5eNwiSiZidkLskrwtJc1rUln0b#doxcnDgA78n43DbkiQjI1OqUA7b",
+            "description": "Connect DingTalk via the built-in channel bridge (Stream mode)",
+            "docsUrl": "https://github.com/Arain-sh/InvestClaw#readme",
             "fields": {
                 "clientId": {
                     "label": "Client ID (AppKey)",
@@ -195,7 +195,7 @@
                 }
             },
             "instructions": [
-                "Install and enable the dingtalk plugin in OpenClaw",
+                "Install and enable the dingtalk bridge in the runtime",
                 "Create a DingTalk internal app and enable Stream mode",
                 "Fill in Client ID and Client Secret (required)",
                 "Fill in Robot Code / Corp ID / Agent ID if your setup requires them"
@@ -203,7 +203,7 @@
         },
         "signal": {
             "description": "Connect Signal using signal-cli",
-            "docsUrl": "https://docs.openclaw.ai/channels/signal",
+            "docsUrl": "https://github.com/Arain-sh/InvestClaw#readme",
             "fields": {
                 "phoneNumber": {
                     "label": "Phone Number",
@@ -218,7 +218,7 @@
         },
         "feishu": {
             "description": "Connect Feishu/Lark bot via WebSocket",
-            "docsUrl": "https://icnnp7d0dymg.feishu.cn/wiki/GKn8wOvHnibpPNkNkPzcAvGlnzK#GdHUdp9t9oqyegxwV8ScLvVGn1c",
+            "docsUrl": "https://github.com/Arain-sh/InvestClaw#readme",
             "fields": {
                 "appId": {
                     "label": "App ID",
@@ -238,7 +238,7 @@
         },
         "wecom": {
             "description": "Connect WeCom Bot via plugin",
-            "docsUrl": "https://icnnp7d0dymg.feishu.cn/wiki/JTGnwoV0RixKPtkr4w7c7gpAnDc",
+            "docsUrl": "https://github.com/Arain-sh/InvestClaw#readme",
             "fields": {
                 "botId": {
                     "label": "Bot ID",
@@ -257,7 +257,7 @@
         },
         "imessage": {
             "description": "Connect iMessage via BlueBubbles (macOS)",
-            "docsUrl": "https://docs.openclaw.ai/channels/bluebubbles",
+            "docsUrl": "https://github.com/Arain-sh/InvestClaw#readme",
             "fields": {
                 "serverUrl": {
                     "label": "BlueBubbles Server URL",
@@ -276,7 +276,7 @@
         },
         "matrix": {
             "description": "Connect to Matrix protocol",
-            "docsUrl": "https://docs.openclaw.ai/channels/matrix",
+            "docsUrl": "https://github.com/Arain-sh/InvestClaw#readme",
             "fields": {
                 "homeserver": {
                     "label": "Homeserver URL",
@@ -295,7 +295,7 @@
         },
         "line": {
             "description": "Connect LINE Messaging API",
-            "docsUrl": "https://docs.openclaw.ai/channels/line",
+            "docsUrl": "https://github.com/Arain-sh/InvestClaw#readme",
             "fields": {
                 "channelAccessToken": {
                     "label": "Channel Access Token",
@@ -314,7 +314,7 @@
         },
         "msteams": {
             "description": "Connect Microsoft Teams via Bot Framework",
-            "docsUrl": "https://docs.openclaw.ai/channels/msteams",
+            "docsUrl": "https://github.com/Arain-sh/InvestClaw#readme",
             "fields": {
                 "appId": {
                     "label": "App ID",
@@ -334,7 +334,7 @@
         },
         "googlechat": {
             "description": "Connect Google Chat via webhook",
-            "docsUrl": "https://docs.openclaw.ai/channels/googlechat",
+            "docsUrl": "https://github.com/Arain-sh/InvestClaw#readme",
             "fields": {
                 "serviceAccountKey": {
                     "label": "Service Account JSON Path",
@@ -350,7 +350,7 @@
         },
         "mattermost": {
             "description": "Connect Mattermost via Bot API",
-            "docsUrl": "https://docs.openclaw.ai/channels/mattermost",
+            "docsUrl": "https://github.com/Arain-sh/InvestClaw#readme",
             "fields": {
                 "serverUrl": {
                     "label": "Server URL",
@@ -369,7 +369,7 @@
         },
         "qqbot": {
             "description": "Connect QQ Bot via @tencent-connect/openclaw-qqbot plugin",
-            "docsUrl": "https://icnnp7d0dymg.feishu.cn/wiki/KPIJwlyiGiupMrkiS9ice39Zn2c",
+            "docsUrl": "https://github.com/Arain-sh/InvestClaw#readme",
             "fields": {
                 "appId": {
                     "label": "App ID",

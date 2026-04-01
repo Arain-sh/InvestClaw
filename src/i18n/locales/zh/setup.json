@@ -27,7 +27,7 @@
     },
     "welcome": {
         "title": "欢迎使用 InvestClaw",
-        "description": "InvestClaw 将 OpenClaw 打造成一套桌面投研工作台，适合做市场跟踪、财报速读、观察列表维护和多步骤分析。",
+        "description": "InvestClaw 提供一套桌面投研工作台，适合做市场跟踪、财报速读、观察列表维护和多步骤分析。",
         "features": {
             "noCommand": "无需命令行配置",
             "modernUI": "面向投研的桌面工作流",
@@ -40,7 +40,7 @@
         "viewLogs": "查看日志",
         "recheck": "重新检查",
         "nodejs": "Node.js 运行时",
-        "openclaw": "OpenClaw 包",
+        "openclaw": "运行时组件",
         "gateway": "网关服务",
         "startGateway": "启动网关",
         "status": {
@@ -48,11 +48,11 @@
             "success": "Node.js 可用",
             "error": "失败",
             "gatewayRunning": "运行在端口 {{port}}",
-            "packageReady": "OpenClaw 包已就绪"
+            "packageReady": "运行时组件已就绪"
         },
         "issue": {
             "title": "检测到环境问题",
-            "desc": "请确保 OpenClaw 已正确安装。查看日志以获取详情。"
+            "desc": "请确保内置运行时已正确安装。查看日志以获取详情。"
         },
         "logs": {
             "title": "应用程序日志",

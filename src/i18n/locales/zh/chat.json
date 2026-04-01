@@ -1,6 +1,6 @@
 {
     "gatewayNotRunning": "网关未运行",
-    "gatewayRequired": "OpenClaw 网关需要运行才能使用聊天。它将自动启动，或者您可以从设置中启动。",
+    "gatewayRequired": "InvestClaw 网关需要运行才能使用聊天。它将自动启动，或者您也可以从设置中启动。",
     "welcome": {
         "title": "InvestClaw 投研台",
         "subtitle": "今天想先研究什么？",

@@ -93,10 +93,10 @@ describe('provider metadata', () => {
     expect(getProviderDocsUrl(siliconflow, 'en')).toBe('https://docs.siliconflow.cn/cn/userguide/introduction');
     expect(getProviderDocsUrl(ark, 'en')).toBe('https://www.volcengine.com/');
     expect(getProviderDocsUrl(custom, 'en')).toBe(
-      'https://icnnp7d0dymg.feishu.cn/wiki/BmiLwGBcEiloZDkdYnGc8RWnn6d#Ee1ldfvKJoVGvfxc32mcILwenth'
+      'https://github.com/Arain-sh/InvestClaw#readme'
     );
     expect(getProviderDocsUrl(custom, 'zh-CN')).toBe(
-      'https://icnnp7d0dymg.feishu.cn/wiki/BmiLwGBcEiloZDkdYnGc8RWnn6d#IWQCdfe5fobGU3xf3UGcgbLynGh'
+      'https://github.com/Arain-sh/InvestClaw#readme'
     );
   });
 

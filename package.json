@@ -26,7 +26,7 @@
             ]
         }
     },
-    "description": "InvestClaw - AI investment research desk built on OpenClaw",
+    "description": "InvestClaw - AI investment research desk by arain",
     "main": "dist-electron/main/index.js",
     "author": "arain",
     "homepage": "https://github.com/Arain-sh/InvestClaw#readme",

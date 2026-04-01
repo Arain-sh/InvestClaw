@@ -27,7 +27,7 @@
     },
     "welcome": {
         "title": "Welcome to InvestClaw",
-        "description": "InvestClaw turns OpenClaw into a desktop workspace for investment research, earnings review, watchlist tracking, and repeatable analysis.",
+        "description": "InvestClaw creates a desktop workspace for investment research, earnings review, watchlist tracking, and repeatable analysis.",
         "features": {
             "noCommand": "No CLI setup required",
             "modernUI": "Research-first desktop workflow",
@@ -40,7 +40,7 @@
         "viewLogs": "View Logs",
         "recheck": "Re-check",
         "nodejs": "Node.js Runtime",
-        "openclaw": "OpenClaw Package",
+        "openclaw": "Runtime Package",
         "gateway": "Gateway Service",
         "startGateway": "Start Gateway",
         "status": {
@@ -48,11 +48,11 @@
             "success": "Node.js is available",
             "error": "Failed",
             "gatewayRunning": "Running on port {{port}}",
-            "packageReady": "OpenClaw package ready"
+            "packageReady": "Runtime package ready"
         },
         "issue": {
             "title": "Environment issue detected",
-            "desc": "Please ensure OpenClaw is properly installed. Check the logs for details."
+            "desc": "Please ensure the embedded runtime is properly installed. Check the logs for details."
         },
         "logs": {
             "title": "Application Logs",

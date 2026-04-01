@@ -120,7 +120,7 @@ try {
 }
 
 try {
-  Add-Type -Namespace OpenClaw -Name NativeMethods -MemberDefinition @"
+  Add-Type -Namespace InvestClaw -Name NativeMethods -MemberDefinition @"
 [System.Runtime.InteropServices.DllImport("user32.dll", SetLastError = true, CharSet = System.Runtime.InteropServices.CharSet.Auto)]
 public static extern System.IntPtr SendMessageTimeout(
   System.IntPtr hWnd,
@@ -134,7 +134,7 @@ public static extern System.IntPtr SendMessageTimeout(
 "@
 
   $result = [IntPtr]::Zero
-  [OpenClaw.NativeMethods]::SendMessageTimeout(
+  [InvestClaw.NativeMethods]::SendMessageTimeout(
     [IntPtr]0xffff,
     0x001A,
     [IntPtr]::Zero,

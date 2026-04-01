@@ -310,7 +310,7 @@ jobs:
           body: |
             ## 🚀 InvestClaw ${{ github.ref_name }}
             
-            InvestClaw - Graphical AI Assistant based on OpenClaw
+            InvestClaw - Desktop investment research workspace by arain
             
             ### 📦 Downloads
             

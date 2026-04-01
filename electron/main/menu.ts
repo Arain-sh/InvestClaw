@@ -185,13 +185,6 @@ export function createMenu(): void {
             await shell.openExternal('https://github.com/Arain-sh/InvestClaw/issues');
           },
         },
-        { type: 'separator' },
-        {
-          label: 'OpenClaw Documentation',
-          click: async () => {
-            await shell.openExternal('https://docs.openclaw.ai');
-          },
-        },
       ],
     },
   ];

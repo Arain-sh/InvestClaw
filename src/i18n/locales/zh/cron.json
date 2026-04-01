@@ -57,7 +57,7 @@
         "noDeliveryTargets": "当前飞书账号暂无可选投递目标。",
         "deliveryTargetPlaceholder": "输入该通道的投递目标",
         "deliveryTargetPlaceholderFeishu": "例如：user:ou_xxx 或 chat:oc_xxx",
-        "deliveryTargetDesc": "这里会直接写入 OpenClaw 的 delivery.to。",
+        "deliveryTargetDesc": "这里会直接写入运行时的 delivery.to。",
         "deliveryTargetDescFeishu": "飞书可以填写用户目标 user:ou_xxx，或群聊目标 chat:oc_xxx。",
         "deliveryTargetDescAuto": "这里会展示该通道账号下已发现的可投递目标。",
         "deliveryTargetDescFeishuSelect": "请从可用的飞书用户或群聊中直接选择已校验的目标。",

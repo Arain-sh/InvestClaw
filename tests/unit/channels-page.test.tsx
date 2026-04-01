@@ -141,7 +141,7 @@ describe('Channels page status refresh', () => {
               accounts: [
                 {
                   accountId: 'wx-bot-im-bot',
-                  name: 'WeChat ClawBot',
+                  name: 'WeChat QR Account',
                   configured: true,
                   status: 'connected',
                   isDefault: true,
