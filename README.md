@@ -22,9 +22,6 @@
   <img src="https://img.shields.io/badge/platform-MacOS%20%7C%20Windows%20%7C%20Linux-blue" alt="Platform" />
   <img src="https://img.shields.io/badge/electron-40+-47848F?logo=electron" alt="Electron" />
   <img src="https://img.shields.io/badge/react-19-61DAFB?logo=react" alt="React" />
-  <a href="https://discord.com/invite/84Kex3GGAh" target="_blank">
-  <img src="https://img.shields.io/discord/1399603591471435907?logo=discord&labelColor=%20%235462eb&logoColor=%20%23f5f5f5&color=%20%235462eb" alt="chat on Discord" />
-  </a>
   <img src="https://img.shields.io/github/downloads/Arain-sh/InvestClaw/total?color=%23027DEB" alt="Downloads" />
   <img src="https://img.shields.io/badge/license-MIT-green" alt="License" />
 </p>
@@ -405,7 +402,7 @@ Add future Electron flows under `tests/e2e/` and reuse the shared fixture in
 
 ## Contributing
 
-We welcome contributions from the community! Whether it's bug fixes, new features, documentation improvements, or translations—every contribution helps make InvestClaw better.
+We welcome contributions! Whether it's bug fixes, new features, documentation improvements, or translations, every contribution helps make InvestClaw better.
 
 ### How to Contribute
 
@@ -433,34 +430,6 @@ InvestClaw is built on the shoulders of excellent open-source projects:
 - [React](https://react.dev/) – UI component library
 - [shadcn/ui](https://ui.shadcn.com/) – Beautifully designed components
 - [Zustand](https://github.com/pmndrs/zustand) – Lightweight state management
-
----
-
-## Community
-
-Join our community to connect with other users, get support, and share your experiences.
-
-| Enterprise WeChat | Feishu Group | Discord |
-| :---: | :---: | :---: |
-| <img src="src/assets/community/wecom-qr.png" width="150" alt="WeChat QR Code" /> | <img src="src/assets/community/feishu-qr.png" width="150" alt="Feishu QR Code" /> | <img src="src/assets/community/20260212-185822.png" width="150" alt="Discord QR Code" /> |
-
-### InvestClaw Partner Program 🚀
-
-We're launching the InvestClaw Partner Program and looking for partners who can help introduce InvestClaw to more clients, especially those with custom AI agent or automation needs.
-
-Partners help connect us with potential users and projects, while the InvestClaw team provides full technical support, customization, and integration.
-
-If you work with clients interested in AI tools or automation, we'd love to collaborate.
-
-Open an [Issue](https://github.com/Arain-sh/InvestClaw/issues) or start a [Discussion](https://github.com/Arain-sh/InvestClaw/discussions) to get in touch.
-
----
-
-## Star History
-
-<p align="center">
-  <img src="https://api.star-history.com/svg?repos=Arain-sh/InvestClaw&type=Date" alt="Star History Chart" />
-</p>
 
 ---
 

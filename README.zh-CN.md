@@ -22,9 +22,6 @@
   <img src="https://img.shields.io/badge/platform-MacOS%20%7C%20Windows%20%7C%20Linux-blue" alt="Platform" />
   <img src="https://img.shields.io/badge/electron-40+-47848F?logo=electron" alt="Electron" />
   <img src="https://img.shields.io/badge/react-19-61DAFB?logo=react" alt="React" />
-  <a href="https://discord.com/invite/84Kex3GGAh" target="_blank">
-  <img src="https://img.shields.io/discord/1399603591471435907?logo=discord&labelColor=%20%235462eb&logoColor=%20%23f5f5f5&color=%20%235462eb" alt="chat on Discord" />
-  </a>
   <img src="https://img.shields.io/github/downloads/Arain-sh/InvestClaw/total?color=%23027DEB" alt="Downloads" />
   <img src="https://img.shields.io/badge/license-MIT-green" alt="License" />
 </p>
@@ -381,7 +378,7 @@ CI 中的 `comms-regression` 会校验必选场景与阈值。
 
 ## 参与贡献
 
-我们欢迎社区的各种贡献！无论是修复 Bug、开发新功能、改进文档还是翻译——每一份贡献都让 InvestClaw 变得更好。
+我们欢迎各种贡献！无论是修复 Bug、开发新功能、改进文档还是翻译，每一份贡献都让 InvestClaw 变得更好。
 
 ### 如何贡献
 
@@ -409,34 +406,6 @@ InvestClaw 构建于以下优秀的开源项目之上：
 - [React](https://react.dev/) – UI 组件库
 - [shadcn/ui](https://ui.shadcn.com/) – 精美设计的组件库
 - [Zustand](https://github.com/pmndrs/zustand) – 轻量级状态管理
-
----
-
-## 社区
-
-加入我们的社区，与其他用户交流、获取帮助、分享你的使用体验。
-
-| 企业微信 | 飞书群组 | Discord |
-| :---: | :---: | :---: |
-| <img src="src/assets/community/wecom-qr.png" width="150" alt="企业微信二维码" /> | <img src="src/assets/community/feishu-qr.png" width="150" alt="飞书二维码" /> | <img src="src/assets/community/20260212-185822.png" width="150" alt="Discord 二维码" /> |
-
-### InvestClaw 合作伙伴计划 🚀
-
-我们正在启动 InvestClaw 合作伙伴计划，寻找能够帮助我们将 InvestClaw 介绍给更多客户的合作伙伴，尤其是那些有定制化 AI 智能体或自动化需求的客户。
-
-合作伙伴负责帮助我们连接潜在用户和项目，InvestClaw 团队则提供完整的技术支持、定制开发与集成服务。
-
-如果你服务的客户对 AI 工具或自动化方案感兴趣，欢迎与我们合作。
-
-欢迎通过 [Issues](https://github.com/Arain-sh/InvestClaw/issues) 或 [Discussions](https://github.com/Arain-sh/InvestClaw/discussions) 与我们联系。
-
----
-
-## Stars 历史
-
-<p align="center">
-  <img src="https://api.star-history.com/svg?repos=Arain-sh/InvestClaw&type=Date" alt="Stars 历史图表" />
-</p>
 
 ---
 
