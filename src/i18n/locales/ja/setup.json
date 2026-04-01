@@ -1,0 +1,152 @@
+{
+    "steps": {
+        "welcome": {
+            "title": "InvestClawへようこそ",
+            "description": "投資リサーチ用ワークスペースの準備が整いました"
+        },
+        "runtime": {
+            "title": "環境チェック",
+            "description": "システム要件を確認中"
+        },
+        "provider": {
+            "title": "AIプロバイダー",
+            "description": "AIサービスを構成"
+        },
+        "channel": {
+            "title": "チャンネル接続",
+            "description": "メッセージングプラットフォームを接続（オプション）"
+        },
+        "installing": {
+            "title": "セットアップ中",
+            "description": "必須コンポーネントをインストール中"
+        },
+        "complete": {
+            "title": "完了！",
+            "description": "InvestClaw で投資分析を始められます"
+        }
+    },
+    "welcome": {
+        "title": "InvestClawへようこそ",
+        "description": "InvestClaw は OpenClaw を、マーケット分析、決算レビュー、ウォッチリスト管理、継続的な投資調査に使いやすいデスクトップ環境へ変えます。",
+        "features": {
+            "noCommand": "コマンドライン設定不要",
+            "modernUI": "投資調査向けのワークフロー",
+            "bundles": "文書解析と検索を標準搭載",
+            "crossPlatform": "クロスプラットフォーム対応"
+        }
+    },
+    "runtime": {
+        "title": "環境をチェック中",
+        "viewLogs": "ログを表示",
+        "recheck": "再チェック",
+        "nodejs": "Node.js ランタイム",
+        "openclaw": "OpenClaw パッケージ",
+        "gateway": "ゲートウェイサービス",
+        "startGateway": "ゲートウェイを起動",
+        "status": {
+            "checking": "確認中...",
+            "success": "Node.js は利用可能です",
+            "error": "失敗",
+            "gatewayRunning": "ポート {{port}} で実行中",
+            "packageReady": "OpenClaw パッケージ準備完了"
+        },
+        "issue": {
+            "title": "環境の問題が検出されました",
+            "desc": "OpenClawが正しくインストールされていることを確認してください。詳細はログを確認してください。"
+        },
+        "logs": {
+            "title": "アプリケーションログ",
+            "openFolder": "ログフォルダを開く",
+            "close": "閉じる",
+            "noLogs": "（ログはまだありません）"
+        }
+    },
+    "provider": {
+        "label": "モデルプロバイダー",
+        "selectPlaceholder": "プロバイダーを選択...",
+        "baseUrl": "ベース URL",
+        "modelId": "モデル ID",
+        "modelIdDesc": "プロバイダーのモデル識別子（例：deepseek-ai/DeepSeek-V3）",
+        "codePlanPreset": "Code Plan プリセット",
+        "codePlanMode": "Code Plan",
+        "useCodePlanPreset": "Ark Code Plan プリセットを使用",
+        "codePlanPresetDesc": "Code Plan は https://ark.cn-beijing.volces.com/api/coding/v3 と model ark-code-latest を使います。Code Plan 通信に /api/v3 を使わないでください。",
+        "codePlanDoc": "Code Plan ドキュメント",
+        "protocol": "プロトコル",
+        "protocols": {
+            "openaiCompletions": "OpenAI Completions",
+            "openaiResponses": "OpenAI Responses",
+            "anthropic": "Anthropic 互換"
+        },
+        "apiKey": "API キー",
+        "save": "保存",
+        "validateSave": "検証して保存",
+        "valid": "プロバイダーが正常に構成されました",
+        "invalid": "無効な API キー",
+        "storedLocally": "API キーはローカルマシンに保存されます。"
+    },
+    "channel": {
+        "title": "メッセージングチャンネルを接続",
+        "subtitle": "AIアシスタントを接続するプラットフォームを選択してください。チャンネルは後で設定で追加できます。",
+        "configure": "{{name}} を構成",
+        "howTo": "接続方法：",
+        "viewDocs": "ドキュメントを表示",
+        "validationError": "検証に失敗しました",
+        "connected": "{{name}} 接続済み",
+        "connectedDesc": "チャンネルが構成されました。ゲートウェイ起動時に接続されます。",
+        "configureAnother": "別のチャンネルを構成"
+    },
+    "installing": {
+        "title": "必須コンポーネントをインストール中",
+        "subtitle": "投資リサーチを支えるツールをセットアップしています",
+        "progress": "進捗",
+        "status": {
+            "pending": "待機中",
+            "installing": "インストール中...",
+            "installed": "インストール済み",
+            "failed": "失敗"
+        },
+        "error": "セットアップエラー：",
+        "restart": "アプリを再起動してください",
+        "wait": "これには少し時間がかかる場合があります...",
+        "skip": "この手順をスキップ"
+    },
+    "complete": {
+        "title": "セットアップ完了！",
+        "subtitle": "InvestClaw の準備が整いました。相場、決算、投資アイデアの分析を始められます。",
+        "provider": "AI プロバイダー",
+        "components": "コンポーネント",
+        "gateway": "ゲートウェイ",
+        "running": "実行中",
+        "footer": "設定からスキル、Agent、チャンネルをさらに調整できます"
+    },
+    "nav": {
+        "next": "次へ",
+        "back": "戻る",
+        "skipStep": "この手順をスキップ",
+        "skipSetup": "セットアップをスキップ",
+        "getStarted": "始める"
+    },
+    "defaultSkills": {
+        "market-intel": {
+            "name": "マーケット情報",
+            "description": "日次の相場要約と材料整理"
+        },
+        "earnings-digest": {
+            "name": "決算ダイジェスト",
+            "description": "決算資料とガイダンスの要約"
+        },
+        "portfolio-watch": {
+            "name": "ポートフォリオ監視",
+            "description": "ウォッチリストとリスクメモの管理"
+        },
+        "filings-lab": {
+            "name": "資料ラボ",
+            "description": "PDF や表計算ファイルの解析"
+        },
+        "quant-workbench": {
+            "name": "クオンツ作業台",
+            "description": "データ分析向け Python 環境"
+        }
+    }
+}

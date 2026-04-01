@@ -1,0 +1,45 @@
+{
+    "gatewayNotRunning": "网关未运行",
+    "gatewayRequired": "OpenClaw 网关需要运行才能使用聊天。它将自动启动，或者您可以从设置中启动。",
+    "welcome": {
+        "title": "InvestClaw 投研台",
+        "subtitle": "今天想先研究什么？",
+        "askQuestions": "市场快照",
+        "askQuestionsDesc": "快速生成盘前/盘后要点",
+        "askQuestionsPrompt": "请帮我生成一份今天的市场快照，覆盖主要指数、行业轮动、宏观催化剂，以及需要重点关注的风险点。",
+        "creativeTasks": "财报速读",
+        "creativeTasksDesc": "提炼财报、纪要和管理层指引",
+        "creativeTasksPrompt": "请帮我速读目标公司的最新财报，提炼收入驱动、利润率变化、管理层指引，以及最关键的多空观点。",
+        "brainstorming": "策略复盘",
+        "brainstormingPrompt": "请帮我评估一个波段交易想法，列出交易逻辑、催化剂、失效条件、风控要点，以及下单前还需要确认的问题。"
+    },
+    "noLogs": "（暂无日志）",
+    "toolbar": {
+        "refresh": "刷新聊天",
+        "showThinking": "显示思考过程",
+        "hideThinking": "隐藏思考过程",
+        "currentAgent": "当前对话对象：{{agent}}"
+    },
+    "composer": {
+        "attachFiles": "添加文件",
+        "pickAgent": "选择 Agent",
+        "clearTarget": "清除目标 Agent",
+        "targetChip": "@{{agent}}",
+        "agentPickerTitle": "将下一条消息直接发送给其他 Agent",
+        "gatewayDisconnectedPlaceholder": "网关未连接...",
+        "placeholder": "询问市场、财报、估值、观察列表或交易策略...",
+        "send": "发送",
+        "stop": "停止",
+        "gatewayConnected": "已连接",
+        "gatewayStatus": "gateway {{state}} | port: {{port}} {{pid}}",
+        "retryFailedAttachments": "重试失败的附件"
+    },
+    "historyBuckets": {
+        "today": "今天",
+        "yesterday": "昨天",
+        "withinWeek": "一周内",
+        "withinTwoWeeks": "两周内",
+        "withinMonth": "一个月内",
+        "older": "一个月之前"
+    }
+}

@@ -1,0 +1,45 @@
+{
+    "gatewayNotRunning": "Gateway Not Running",
+    "gatewayRequired": "The OpenClaw Gateway needs to be running to use chat. It will start automatically, or you can start it from Settings.",
+    "welcome": {
+        "title": "InvestClaw Research",
+        "subtitle": "What should we analyze today?",
+        "askQuestions": "Market Snapshot",
+        "askQuestionsDesc": "Build a structured pre-market or post-market brief",
+        "askQuestionsPrompt": "Build me a market snapshot for today covering major indexes, sector rotation, macro catalysts, and the biggest risk items to watch.",
+        "creativeTasks": "Earnings Digest",
+        "creativeTasksDesc": "Summarize filings, transcripts, and management guidance",
+        "creativeTasksPrompt": "Summarize the latest earnings report for my target company, highlight revenue drivers, margin changes, management guidance, and the key bullish and bearish takeaways.",
+        "brainstorming": "Strategy Review",
+        "brainstormingPrompt": "Review a swing-trading idea for me: list the setup, catalysts, invalidation level, risk controls, and the questions I still need to answer before taking the trade."
+    },
+    "noLogs": "(No logs available yet)",
+    "toolbar": {
+        "refresh": "Refresh chat",
+        "showThinking": "Show thinking",
+        "hideThinking": "Hide thinking",
+        "currentAgent": "Talking to {{agent}}"
+    },
+    "composer": {
+        "attachFiles": "Attach files",
+        "pickAgent": "Choose agent",
+        "clearTarget": "Clear target agent",
+        "targetChip": "@{{agent}}",
+        "agentPickerTitle": "Route the next message to another agent",
+        "gatewayDisconnectedPlaceholder": "Gateway not connected...",
+        "placeholder": "Ask about markets, filings, watchlists, valuation, or strategy ideas...",
+        "send": "Send",
+        "stop": "Stop",
+        "gatewayConnected": "connected",
+        "gatewayStatus": "gateway {{state}} | port: {{port}} {{pid}}",
+        "retryFailedAttachments": "Retry failed attachments"
+    },
+    "historyBuckets": {
+        "today": "Today",
+        "yesterday": "Yesterday",
+        "withinWeek": "Within 1 Week",
+        "withinTwoWeeks": "Within 2 Weeks",
+        "withinMonth": "Within 1 Month",
+        "older": "Older than 1 Month"
+    }
+}

@@ -1,0 +1,152 @@
+{
+    "steps": {
+        "welcome": {
+            "title": "欢迎使用 InvestClaw",
+            "description": "您的投资研究工作台已准备好进行配置"
+        },
+        "runtime": {
+            "title": "环境检查",
+            "description": "验证系统要求"
+        },
+        "provider": {
+            "title": "AI 提供商",
+            "description": "配置您的 AI 服务"
+        },
+        "channel": {
+            "title": "连接渠道",
+            "description": "连接消息平台（可选）"
+        },
+        "installing": {
+            "title": "设置中",
+            "description": "安装必要组件"
+        },
+        "complete": {
+            "title": "准备就绪！",
+            "description": "InvestClaw 已可用于投研分析"
+        }
+    },
+    "welcome": {
+        "title": "欢迎使用 InvestClaw",
+        "description": "InvestClaw 将 OpenClaw 打造成一套桌面投研工作台，适合做市场跟踪、财报速读、观察列表维护和多步骤分析。",
+        "features": {
+            "noCommand": "无需命令行配置",
+            "modernUI": "面向投研的桌面工作流",
+            "bundles": "内置文档解析与搜索能力",
+            "crossPlatform": "跨平台且开箱即用"
+        }
+    },
+    "runtime": {
+        "title": "检查环境",
+        "viewLogs": "查看日志",
+        "recheck": "重新检查",
+        "nodejs": "Node.js 运行时",
+        "openclaw": "OpenClaw 包",
+        "gateway": "网关服务",
+        "startGateway": "启动网关",
+        "status": {
+            "checking": "检查中...",
+            "success": "Node.js 可用",
+            "error": "失败",
+            "gatewayRunning": "运行在端口 {{port}}",
+            "packageReady": "OpenClaw 包已就绪"
+        },
+        "issue": {
+            "title": "检测到环境问题",
+            "desc": "请确保 OpenClaw 已正确安装。查看日志以获取详情。"
+        },
+        "logs": {
+            "title": "应用程序日志",
+            "openFolder": "打开日志文件夹",
+            "close": "关闭",
+            "noLogs": "（暂无日志）"
+        }
+    },
+    "provider": {
+        "label": "模型提供商",
+        "selectPlaceholder": "选择提供商...",
+        "baseUrl": "基础 URL",
+        "modelId": "模型 ID",
+        "modelIdDesc": "提供商的模型标识符（例如 deepseek-ai/DeepSeek-V3）",
+        "codePlanPreset": "Code Plan 预设",
+        "codePlanMode": "Code Plan",
+        "useCodePlanPreset": "使用 Ark Code Plan 预设",
+        "codePlanPresetDesc": "Code Plan 使用 https://ark.cn-beijing.volces.com/api/coding/v3 与模型 ark-code-latest。请勿把 /api/v3 用于 Code Plan 流量。",
+        "codePlanDoc": "Code Plan 文档",
+        "protocol": "协议",
+        "protocols": {
+            "openaiCompletions": "OpenAI Completions",
+            "openaiResponses": "OpenAI Responses",
+            "anthropic": "Anthropic 兼容"
+        },
+        "apiKey": "API 密钥",
+        "save": "保存",
+        "validateSave": "验证并保存",
+        "valid": "提供商配置成功",
+        "invalid": "无效的 API 密钥",
+        "storedLocally": "您的 API 密钥存储在本地机器上。"
+    },
+    "channel": {
+        "title": "连接消息渠道",
+        "subtitle": "选择要连接 AI 助手的平台。您可以稍后在设置中添加更多渠道。",
+        "configure": "配置 {{name}}",
+        "howTo": "如何连接：",
+        "viewDocs": "查看文档",
+        "validationError": "验证失败",
+        "connected": "{{name}} 已连接",
+        "connectedDesc": "您的渠道已配置。将在网关启动时连接。",
+        "configureAnother": "配置另一个渠道"
+    },
+    "installing": {
+        "title": "安装必要组件",
+        "subtitle": "正在安装支撑投研流程所需的核心工具",
+        "progress": "进度",
+        "status": {
+            "pending": "等待中",
+            "installing": "安装中...",
+            "installed": "已安装",
+            "failed": "失败"
+        },
+        "error": "设置错误：",
+        "restart": "尝试重启应用",
+        "wait": "这可能需要一点时间...",
+        "skip": "跳过此步骤"
+    },
+    "complete": {
+        "title": "设置完成！",
+        "subtitle": "InvestClaw 已配置完成，可以开始分析市场、财报和投资想法。",
+        "provider": "AI 提供商",
+        "components": "组件",
+        "gateway": "网关",
+        "running": "运行中",
+        "footer": "您可以在设置中继续调整技能、Agent 和外部通道"
+    },
+    "nav": {
+        "next": "下一步",
+        "back": "返回",
+        "skipStep": "跳过此步骤",
+        "skipSetup": "跳过设置",
+        "getStarted": "开始使用"
+    },
+    "defaultSkills": {
+        "market-intel": {
+            "name": "市场情报",
+            "description": "生成每日市场脉搏与催化剂跟踪"
+        },
+        "earnings-digest": {
+            "name": "财报速读",
+            "description": "解析财报、纪要与管理层指引"
+        },
+        "portfolio-watch": {
+            "name": "组合观察",
+            "description": "维护观察列表与风险备注"
+        },
+        "filings-lab": {
+            "name": "文档工坊",
+            "description": "处理 PDF、表格和投研文档"
+        },
+        "quant-workbench": {
+            "name": "量化工作台",
+            "description": "用于数据分析的 Python 环境"
+        }
+    }
+}
