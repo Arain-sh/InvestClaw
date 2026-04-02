@@ -44,7 +44,7 @@ interface SkillDetailDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onToggle: (enabled: boolean) => void;
-  onUninstall?: (slug: string) => void;
+  onUninstall?: (skill: Skill) => void;
   onOpenFolder?: (skill: Skill) => Promise<void> | void;
 }
 
@@ -60,6 +60,7 @@ function resolveSkillSourceLabel(skill: Skill, t: TFunction<'skills'>): string {
   if (source === 'openclaw-extra') return t('source.badge.extra', { defaultValue: 'Extra dirs' });
   if (source === 'agents-skills-personal') return t('source.badge.agentsPersonal', { defaultValue: 'Personal .agents' });
   if (source === 'agents-skills-project') return t('source.badge.agentsProject', { defaultValue: 'Project .agents' });
+  if (source === 'aime-official') return t('source.badge.aimeOfficial', { defaultValue: 'AIME Official' });
   return source;
 }
 
@@ -362,7 +363,7 @@ function SkillDetailDialog({ skill, isOpen, onClose, onToggle, onUninstall, onOp
                 className="flex-1 h-[42px] text-[13px] rounded-full font-semibold shadow-sm bg-transparent border-black/20 dark:border-white/20 hover:bg-black/5 dark:hover:bg-white/5 transition-colors text-foreground/80 hover:text-foreground"
                 onClick={() => {
                   if (!skill.isBundled && onUninstall && skill.slug) {
-                    onUninstall(skill.slug);
+                    onUninstall(skill);
                     onClose();
                   } else {
                     onToggle(!skill.enabled);
@@ -568,9 +569,9 @@ export function Skills() {
     return () => clearTimeout(timer);
   }, [installQuery, installSheetOpen, searchSkills]);
 
-  const handleInstall = useCallback(async (slug: string) => {
+  const handleInstall = useCallback(async (slug: string, version?: string, source?: string) => {
     try {
-      await installSkill(slug);
+      await installSkill(slug, { version, source });
       await enableSkill(slug);
       toast.success(t('toast.installed'));
     } catch (err) {
@@ -583,9 +584,11 @@ export function Skills() {
     }
   }, [installSkill, enableSkill, t, skillsDirPath]);
 
-  const handleUninstall = useCallback(async (slug: string) => {
+  const handleUninstall = useCallback(async (skillOrSlug: Skill | string, source?: string) => {
+    const slug = typeof skillOrSlug === 'string' ? skillOrSlug : (skillOrSlug.slug || skillOrSlug.id);
+    const uninstallSource = typeof skillOrSlug === 'string' ? source : skillOrSlug.source;
     try {
-      await uninstallSkill(slug);
+      await uninstallSkill(slug, uninstallSource);
       toast.success(t('toast.uninstalled'));
     } catch (err) {
       toast.error(t('toast.failedUninstall') + ': ' + String(err));
@@ -879,10 +882,18 @@ export function Skills() {
                             {skill.author && (
                               <span className="text-xs text-muted-foreground">• {skill.author}</span>
                             )}
+                            {skill.source === 'aime-official' && (
+                              <Badge variant="secondary" className="px-1.5 py-0 h-5 text-[10px] font-medium bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-0 shadow-none">
+                                {t('marketplace.sourceAimeOfficial')}
+                              </Badge>
+                            )}
                           </div>
                           <p className="text-[13.5px] text-muted-foreground line-clamp-1 pr-6 leading-relaxed">
                             {skill.description}
                           </p>
+                          <div className="mt-1 flex items-center gap-2 text-[11px] text-foreground/55">
+                            <span>{skill.source === 'aime-official' ? t('marketplace.sourceAimeOfficial') : t('marketplace.sourceOpenClaw')}</span>
+                          </div>
                         </div>
                       </div>
                       <div className="flex items-center gap-4 shrink-0" onClick={e => e.stopPropagation()}>
@@ -895,7 +906,7 @@ export function Skills() {
                           <Button
                             variant="destructive"
                             size="sm"
-                            onClick={() => handleUninstall(skill.slug)}
+                            onClick={() => handleUninstall(skill.slug, skill.source)}
                             disabled={isInstallLoading}
                             className="h-8 shadow-none"
                           >
@@ -905,7 +916,7 @@ export function Skills() {
                           <Button
                             variant="default"
                             size="sm"
-                            onClick={() => handleInstall(skill.slug)}
+                            onClick={() => handleInstall(skill.slug, skill.version, skill.source)}
                             disabled={isInstallLoading}
                             className="h-8 px-4 rounded-full shadow-none font-medium text-xs"
                           >

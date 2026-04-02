@@ -113,6 +113,7 @@ Known limitation: WeChat is intentionally excluded from supported cron delivery 
 
 ### 🧩 Extensible Skill System
 Extend your AI agents with pre-built skills. Browse, install, and manage skills through the integrated skill panel—no package managers required.
+The marketplace now includes **AIME Official Skills** alongside the existing marketplace catalog, so investment-specific official skills can be searched and installed directly from the Skills page.
 InvestClaw also pre-bundles full document-processing skills (`pdf`, `xlsx`, `docx`, `pptx`), deploys them automatically to the managed skills directory (default `~/.openclaw/skills`) on startup, and enables them by default on first install. Additional bundled skills (`find-skills`, `self-improving-agent`, `tavily-search`, `brave-web-search`) are also enabled by default; if required API keys are missing, the runtime will surface configuration errors.  
 The Skills page can display skills discovered from multiple runtime sources (managed dir, workspace, and extra skill dirs), and now shows each skill's actual location so you can open the real folder directly.
 

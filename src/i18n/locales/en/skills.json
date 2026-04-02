@@ -65,6 +65,7 @@
             "extra": "Extra dirs",
             "agentsPersonal": "Personal .agents",
             "agentsProject": "Project .agents",
+            "aimeOfficial": "AIME Official",
             "unknown": "Unknown source"
         }
     },
@@ -98,9 +99,11 @@
     "marketplace": {
         "title": "Marketplace",
         "installDialogTitle": "Install Skills",
-        "installDialogSubtitle": "Browse Explore by default, or enter keywords to search.",
+        "installDialogSubtitle": "AIME Official and marketplace results are shown by default. Enter a keyword to search.",
         "sourceLabel": "Source",
-        "sourceMarketplace": "Marketplace",
+        "sourceMarketplace": "AIME Official + Marketplace",
+        "sourceAimeOfficial": "AIME Official",
+        "sourceOpenClaw": "Marketplace",
         "securityNote": "Click a skill card to review its documentation and safety notes before installation.",
         "manualInstallHint": "Network issues? You can always download skill ZIP archives from the marketplace and extract them manually into \"{{path}}\".",
         "searching": "Searching marketplace...",

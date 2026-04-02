@@ -150,11 +150,30 @@ export function getOpenClawEntryPath(): string {
   return join(getOpenClawDir(), 'openclaw.mjs');
 }
 
+function resolveNodeModulesCandidate(...segments: string[]): string {
+  const appPath = getElectronApp().getAppPath();
+  const candidates = getElectronApp().isPackaged
+    ? [join(appPath, 'node_modules', ...segments)]
+    : [
+        join(process.cwd(), 'node_modules', ...segments),
+        join(appPath, 'node_modules', ...segments),
+        join(__dirname, '../../node_modules', ...segments),
+      ];
+
+  for (const candidate of candidates) {
+    if (existsSync(candidate)) {
+      return candidate;
+    }
+  }
+
+  return candidates[0];
+}
+
 /**
  * Get ClawHub CLI entry script path (clawdhub.js)
  */
 export function getClawHubCliEntryPath(): string {
-  return join(getElectronApp().getAppPath(), 'node_modules', 'clawhub', 'bin', 'clawdhub.js');
+  return resolveNodeModulesCandidate('clawhub', 'bin', 'clawdhub.js');
 }
 
 /**
@@ -162,7 +181,7 @@ export function getClawHubCliEntryPath(): string {
  */
 export function getClawHubCliBinPath(): string {
   const binName = process.platform === 'win32' ? 'clawhub.cmd' : 'clawhub';
-  return join(getElectronApp().getAppPath(), 'node_modules', '.bin', binName);
+  return resolveNodeModulesCandidate('.bin', binName);
 }
 
 /**

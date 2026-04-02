@@ -43,6 +43,7 @@ test.describe('InvestClaw Electron smoke flows', () => {
     await page.getByTestId('skills-open-install-button').click();
     await expect(page.getByTestId('skills-install-sheet')).toBeVisible();
     await expect(page.getByTestId('skills-marketplace-source')).toBeVisible();
+    await expect(page.getByTestId('skills-marketplace-source')).toContainText('AIME');
     await expect(page.getByText('ClawHub')).toHaveCount(0);
   });
 

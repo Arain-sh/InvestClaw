@@ -65,6 +65,7 @@
             "extra": "额外目录",
             "agentsPersonal": "个人 .agents",
             "agentsProject": "项目 .agents",
+            "aimeOfficial": "AIME 官方",
             "unknown": "未知来源"
         }
     },
@@ -98,9 +99,11 @@
     "marketplace": {
         "title": "市场",
         "installDialogTitle": "安装技能",
-        "installDialogSubtitle": "默认展示 Explore，输入关键词后执行搜索。",
+        "installDialogSubtitle": "默认展示 AIME Official 与技能市场结果，输入关键词后执行搜索。",
         "sourceLabel": "来源",
-        "sourceMarketplace": "技能市场",
+        "sourceMarketplace": "AIME Official + 技能市场",
+        "sourceAimeOfficial": "AIME 官方",
+        "sourceOpenClaw": "技能市场",
         "securityNote": "安装前请点击技能卡片，先查看其文档和安全提示。",
         "manualInstallHint": "遇到网络问题？您可以随时从技能市场下载技能压缩包，并将其解压至 \"{{path}}\" 目录来完成手动安装。",
         "searching": "正在搜索技能市场...",

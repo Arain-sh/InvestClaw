@@ -65,6 +65,7 @@
             "extra": "追加ディレクトリ",
             "agentsPersonal": "個人 .agents",
             "agentsProject": "プロジェクト .agents",
+            "aimeOfficial": "AIME 公式",
             "unknown": "不明なソース"
         }
     },
@@ -98,9 +99,11 @@
     "marketplace": {
         "title": "マーケットプレイス",
         "installDialogTitle": "スキルをインストール",
-        "installDialogSubtitle": "初期表示は Explore、キーワード入力時は検索します。",
+        "installDialogSubtitle": "既定では AIME Official とマーケットプレイス結果を表示します。キーワードを入力すると検索します。",
         "sourceLabel": "ソース",
-        "sourceMarketplace": "マーケットプレイス",
+        "sourceMarketplace": "AIME Official + マーケットプレイス",
+        "sourceAimeOfficial": "AIME 公式",
+        "sourceOpenClaw": "マーケットプレイス",
         "securityNote": "インストール前にスキルカードをクリックして、ドキュメントと安全情報を確認してください。",
         "manualInstallHint": "ネットワークに問題がありますか？いつでもマーケットプレイスからスキルのZIPをダウンロードし、手動で \"{{path}}\" に展開してインストールできます。",
         "searching": "マーケットプレイスを検索中...",

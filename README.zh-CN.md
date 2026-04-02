@@ -114,6 +114,7 @@ InvestClaw 现在还内置了个人微信渠道桥接能力，可直接在 Chann
 
 ### 🧩 可扩展技能系统
 通过预构建的技能扩展 AI 智能体的能力。在集成的技能面板中浏览、安装和管理技能——无需包管理器。
+现在技能市场已经接入 **AIME Official Skills**，可以直接在 Skills 页面搜索并安装适合投研场景的官方技能。
 InvestClaw 还会内置预装完整的文档处理技能（`pdf`、`xlsx`、`docx`、`pptx`），在启动时自动部署到托管技能目录（默认 `~/.openclaw/skills`），并在首次安装时默认启用。额外预装技能（`find-skills`、`self-improving-agent`、`tavily-search`、`brave-web-search`）也会默认启用；若缺少必需的 API Key，运行时会直接给出配置错误提示。  
 Skills 页面可展示来自多个运行时来源的技能（托管目录、workspace、额外技能目录），并显示每个技能的实际路径，便于直接打开真实安装位置。
 

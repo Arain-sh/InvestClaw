@@ -36,6 +36,8 @@ type ClawHubListResult = {
   baseDir?: string;
 };
 
+type InstalledMarketplaceSkillResult = ClawHubListResult;
+
 function mapErrorCodeToSkillErrorKey(
   code: AppError['code'],
   operation: 'fetch' | 'search' | 'install',
@@ -69,8 +71,8 @@ interface SkillsState {
   // Actions
   fetchSkills: () => Promise<void>;
   searchSkills: (query: string) => Promise<void>;
-  installSkill: (slug: string, version?: string) => Promise<void>;
-  uninstallSkill: (slug: string) => Promise<void>;
+  installSkill: (slug: string, options?: { version?: string; source?: string }) => Promise<void>;
+  uninstallSkill: (slug: string, source?: string) => Promise<void>;
   enableSkill: (skillId: string) => Promise<void>;
   disableSkill: (skillId: string) => Promise<void>;
   setSkills: (skills: Skill[]) => void;
@@ -95,8 +97,8 @@ export const useSkillsStore = create<SkillsState>((set, get) => ({
       // 1. Fetch from Gateway (running skills)
       const gatewayData = await useGatewayStore.getState().rpc<GatewaySkillsStatusResult>('skills.status');
 
-      // 2. Fetch from ClawHub (installed on disk)
-      const clawhubResult = await hostApiFetch<{ success: boolean; results?: ClawHubListResult[]; error?: string }>('/api/clawhub/list');
+      // 2. Fetch from installed marketplace sources on disk
+      const marketplaceResult = await hostApiFetch<{ success: boolean; results?: InstalledMarketplaceSkillResult[]; error?: string }>('/api/skills/marketplace/list');
 
       // 3. Fetch configurations directly from Electron (since Gateway doesn't return them)
       const configResult = await hostApiFetch<Record<string, { apiKey?: string; env?: Record<string, string> }>>('/api/skills/configs');
@@ -135,16 +137,19 @@ export const useSkillsStore = create<SkillsState>((set, get) => ({
         combinedSkills = [...currentSkills];
       }
 
-      // Merge with ClawHub results
-      if (clawhubResult.success && clawhubResult.results) {
-        clawhubResult.results.forEach((cs: ClawHubListResult) => {
+      // Merge with installed marketplace source results
+      if (marketplaceResult.success && marketplaceResult.results) {
+        marketplaceResult.results.forEach((cs: InstalledMarketplaceSkillResult) => {
           const existing = combinedSkills.find(s => s.id === cs.slug);
           if (existing) {
-            if (!existing.baseDir && cs.baseDir) {
+            if (cs.baseDir) {
               existing.baseDir = cs.baseDir;
             }
-            if (!existing.source && cs.source) {
+            if (cs.source) {
               existing.source = cs.source;
+            }
+            if (cs.version) {
+              existing.version = cs.version;
             }
             return;
           }
@@ -178,7 +183,7 @@ export const useSkillsStore = create<SkillsState>((set, get) => ({
   searchSkills: async (query: string) => {
     set({ searching: true, searchError: null });
     try {
-      const result = await hostApiFetch<{ success: boolean; results?: MarketplaceSkill[]; error?: string }>('/api/clawhub/search', {
+      const result = await hostApiFetch<{ success: boolean; results?: MarketplaceSkill[]; error?: string }>('/api/skills/marketplace/search', {
         method: 'POST',
         body: JSON.stringify({ query }),
       });
@@ -198,12 +203,12 @@ export const useSkillsStore = create<SkillsState>((set, get) => ({
     }
   },
 
-  installSkill: async (slug: string, version?: string) => {
+  installSkill: async (slug: string, options) => {
     set((state) => ({ installing: { ...state.installing, [slug]: true } }));
     try {
-      const result = await hostApiFetch<{ success: boolean; error?: string }>('/api/clawhub/install', {
+      const result = await hostApiFetch<{ success: boolean; error?: string }>('/api/skills/marketplace/install', {
         method: 'POST',
-        body: JSON.stringify({ slug, version }),
+        body: JSON.stringify({ slug, version: options?.version, source: options?.source }),
       });
       if (!result.success) {
         const appError = normalizeAppError(new Error(result.error || 'Install failed'), {
@@ -226,12 +231,12 @@ export const useSkillsStore = create<SkillsState>((set, get) => ({
     }
   },
 
-  uninstallSkill: async (slug: string) => {
+  uninstallSkill: async (slug: string, source?: string) => {
     set((state) => ({ installing: { ...state.installing, [slug]: true } }));
     try {
-      const result = await hostApiFetch<{ success: boolean; error?: string }>('/api/clawhub/uninstall', {
+      const result = await hostApiFetch<{ success: boolean; error?: string }>('/api/skills/marketplace/uninstall', {
         method: 'POST',
-        body: JSON.stringify({ slug }),
+        body: JSON.stringify({ slug, source }),
       });
       if (!result.success) {
         throw new Error(result.error || 'Uninstall failed');
