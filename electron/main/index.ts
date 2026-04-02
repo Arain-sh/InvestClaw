@@ -27,6 +27,7 @@ import {
   createMainWindowFocusState,
   requestSecondInstanceFocus,
 } from './main-window-focus';
+import { startDevServerLoadWithRetry } from './dev-server-loader';
 import {
   createQuitLifecycleState,
   markQuitCleanupCompleted,
@@ -195,7 +196,8 @@ function createWindow(): BrowserWindow {
 
   // Load the app
   if (process.env.VITE_DEV_SERVER_URL) {
-    win.loadURL(process.env.VITE_DEV_SERVER_URL);
+    const stopDevServerRetry = startDevServerLoadWithRetry(win, process.env.VITE_DEV_SERVER_URL, logger);
+    win.on('closed', stopDevServerRetry);
     if (!isE2EMode) {
       win.webContents.openDevTools();
     }
