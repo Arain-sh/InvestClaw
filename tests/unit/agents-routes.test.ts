@@ -21,7 +21,14 @@ vi.mock('@electron/utils/agent-config', () => ({
   listAgentsSnapshot: vi.fn(),
   removeAgentWorkspaceDirectory: vi.fn(),
   resolveAccountIdForAgent: vi.fn(),
+  updateAgentModel: vi.fn(),
   updateAgentName: vi.fn(),
+  updateAgentWorkspace: vi.fn(),
+}));
+
+vi.mock('@electron/utils/agent-workspace', () => ({
+  listAgentWorkspaceDirectory: vi.fn(),
+  readAgentWorkspaceFilePreview: vi.fn(),
 }));
 
 vi.mock('@electron/utils/channel-config', () => ({

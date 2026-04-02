@@ -1,6 +1,6 @@
 import { access, copyFile, mkdir, readdir, rm } from 'fs/promises';
 import { constants } from 'fs';
-import { join, normalize } from 'path';
+import { isAbsolute, join, normalize } from 'path';
 import { deleteAgentChannelAccounts, listConfiguredChannels, readOpenClawConfig, writeOpenClawConfig } from './channel-config';
 import { withConfigLock } from './config-mutex';
 import { expandPath, getOpenClawConfigDir } from './paths';
@@ -127,6 +127,14 @@ function formatModelLabel(model: unknown): string | null {
 
 function normalizeAgentName(name: string): string {
   return name.trim() || 'Agent';
+}
+
+function normalizeConfiguredWorkspacePath(workspace: string | undefined, fallbackPath: string): string {
+  const configuredPath = workspace?.trim() || fallbackPath;
+  if (!isAbsolute(expandPath(configuredPath))) {
+    throw new Error('workspace must be an absolute path or start with "~"');
+  }
+  return configuredPath;
 }
 
 function slugifyAgentId(name: string): string {
@@ -548,7 +556,7 @@ export async function listConfiguredAgentIds(): Promise<string[]> {
 
 export async function createAgent(
   name: string,
-  options?: { inheritWorkspace?: boolean },
+  options?: { inheritWorkspace?: boolean; workspace?: string },
 ): Promise<AgentsSnapshot> {
   return withConfigLock(async () => {
     const config = await readOpenClawConfig() as AgentConfigDocument;
@@ -565,10 +573,11 @@ export async function createAgent(
     }
 
     const nextEntries = syntheticMain ? [createImplicitMainEntry(config), ...entries.filter((_, index) => index > 0)] : [...entries];
+    const defaultWorkspacePath = `~/.openclaw/workspace-${nextId}`;
     const newAgent: AgentListEntry = {
       id: nextId,
       name: normalizedName,
-      workspace: `~/.openclaw/workspace-${nextId}`,
+      workspace: normalizeConfiguredWorkspacePath(options?.workspace, defaultWorkspacePath),
       agentDir: getDefaultAgentDirPath(nextId),
     };
 
@@ -584,7 +593,51 @@ export async function createAgent(
 
     await provisionAgentFilesystem(config, newAgent, { inheritWorkspace: options?.inheritWorkspace });
     await writeOpenClawConfig(config);
-    logger.info('Created agent config entry', { agentId: nextId, inheritWorkspace: !!options?.inheritWorkspace });
+    logger.info('Created agent config entry', {
+      agentId: nextId,
+      inheritWorkspace: !!options?.inheritWorkspace,
+      workspace: newAgent.workspace,
+    });
+    return buildSnapshotFromConfig(config);
+  });
+}
+
+export async function updateAgentWorkspace(agentId: string, workspace: string): Promise<AgentsSnapshot> {
+  return withConfigLock(async () => {
+    const config = await readOpenClawConfig() as AgentConfigDocument;
+    const { agentsConfig, entries } = normalizeAgentsConfig(config);
+    const index = entries.findIndex((entry) => entry.id === agentId);
+    if (index === -1) {
+      throw new Error(`Agent "${agentId}" not found`);
+    }
+
+    const currentEntry = entries[index];
+    const fallbackWorkspace = currentEntry.id === MAIN_AGENT_ID
+      ? getDefaultWorkspacePath(config)
+      : `~/.openclaw/workspace-${currentEntry.id}`;
+    const nextWorkspace = normalizeConfiguredWorkspacePath(workspace, fallbackWorkspace);
+    const previousWorkspace = expandPath(currentEntry.workspace || fallbackWorkspace);
+    const expandedNextWorkspace = expandPath(nextWorkspace);
+
+    entries[index] = {
+      ...currentEntry,
+      workspace: nextWorkspace,
+    };
+
+    config.agents = {
+      ...agentsConfig,
+      list: entries,
+    };
+
+    await ensureDir(expandedNextWorkspace);
+    if (previousWorkspace !== expandedNextWorkspace && (await fileExists(previousWorkspace))) {
+      await copyBootstrapFiles(previousWorkspace, expandedNextWorkspace);
+    }
+    await writeOpenClawConfig(config);
+    logger.info('Updated agent workspace', {
+      agentId,
+      workspace: nextWorkspace,
+    });
     return buildSnapshotFromConfig(config);
   });
 }

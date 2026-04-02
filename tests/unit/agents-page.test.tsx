@@ -6,7 +6,10 @@ import { Agents } from '../../src/pages/Agents/index';
 const hostApiFetchMock = vi.fn();
 const subscribeHostEventMock = vi.fn();
 const fetchAgentsMock = vi.fn();
+const createAgentMock = vi.fn();
+const deleteAgentMock = vi.fn();
 const updateAgentMock = vi.fn();
+const updateAgentWorkspaceMock = vi.fn();
 const updateAgentModelMock = vi.fn();
 const refreshProviderSnapshotMock = vi.fn();
 
@@ -35,18 +38,20 @@ vi.mock('@/stores/gateway', () => ({
 vi.mock('@/stores/agents', () => ({
   useAgentsStore: (selector?: (state: typeof agentsState & {
     fetchAgents: typeof fetchAgentsMock;
+    createAgent: typeof createAgentMock;
+    deleteAgent: typeof deleteAgentMock;
     updateAgent: typeof updateAgentMock;
+    updateAgentWorkspace: typeof updateAgentWorkspaceMock;
     updateAgentModel: typeof updateAgentModelMock;
-    createAgent: ReturnType<typeof vi.fn>;
-    deleteAgent: ReturnType<typeof vi.fn>;
   }) => unknown) => {
     const state = {
       ...agentsState,
       fetchAgents: fetchAgentsMock,
+      createAgent: createAgentMock,
+      deleteAgent: deleteAgentMock,
       updateAgent: updateAgentMock,
+      updateAgentWorkspace: updateAgentWorkspaceMock,
       updateAgentModel: updateAgentModelMock,
-      createAgent: vi.fn(),
-      deleteAgent: vi.fn(),
     };
     return typeof selector === 'function' ? selector(state) : state;
   },
@@ -97,7 +102,10 @@ describe('Agents page status refresh', () => {
     providersState.vendors = [];
     providersState.defaultAccountId = '';
     fetchAgentsMock.mockResolvedValue(undefined);
+    createAgentMock.mockResolvedValue(undefined);
+    deleteAgentMock.mockResolvedValue(undefined);
     updateAgentMock.mockResolvedValue(undefined);
+    updateAgentWorkspaceMock.mockResolvedValue(undefined);
     updateAgentModelMock.mockResolvedValue(undefined);
     refreshProviderSnapshotMock.mockResolvedValue(undefined);
     hostApiFetchMock.mockResolvedValue({
@@ -200,7 +208,7 @@ describe('Agents page status refresh', () => {
 
     const useDefaultButton = await screen.findByRole('button', { name: 'settingsDialog.useDefaultModel' });
     const modelIdInput = screen.getByLabelText('settingsDialog.modelIdLabel');
-    const saveButton = screen.getByRole('button', { name: 'common:actions.save' });
+    const saveButton = screen.getByTestId('agents-model-save-button');
 
     expect(useDefaultButton).toBeDisabled();
 
@@ -213,5 +221,126 @@ describe('Agents page status refresh', () => {
     expect(updateAgentModelMock).not.toHaveBeenCalled();
     expect((modelIdInput as HTMLInputElement).value).toBe('anthropic/claude-opus-4.6');
     expect(useDefaultButton).toBeDisabled();
+  });
+
+  it('passes the custom workspace path when creating an agent', async () => {
+    render(<Agents />);
+
+    await waitFor(() => {
+      expect(fetchAgentsMock).toHaveBeenCalledTimes(1);
+    });
+
+    fireEvent.click(screen.getByTestId('agents-add-button'));
+    fireEvent.change(screen.getByLabelText('createDialog.nameLabel'), { target: { value: 'Research Agent' } });
+    fireEvent.change(screen.getByTestId('agents-create-workspace-input'), {
+      target: { value: '/tmp/investclaw-agent-workspace' },
+    });
+
+    fireEvent.click(screen.getByTestId('agents-add-save-button'));
+
+    await waitFor(() => {
+      expect(createAgentMock).toHaveBeenCalledWith('Research Agent', {
+        inheritWorkspace: false,
+        workspace: '/tmp/investclaw-agent-workspace',
+      });
+    });
+  });
+
+  it('loads workspace explorer data and saves a changed workspace path', async () => {
+    agentsState.agents = [
+      {
+        id: 'alpha',
+        name: 'Alpha',
+        isDefault: false,
+        modelDisplay: 'gpt-5.4',
+        modelRef: 'openai/gpt-5.4',
+        overrideModelRef: null,
+        inheritedModel: true,
+        workspace: '/tmp/alpha-workspace',
+        agentDir: '~/.openclaw/agents/alpha/agent',
+        mainSessionKey: 'agent:alpha:desk',
+        channelTypes: [],
+      },
+    ];
+
+    hostApiFetchMock.mockImplementation((path: string) => {
+      if (path === '/api/channels/accounts') {
+        return Promise.resolve({ success: true, channels: [] });
+      }
+      if (path === '/api/agents/alpha/workspace') {
+        return Promise.resolve({
+          success: true,
+          agentId: 'alpha',
+          agentName: 'Alpha',
+          configuredPath: '/tmp/alpha-workspace',
+          hostPath: '/tmp/alpha-workspace',
+          containerRoot: '/workspace',
+          exists: true,
+          currentRelativePath: '',
+          currentHostPath: '/tmp/alpha-workspace',
+          currentContainerPath: '/workspace',
+          parentRelativePath: null,
+          entries: [
+            {
+              name: 'README.md',
+              kind: 'file',
+              relativePath: 'README.md',
+              hostPath: '/tmp/alpha-workspace/README.md',
+              containerPath: '/workspace/README.md',
+              extension: '.md',
+              size: 42,
+              modifiedAt: '2026-04-02T00:00:00.000Z',
+            },
+          ],
+        });
+      }
+      if (path === '/api/agents/alpha/workspace/file?path=README.md') {
+        return Promise.resolve({
+          success: true,
+          agentId: 'alpha',
+          agentName: 'Alpha',
+          configuredPath: '/tmp/alpha-workspace',
+          containerRoot: '/workspace',
+          exists: true,
+          name: 'README.md',
+          relativePath: 'README.md',
+          hostPath: '/tmp/alpha-workspace/README.md',
+          containerPath: '/workspace/README.md',
+          extension: '.md',
+          mimeType: 'text/markdown',
+          size: 42,
+          modifiedAt: '2026-04-02T00:00:00.000Z',
+          kind: 'text',
+          content: '# Alpha',
+          truncated: false,
+        });
+      }
+      throw new Error(`Unexpected hostApiFetch path: ${path}`);
+    });
+
+    render(<Agents />);
+
+    await waitFor(() => {
+      expect(fetchAgentsMock).toHaveBeenCalledTimes(1);
+    });
+
+    fireEvent.click(screen.getByTestId('agents-card-settings-alpha'));
+    expect(await screen.findByTestId('agents-settings-modal')).toBeInTheDocument();
+    fireEvent.click(await screen.findByTestId('agents-workspace-tab'));
+
+    expect(await screen.findByTestId('agents-workspace-explorer')).toBeInTheDocument();
+    expect(await screen.findByText('README.md')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText('README.md'));
+    expect(await screen.findByTestId('agents-workspace-preview')).toBeInTheDocument();
+
+    fireEvent.change(screen.getByTestId('agents-workspace-path-input'), {
+      target: { value: '/tmp/alpha-workspace-next' },
+    });
+    fireEvent.click(screen.getByTestId('agents-workspace-save-button'));
+
+    await waitFor(() => {
+      expect(updateAgentWorkspaceMock).toHaveBeenCalledWith('alpha', '/tmp/alpha-workspace-next');
+    });
   });
 });

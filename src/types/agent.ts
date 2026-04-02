@@ -20,3 +20,50 @@ export interface AgentsSnapshot {
   channelOwners: Record<string, string>;
   channelAccountOwners: Record<string, string>;
 }
+
+export interface AgentWorkspaceEntry {
+  name: string;
+  kind: 'directory' | 'file' | 'symlink';
+  relativePath: string;
+  hostPath: string;
+  containerPath: string;
+  extension: string;
+  size: number;
+  modifiedAt: string;
+}
+
+export interface AgentWorkspaceListing {
+  success?: boolean;
+  agentId: string;
+  agentName: string;
+  configuredPath: string;
+  hostPath: string;
+  containerRoot: string;
+  exists: boolean;
+  currentRelativePath: string;
+  currentHostPath: string;
+  currentContainerPath: string;
+  parentRelativePath: string | null;
+  entries: AgentWorkspaceEntry[];
+}
+
+export interface AgentWorkspaceFilePreview {
+  success?: boolean;
+  agentId: string;
+  agentName: string;
+  configuredPath: string;
+  containerRoot: string;
+  exists: boolean;
+  name: string;
+  relativePath: string;
+  hostPath: string;
+  containerPath: string;
+  extension: string;
+  mimeType: string;
+  size: number;
+  modifiedAt: string;
+  kind: 'text' | 'image' | 'binary';
+  content?: string;
+  dataUrl?: string;
+  truncated?: boolean;
+}

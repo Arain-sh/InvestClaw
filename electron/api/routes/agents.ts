@@ -9,7 +9,12 @@ import {
   resolveAccountIdForAgent,
   updateAgentModel,
   updateAgentName,
+  updateAgentWorkspace,
 } from '../../utils/agent-config';
+import {
+  listAgentWorkspaceDirectory,
+  readAgentWorkspaceFilePreview,
+} from '../../utils/agent-workspace';
 import { deleteChannelAccountConfig } from '../../utils/channel-config';
 import { syncAgentModelOverrideToRuntime, syncAllProviderAuthToRuntime } from '../../services/providers/provider-runtime-sync';
 import type { HostApiContext } from '../context';
@@ -116,10 +121,40 @@ export async function handleAgentRoutes(
     return true;
   }
 
+  if (url.pathname.startsWith('/api/agents/') && req.method === 'GET') {
+    const suffix = url.pathname.slice('/api/agents/'.length);
+    const parts = suffix.split('/').filter(Boolean);
+
+    if (parts.length === 2 && parts[1] === 'workspace') {
+      try {
+        const agentId = decodeURIComponent(parts[0]);
+        const listing = await listAgentWorkspaceDirectory(agentId, url.searchParams.get('path'));
+        sendJson(res, 200, { success: true, ...listing });
+      } catch (error) {
+        sendJson(res, 500, { success: false, error: String(error) });
+      }
+      return true;
+    }
+
+    if (parts.length === 3 && parts[1] === 'workspace' && parts[2] === 'file') {
+      try {
+        const agentId = decodeURIComponent(parts[0]);
+        const preview = await readAgentWorkspaceFilePreview(agentId, url.searchParams.get('path'));
+        sendJson(res, 200, { success: true, ...preview });
+      } catch (error) {
+        sendJson(res, 500, { success: false, error: String(error) });
+      }
+      return true;
+    }
+  }
+
   if (url.pathname === '/api/agents' && req.method === 'POST') {
     try {
-      const body = await parseJsonBody<{ name: string; inheritWorkspace?: boolean }>(req);
-      const snapshot = await createAgent(body.name, { inheritWorkspace: body.inheritWorkspace });
+      const body = await parseJsonBody<{ name: string; inheritWorkspace?: boolean; workspace?: string }>(req);
+      const snapshot = await createAgent(body.name, {
+        inheritWorkspace: body.inheritWorkspace,
+        workspace: body.workspace,
+      });
       // Sync provider API keys to the new agent's auth-profiles.json so the
       // embedded runner can authenticate with LLM providers when messages
       // arrive via channel bots (e.g. Feishu). Without this, the copied
@@ -165,6 +200,19 @@ export async function handleAgentRoutes(
           console.warn('[agents] Failed to sync runtime after updating agent model:', syncError);
         }
         scheduleGatewayReload(ctx, 'update-agent-model');
+        sendJson(res, 200, { success: true, ...snapshot });
+      } catch (error) {
+        sendJson(res, 500, { success: false, error: String(error) });
+      }
+      return true;
+    }
+
+    if (parts.length === 2 && parts[1] === 'workspace') {
+      try {
+        const body = await parseJsonBody<{ workspace: string }>(req);
+        const agentId = decodeURIComponent(parts[0]);
+        const snapshot = await updateAgentWorkspace(agentId, body.workspace);
+        scheduleGatewayReload(ctx, 'update-agent-workspace');
         sendJson(res, 200, { success: true, ...snapshot });
       } catch (error) {
         sendJson(res, 500, { success: false, error: String(error) });
