@@ -104,6 +104,8 @@ export function startDevServerLoadWithRetry(
   let retryCount = 0;
   let retryTimer: ReturnType<typeof setTimeout> | null = null;
   let disposed = false;
+  let loadInFlight = false;
+  let queuedRetryWhileLoading = false;
 
   const clearRetryTimer = (): void => {
     if (retryTimer) {
@@ -116,6 +118,14 @@ export function startDevServerLoadWithRetry(
     if (disposed || target.isDestroyed()) {
       return;
     }
+
+    if (loadInFlight) {
+      queuedRetryWhileLoading = true;
+      return;
+    }
+
+    queuedRetryWhileLoading = false;
+    loadInFlight = true;
 
     try {
       await target.loadURL(url);
@@ -130,6 +140,13 @@ export function startDevServerLoadWithRetry(
       }
 
       logger.error(`Renderer load failed for ${url}`, error);
+    } finally {
+      loadInFlight = false;
+
+      if (queuedRetryWhileLoading && !retryTimer && !disposed && !target.isDestroyed()) {
+        queuedRetryWhileLoading = false;
+        void attemptLoad();
+      }
     }
   };
 

@@ -83,4 +83,74 @@ describe('dev server loader', () => {
 
     dispose();
   });
+
+  it('serializes retries so a stale failed load cannot trigger an endless retry loop', async () => {
+    vi.useFakeTimers();
+
+    const url = 'http://localhost:5173/';
+    const webContents = new MockWebContents();
+    let loadAttempts = 0;
+    const loadURL = vi.fn(() => {
+      loadAttempts += 1;
+
+      if (loadAttempts === 1) {
+        queueMicrotask(() => {
+          webContents.emit('did-fail-load', {}, -324, 'ERR_EMPTY_RESPONSE', url, true);
+        });
+
+        return new Promise((_, reject) => {
+          setTimeout(() => {
+            reject(new Error(`ERR_EMPTY_RESPONSE (-324) loading '${url}'`));
+          }, 30);
+        });
+      }
+
+      queueMicrotask(() => {
+        webContents.emit('did-finish-load');
+      });
+      return Promise.resolve();
+    });
+    const logger = {
+      debug: vi.fn(),
+      warn: vi.fn(),
+      error: vi.fn(),
+    };
+
+    const dispose = startDevServerLoadWithRetry(
+      {
+        isDestroyed: () => false,
+        loadURL,
+        webContents,
+      },
+      url,
+      logger,
+      { baseDelayMs: 10, maxDelayMs: 10, maxRetries: 3 },
+    );
+
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(loadURL).toHaveBeenCalledTimes(1);
+
+    await vi.advanceTimersByTimeAsync(10);
+    expect(loadURL).toHaveBeenCalledTimes(1);
+
+    await vi.advanceTimersByTimeAsync(20);
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(loadURL).toHaveBeenCalledTimes(1);
+
+    await vi.advanceTimersByTimeAsync(10);
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(loadURL).toHaveBeenCalledTimes(2);
+
+    await vi.advanceTimersByTimeAsync(100);
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(loadURL).toHaveBeenCalledTimes(2);
+    expect(logger.error).not.toHaveBeenCalled();
+
+    dispose();
+  });
 });
