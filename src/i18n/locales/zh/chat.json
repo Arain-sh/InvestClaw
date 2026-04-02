@@ -21,19 +21,16 @@
         "currentAgent": "当前对话对象：{{agent}}"
     },
     "desk": {
-        "inlineHint": "IDE 风格工作台：文件、运行时、浏览器",
-        "kicker": "Research Desk",
-        "title": "Workspace + Browser",
-        "subtitle": "把当前 Agent 的文件系统、运行信息和市场浏览器固定在对话右侧。",
+        "inlineHint": "IDE 风格工作台：文件、浏览器",
         "tabs": {
             "files": "文件",
-            "runtime": "运行时",
             "browser": "浏览器"
         },
         "files": {
             "refresh": "刷新",
             "openFolder": "打开文件夹",
             "containerPath": "容器路径",
+            "noAgent": "先选择或创建一个 Agent，再挂载并浏览工作区。",
             "missing": "这个工作区路径在宿主机上还不存在。",
             "empty": "这个工作区目前为空。",
             "parentDirectory": "上一级目录",
@@ -43,20 +40,6 @@
             "imageTooLarge": "这张图片过大，暂时不做内联预览，但文件已经存在于工作区中。",
             "previewTruncated": "预览内容仅展示文件前半部分。",
             "symlinkUnsupported": "文件系统浏览器暂不跟随符号链接。"
-        },
-        "runtime": {
-            "currentAgent": "当前 Agent",
-            "gateway": "Gateway",
-            "session": "会话",
-            "workspace": "工作区",
-            "messages": "条消息",
-            "sending": "发送中",
-            "thinking": "思考显示",
-            "lastUpdated": "更新时间",
-            "yes": "是",
-            "no": "否",
-            "visible": "显示中",
-            "hidden": "已隐藏"
         },
         "browser": {
             "title": "市场浏览器",

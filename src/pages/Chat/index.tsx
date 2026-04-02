@@ -4,7 +4,7 @@
  * via gateway:rpc IPC. Session selector, thinking toggle, and refresh
  * are in the toolbar; messages render with markdown + streaming.
  */
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react';
 import { AlertCircle, Loader2, PanelRightClose, PanelRightOpen, Sparkles } from 'lucide-react';
 import { useChatStore, type RawMessage } from '@/stores/chat';
 import { useGatewayStore } from '@/stores/gateway';
@@ -20,6 +20,18 @@ import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { useStickToBottomInstant } from '@/hooks/use-stick-to-bottom-instant';
 import { useMinLoading } from '@/hooks/use-min-loading';
+
+const DEFAULT_DESK_WIDTH = 560;
+const MIN_DESK_WIDTH = 360;
+const MAX_DESK_WIDTH = 920;
+
+function clampDeskWidth(width: number): number {
+  if (typeof window === 'undefined') {
+    return Math.min(Math.max(width, MIN_DESK_WIDTH), MAX_DESK_WIDTH);
+  }
+  const availableMax = Math.max(MIN_DESK_WIDTH, window.innerWidth - 420);
+  return Math.min(Math.max(width, MIN_DESK_WIDTH), Math.min(MAX_DESK_WIDTH, availableMax));
+}
 
 export function Chat() {
   const { t } = useTranslation('chat');
@@ -48,8 +60,10 @@ export function Chat() {
   const [suggestedPrompt, setSuggestedPrompt] = useState<string>('');
   const [suggestedPromptNonce, setSuggestedPromptNonce] = useState<number>(0);
   const [deskOpen, setDeskOpen] = useState(true);
+  const [deskWidth, setDeskWidth] = useState(DEFAULT_DESK_WIDTH);
   const minLoading = useMinLoading(loading && messages.length > 0);
   const { contentRef, scrollRef } = useStickToBottomInstant(currentSessionKey);
+  const resizeStateRef = useRef<{ startX: number; startWidth: number } | null>(null);
 
   // Load data when gateway is running.
   // When the store already holds messages for this session (i.e. the user
@@ -67,6 +81,59 @@ export function Chat() {
   useEffect(() => {
     void fetchAgents();
   }, [fetchAgents]);
+
+  useEffect(() => {
+    try {
+      const savedWidth = window.localStorage.getItem('investclaw:chat-desk-width');
+      if (!savedWidth) return;
+      const parsed = Number(savedWidth);
+      if (Number.isFinite(parsed)) {
+        setDeskWidth(clampDeskWidth(parsed));
+      }
+    } catch {
+      // ignore persistence issues
+    }
+  }, []);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem('investclaw:chat-desk-width', String(deskWidth));
+    } catch {
+      // ignore persistence issues
+    }
+  }, [deskWidth]);
+
+  useEffect(() => {
+    const handlePointerMove = (event: PointerEvent) => {
+      const resizeState = resizeStateRef.current;
+      if (!resizeState) return;
+      const nextWidth = resizeState.startWidth + (resizeState.startX - event.clientX);
+      setDeskWidth(clampDeskWidth(nextWidth));
+    };
+
+    const handlePointerUp = () => {
+      if (!resizeStateRef.current) return;
+      resizeStateRef.current = null;
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+
+    const handleResize = () => {
+      setDeskWidth((current) => clampDeskWidth(current));
+    };
+
+    window.addEventListener('pointermove', handlePointerMove);
+    window.addEventListener('pointerup', handlePointerUp);
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerup', handlePointerUp);
+      window.removeEventListener('resize', handleResize);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+  }, []);
 
   // Update timestamp when sending starts
   useEffect(() => {
@@ -97,6 +164,16 @@ export function Chat() {
 
   const isEmpty = messages.length === 0 && !sending;
   const currentAgent = agents.find((agent) => agent.id === currentAgentId) ?? null;
+
+  const handleDeskResizeStart = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (!deskOpen) return;
+    resizeStateRef.current = {
+      startX: event.clientX,
+      startWidth: deskWidth,
+    };
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+  };
 
   return (
     <div data-testid="chat-page" className={cn("relative flex flex-col -m-6 transition-colors duration-500 dark:bg-background")} style={{ height: 'calc(100vh - 2.5rem)' }}>
@@ -217,16 +294,28 @@ export function Chat() {
         </div>
 
         {deskOpen && (
-          <div className="min-h-0 w-full shrink-0 lg:w-[500px] xl:w-[560px]">
-            <ResearchDeskPanel
-              currentAgent={currentAgent}
-              currentSessionKey={currentSessionKey}
-              gatewayStatus={gatewayStatus}
-              messageCount={messages.length}
-              sending={sending}
-              showThinking={showThinking}
-            />
-          </div>
+          <>
+            <div
+              data-testid="chat-desk-resizer"
+              role="separator"
+              aria-orientation="vertical"
+              onPointerDown={handleDeskResizeStart}
+              className="hidden w-3 shrink-0 cursor-col-resize items-stretch justify-center lg:flex"
+            >
+              <div className="my-4 w-px rounded-full bg-black/10 dark:bg-white/10" />
+            </div>
+            <div
+              data-testid="chat-desk-container"
+              className="min-h-0 w-full shrink-0 lg:w-auto lg:max-w-[80vw]"
+              style={{ '--chat-desk-width': `${deskWidth}px` } as CSSProperties}
+            >
+              <div className="h-full w-full lg:w-[var(--chat-desk-width)]">
+                <ResearchDeskPanel
+                  currentAgent={currentAgent}
+                />
+              </div>
+            </div>
+          </>
         )}
       </div>
     </div>

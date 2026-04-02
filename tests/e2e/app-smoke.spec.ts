@@ -42,10 +42,26 @@ test.describe('InvestClaw Electron smoke flows', () => {
 
     await expect(page.getByTestId('chat-page')).toBeVisible();
     await expect(page.getByTestId('chat-research-desk')).toBeVisible();
+    await expect(page.getByTestId('chat-desk-tab-runtime')).toHaveCount(0);
+    await expect(page.getByTestId('chat-desk-resizer')).toBeVisible();
 
     await page.getByTestId('chat-desk-file-NOTES.md').click();
     await expect(page.getByTestId('chat-desk-preview')).toContainText('Desk Panel');
     await expect(page.getByTestId('chat-desk-preview')).toContainText('/workspace/NOTES.md');
+
+    const deskWidthBeforeResize = await page.getByTestId('chat-desk-container').evaluate((element) => Math.round(element.getBoundingClientRect().width));
+    const resizerBox = await page.getByTestId('chat-desk-resizer').boundingBox();
+    if (!resizerBox) {
+      throw new Error('Research desk resizer is not visible');
+    }
+    await page.mouse.move(resizerBox.x + resizerBox.width / 2, resizerBox.y + resizerBox.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(resizerBox.x - 120, resizerBox.y + resizerBox.height / 2, { steps: 8 });
+    await page.mouse.up();
+
+    await expect
+      .poll(async () => page.getByTestId('chat-desk-container').evaluate((element) => Math.round(element.getBoundingClientRect().width)))
+      .toBeGreaterThan(deskWidthBeforeResize + 40);
 
     await page.getByTestId('chat-desk-tab-browser').click();
     await expect(page.getByTestId('chat-desk-browser-url')).toHaveValue(/ainvest/i);

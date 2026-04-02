@@ -21,19 +21,16 @@
         "currentAgent": "現在の会話相手: {{agent}}"
     },
     "desk": {
-        "inlineHint": "IDE スタイルのデスク: ファイル、ランタイム、ブラウザ",
-        "kicker": "Research Desk",
-        "title": "Workspace + Browser",
-        "subtitle": "現在の Agent のファイル、実行状況、マーケットブラウザを会話の横に固定表示します。",
+        "inlineHint": "IDE スタイルのデスク: ファイル、ブラウザ",
         "tabs": {
             "files": "Files",
-            "runtime": "Runtime",
             "browser": "Browser"
         },
         "files": {
             "refresh": "更新",
             "openFolder": "フォルダを開く",
             "containerPath": "コンテナパス",
+            "noAgent": "先に Agent を選択または作成してから、ワークスペースをマウントして参照してください。",
             "missing": "このワークスペースパスはホスト上にまだ存在しません。",
             "empty": "このワークスペースは空です。",
             "parentDirectory": "親ディレクトリ",
@@ -43,20 +40,6 @@
             "imageTooLarge": "この画像は大きすぎるためインラインプレビューを表示しませんが、ワークスペース内には存在しています。",
             "previewTruncated": "プレビューはファイルの先頭部分のみ表示しています。",
             "symlinkUnsupported": "ファイルエクスプローラーはシンボリックリンクをたどりません。"
-        },
-        "runtime": {
-            "currentAgent": "現在の Agent",
-            "gateway": "Gateway",
-            "session": "セッション",
-            "workspace": "ワークスペース",
-            "messages": "messages",
-            "sending": "送信中",
-            "thinking": "思考表示",
-            "lastUpdated": "更新時刻",
-            "yes": "Yes",
-            "no": "No",
-            "visible": "表示中",
-            "hidden": "非表示"
         },
         "browser": {
             "title": "マーケットブラウザ",
