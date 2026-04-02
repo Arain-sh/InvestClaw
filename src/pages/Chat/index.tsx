@@ -22,14 +22,23 @@ import { useStickToBottomInstant } from '@/hooks/use-stick-to-bottom-instant';
 import { useMinLoading } from '@/hooks/use-min-loading';
 
 const DEFAULT_DESK_WIDTH = 560;
-const MIN_DESK_WIDTH = 360;
+const MIN_DESK_WIDTH = 320;
 const MAX_DESK_WIDTH = 920;
+const MIN_CHAT_COLUMN_WIDTH = 440;
+const DESKTOP_BREAKPOINT = 1024;
 
-function clampDeskWidth(width: number): number {
+function clampDeskWidth(width: number, layoutWidth?: number): number {
   if (typeof window === 'undefined') {
     return Math.min(Math.max(width, MIN_DESK_WIDTH), MAX_DESK_WIDTH);
   }
-  const availableMax = Math.max(MIN_DESK_WIDTH, window.innerWidth - 420);
+
+  const isDesktop = window.innerWidth >= DESKTOP_BREAKPOINT;
+  const fallbackMax = Math.max(MIN_DESK_WIDTH, window.innerWidth - 420);
+  const layoutConstrainedMax = layoutWidth
+    ? Math.max(MIN_DESK_WIDTH, layoutWidth - MIN_CHAT_COLUMN_WIDTH - 12)
+    : fallbackMax;
+  const availableMax = isDesktop ? layoutConstrainedMax : fallbackMax;
+
   return Math.min(Math.max(width, MIN_DESK_WIDTH), Math.min(MAX_DESK_WIDTH, availableMax));
 }
 
@@ -61,9 +70,11 @@ export function Chat() {
   const [suggestedPromptNonce, setSuggestedPromptNonce] = useState<number>(0);
   const [deskOpen, setDeskOpen] = useState(true);
   const [deskWidth, setDeskWidth] = useState(DEFAULT_DESK_WIDTH);
+  const [layoutWidth, setLayoutWidth] = useState<number>(0);
   const minLoading = useMinLoading(loading && messages.length > 0);
   const { contentRef, scrollRef } = useStickToBottomInstant(currentSessionKey);
   const resizeStateRef = useRef<{ startX: number; startWidth: number } | null>(null);
+  const layoutRef = useRef<HTMLDivElement | null>(null);
 
   // Load data when gateway is running.
   // When the store already holds messages for this session (i.e. the user
@@ -88,7 +99,7 @@ export function Chat() {
       if (!savedWidth) return;
       const parsed = Number(savedWidth);
       if (Number.isFinite(parsed)) {
-        setDeskWidth(clampDeskWidth(parsed));
+        setDeskWidth(parsed);
       }
     } catch {
       // ignore persistence issues
@@ -104,11 +115,30 @@ export function Chat() {
   }, [deskWidth]);
 
   useEffect(() => {
+    const layoutNode = layoutRef.current;
+    if (!layoutNode || typeof ResizeObserver === 'undefined') return;
+
+    const updateWidth = () => {
+      setLayoutWidth(layoutNode.getBoundingClientRect().width);
+    };
+
+    updateWidth();
+    const observer = new ResizeObserver(() => {
+      updateWidth();
+    });
+    observer.observe(layoutNode);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
+  useEffect(() => {
     const handlePointerMove = (event: PointerEvent) => {
       const resizeState = resizeStateRef.current;
       if (!resizeState) return;
       const nextWidth = resizeState.startWidth + (resizeState.startX - event.clientX);
-      setDeskWidth(clampDeskWidth(nextWidth));
+      setDeskWidth(clampDeskWidth(nextWidth, layoutWidth));
     };
 
     const handlePointerUp = () => {
@@ -119,7 +149,7 @@ export function Chat() {
     };
 
     const handleResize = () => {
-      setDeskWidth((current) => clampDeskWidth(current));
+      setDeskWidth((current) => clampDeskWidth(current, layoutWidth));
     };
 
     window.addEventListener('pointermove', handlePointerMove);
@@ -133,7 +163,12 @@ export function Chat() {
       document.body.style.cursor = '';
       document.body.style.userSelect = '';
     };
-  }, []);
+  }, [layoutWidth]);
+
+  useEffect(() => {
+    if (!layoutWidth) return;
+    setDeskWidth((current) => clampDeskWidth(current, layoutWidth));
+  }, [layoutWidth]);
 
   // Update timestamp when sending starts
   useEffect(() => {
@@ -164,19 +199,20 @@ export function Chat() {
 
   const isEmpty = messages.length === 0 && !sending;
   const currentAgent = agents.find((agent) => agent.id === currentAgentId) ?? null;
+  const effectiveDeskWidth = clampDeskWidth(deskWidth, layoutWidth);
 
   const handleDeskResizeStart = (event: ReactPointerEvent<HTMLDivElement>) => {
     if (!deskOpen) return;
     resizeStateRef.current = {
       startX: event.clientX,
-      startWidth: deskWidth,
+      startWidth: effectiveDeskWidth,
     };
     document.body.style.cursor = 'col-resize';
     document.body.style.userSelect = 'none';
   };
 
   return (
-    <div data-testid="chat-page" className={cn("relative flex flex-col -m-6 transition-colors duration-500 dark:bg-background")} style={{ height: 'calc(100vh - 2.5rem)' }}>
+    <div data-testid="chat-page" className={cn("relative flex min-w-0 flex-col -m-6 transition-colors duration-500 dark:bg-background")} style={{ height: 'calc(100vh - 2.5rem)' }}>
       {/* Toolbar */}
       <div className="flex shrink-0 items-center justify-between gap-3 px-4 py-2">
         <div className="hidden lg:flex items-center gap-2 rounded-full border border-black/10 bg-white/65 px-3 py-1.5 text-[12px] font-medium text-foreground/75 dark:border-white/10 dark:bg-white/5">
@@ -197,7 +233,7 @@ export function Chat() {
         </div>
       </div>
 
-      <div className="flex min-h-0 flex-1 flex-col gap-4 px-4 pb-4 lg:flex-row">
+      <div ref={layoutRef} className="flex min-h-0 min-w-0 flex-1 flex-col gap-4 px-4 pb-4 lg:flex-row">
         <div className="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-[30px] border border-black/5 bg-[#f7f4ea] shadow-[0_24px_80px_rgba(36,39,27,0.08)] dark:border-white/5 dark:bg-background">
           {/* Messages Area */}
           <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4">
@@ -307,7 +343,7 @@ export function Chat() {
             <div
               data-testid="chat-desk-container"
               className="min-h-0 w-full shrink-0 lg:w-auto lg:max-w-[80vw]"
-              style={{ '--chat-desk-width': `${deskWidth}px` } as CSSProperties}
+              style={{ '--chat-desk-width': `${effectiveDeskWidth}px` } as CSSProperties}
             >
               <div className="h-full w-full lg:w-[var(--chat-desk-width)]">
                 <ResearchDeskPanel

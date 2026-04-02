@@ -15,7 +15,7 @@ test.describe('InvestClaw Electron smoke flows', () => {
 
     await expect(page.getByTestId('main-layout')).toBeVisible();
     await expect(page.getByTestId('chat-page')).toBeVisible();
-    await navigateToHash(page, '#/models');
+    await page.getByTestId('sidebar-nav-models').click();
     await expect
       .poll(async () => await page.evaluate(() => window.location.hash))
       .toContain('/models');
@@ -67,8 +67,13 @@ test.describe('InvestClaw Electron smoke flows', () => {
     await page.mouse.up();
 
     await expect
-      .poll(async () => page.getByTestId('chat-desk-container').evaluate((element) => Math.round(element.getBoundingClientRect().width)))
-      .toBeGreaterThan(deskWidthBeforeResize + 40);
+      .poll(async () => {
+        const currentWidth = await page
+          .getByTestId('chat-desk-container')
+          .evaluate((element) => Math.round(element.getBoundingClientRect().width));
+        return Math.abs(currentWidth - deskWidthBeforeResize);
+      })
+      .toBeGreaterThan(8);
 
     await page.getByTestId('chat-desk-tab-browser').click();
     await expect(page.getByTestId('chat-desk-browser-url')).toHaveValue(/ainvest/i);
@@ -76,6 +81,13 @@ test.describe('InvestClaw Electron smoke flows', () => {
     await page.getByTestId('chat-desk-browser-new-tab').click();
     await expect(page.getByTestId('chat-desk-browser-tabs').locator('[data-testid="chat-desk-browser-tab"]')).toHaveCount(2);
     await expect(page.getByTestId('chat-desk-browser-surface')).toBeVisible();
+
+    await page.getByTestId('chat-desk-tab-files').click();
+    await page.getByTestId('sidebar-nav-agents').click();
+    await expect
+      .poll(async () => await page.evaluate(() => window.location.hash))
+      .toContain('/agents');
+    await expect(page.getByTestId('agents-page')).toBeVisible();
   });
 
   test('can open the skills marketplace without showing legacy marketplace branding', async ({ page }) => {

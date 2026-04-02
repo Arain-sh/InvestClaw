@@ -15,7 +15,7 @@ export function MainLayout() {
       {/* Below the title bar: sidebar + content */}
       <div className="flex flex-1 overflow-hidden">
         <Sidebar />
-        <main data-testid="main-content" className="flex-1 overflow-auto p-6">
+        <main data-testid="main-content" className="relative z-0 min-w-0 flex-1 overflow-auto p-6">
           <Outlet />
         </main>
       </div>
