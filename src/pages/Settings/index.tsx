@@ -40,6 +40,7 @@ import { useTranslation } from 'react-i18next';
 import { SUPPORTED_LANGUAGES } from '@/i18n';
 import { hostApiFetch } from '@/lib/host-api';
 import { cn } from '@/lib/utils';
+import { getElectronBridge, getRendererPlatform } from '@/lib/electron-bridge';
 type ControlUiInfo = {
   url: string;
   token: string;
@@ -96,7 +97,8 @@ export function Settings() {
   const [showTelemetryViewer, setShowTelemetryViewer] = useState(false);
   const [telemetryEntries, setTelemetryEntries] = useState<UiTelemetryEntry[]>([]);
 
-  const isWindows = window.electron.platform === 'win32';
+  const electron = getElectronBridge();
+  const isWindows = getRendererPlatform() === 'win32';
   const showCliTools = true;
   const [showLogs, setShowLogs] = useState(false);
   const [logContent, setLogContent] = useState('');
@@ -270,7 +272,11 @@ export function Settings() {
   };
 
   useEffect(() => {
-    const unsubscribe = window.electron.ipcRenderer.on(
+    if (!electron?.ipcRenderer?.on) {
+      return;
+    }
+
+    const unsubscribe = electron.ipcRenderer.on(
       'openclaw:cli-installed',
       (...args: unknown[]) => {
         const installedPath = typeof args[0] === 'string' ? args[0] : '';
@@ -278,7 +284,7 @@ export function Settings() {
       },
     );
     return () => { unsubscribe?.(); };
-  }, []);
+  }, [electron]);
 
   useEffect(() => {
     setWsDiagnosticEnabled(getGatewayWsDiagnosticEnabled());

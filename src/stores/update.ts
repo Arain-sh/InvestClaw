@@ -5,6 +5,7 @@
 import { create } from 'zustand';
 import { useSettingsStore } from './settings';
 import { invokeIpc } from '@/lib/api-client';
+import { getElectronBridge } from '@/lib/electron-bridge';
 
 export interface UpdateInfo {
   version: string;
@@ -91,25 +92,28 @@ export const useUpdateStore = create<UpdateState>((set, get) => ({
     // Listen for update events
     // Single source of truth: listen only to update:status-changed
     // (sent by AppUpdater.updateStatus() in the main process)
-    window.electron.ipcRenderer.on('update:status-changed', (data) => {
-      const status = data as {
-        status: UpdateStatus;
-        info?: UpdateInfo;
-        progress?: ProgressInfo;
-        error?: string;
-      };
-      set({
-        status: status.status,
-        updateInfo: status.info || null,
-        progress: status.progress || null,
-        error: status.error || null,
+    const electron = getElectronBridge();
+    if (electron?.ipcRenderer?.on) {
+      electron.ipcRenderer.on('update:status-changed', (data) => {
+        const status = data as {
+          status: UpdateStatus;
+          info?: UpdateInfo;
+          progress?: ProgressInfo;
+          error?: string;
+        };
+        set({
+          status: status.status,
+          updateInfo: status.info || null,
+          progress: status.progress || null,
+          error: status.error || null,
+        });
       });
-    });
 
-    window.electron.ipcRenderer.on('update:auto-install-countdown', (data) => {
-      const { seconds, cancelled } = data as { seconds: number; cancelled?: boolean };
-      set({ autoInstallCountdown: cancelled ? null : seconds });
-    });
+      electron.ipcRenderer.on('update:auto-install-countdown', (data) => {
+        const { seconds, cancelled } = data as { seconds: number; cancelled?: boolean };
+        set({ autoInstallCountdown: cancelled ? null : seconds });
+      });
+    }
 
     set({ isInitialized: true });
 

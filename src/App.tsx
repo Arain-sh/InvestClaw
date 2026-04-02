@@ -21,6 +21,7 @@ import { useSettingsStore } from './stores/settings';
 import { useGatewayStore } from './stores/gateway';
 import { useProviderStore } from './stores/providers';
 import { applyGatewayTransportPreference } from './lib/api-client';
+import { getElectronBridge } from './lib/electron-bridge';
 
 
 /**
@@ -127,6 +128,12 @@ function App() {
 
   // Listen for navigation events from main process
   useEffect(() => {
+    const electron = getElectronBridge();
+    if (!electron?.ipcRenderer?.on) {
+      console.warn('[app] Electron navigation bridge is unavailable');
+      return;
+    }
+
     const handleNavigate = (...args: unknown[]) => {
       const path = args[0];
       if (typeof path === 'string') {
@@ -134,7 +141,7 @@ function App() {
       }
     };
 
-    const unsubscribe = window.electron.ipcRenderer.on('navigate', handleNavigate);
+    const unsubscribe = electron.ipcRenderer.on('navigate', handleNavigate);
 
     return () => {
       if (typeof unsubscribe === 'function') {

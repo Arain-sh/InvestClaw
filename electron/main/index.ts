@@ -198,6 +198,15 @@ function createWindow(): BrowserWindow {
   if (process.env.VITE_DEV_SERVER_URL) {
     const stopDevServerRetry = startDevServerLoadWithRetry(win, process.env.VITE_DEV_SERVER_URL, logger);
     win.on('closed', stopDevServerRetry);
+    win.webContents.on('did-finish-load', () => {
+      void win.webContents.executeJavaScript('Boolean(window.electron && window.electron.ipcRenderer)', true)
+        .then((bridgeAvailable) => {
+          logger.debug(`Renderer preload bridge available: ${bridgeAvailable ? 'yes' : 'no'}`);
+        })
+        .catch((error) => {
+          logger.warn('Failed to verify renderer preload bridge:', error);
+        });
+    });
     if (!isE2EMode) {
       win.webContents.openDevTools();
     }
