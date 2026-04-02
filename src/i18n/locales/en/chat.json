@@ -20,6 +20,53 @@
         "hideThinking": "Hide thinking",
         "currentAgent": "Talking to {{agent}}"
     },
+    "desk": {
+        "inlineHint": "IDE-style desk: files, runtime, browser",
+        "kicker": "Research Desk",
+        "title": "Workspace + Browser",
+        "subtitle": "Keep the current agent's files, runtime context, and market browser beside the conversation.",
+        "tabs": {
+            "files": "Files",
+            "runtime": "Runtime",
+            "browser": "Browser"
+        },
+        "files": {
+            "refresh": "Refresh",
+            "openFolder": "Open folder",
+            "containerPath": "Container path",
+            "missing": "This workspace path does not exist on the host yet.",
+            "empty": "This workspace is empty.",
+            "parentDirectory": "Parent directory",
+            "directory": "directory",
+            "selectFile": "Select a file from the workspace explorer to preview it here.",
+            "unsupportedPreview": "This file type does not have an inline preview yet.",
+            "imageTooLarge": "This image is too large for inline preview, but it exists in the workspace.",
+            "previewTruncated": "Preview truncated to the first part of the file.",
+            "symlinkUnsupported": "Workspace explorer does not follow symbolic links."
+        },
+        "runtime": {
+            "currentAgent": "Current agent",
+            "gateway": "Gateway",
+            "session": "Session",
+            "workspace": "Workspace",
+            "messages": "messages",
+            "sending": "Sending",
+            "thinking": "Thinking",
+            "lastUpdated": "Updated",
+            "yes": "Yes",
+            "no": "No",
+            "visible": "Visible",
+            "hidden": "Hidden"
+        },
+        "browser": {
+            "title": "Market browser",
+            "back": "Back",
+            "forward": "Forward",
+            "reload": "Reload",
+            "go": "Go",
+            "loading": "Loading"
+        }
+    },
     "composer": {
         "attachFiles": "Attach files",
         "pickAgent": "Choose agent",

@@ -32,6 +32,26 @@ test.describe('InvestClaw Electron smoke flows', () => {
     await expect(page.locator('textarea')).not.toHaveValue('');
   });
 
+  test('shows the IDE-style research desk inside chat with files and browser tabs', async ({ page, homeDir }) => {
+    const mainWorkspaceDir = join(homeDir, '.openclaw', 'workspace');
+    await mkdir(mainWorkspaceDir, { recursive: true });
+    await writeFile(join(mainWorkspaceDir, 'NOTES.md'), '# Desk Panel\n\nWorkspace preview from chat.\n');
+
+    await expect(page.getByTestId('setup-page')).toBeVisible();
+    await page.getByTestId('setup-skip-button').click();
+
+    await expect(page.getByTestId('chat-page')).toBeVisible();
+    await expect(page.getByTestId('chat-research-desk')).toBeVisible();
+
+    await page.getByTestId('chat-desk-file-NOTES.md').click();
+    await expect(page.getByTestId('chat-desk-preview')).toContainText('Desk Panel');
+    await expect(page.getByTestId('chat-desk-preview')).toContainText('/workspace/NOTES.md');
+
+    await page.getByTestId('chat-desk-tab-browser').click();
+    await expect(page.getByTestId('chat-desk-browser-url')).toHaveValue(/ainvest/i);
+    await expect(page.getByTestId('chat-desk-browser-surface')).toBeVisible();
+  });
+
   test('can open the skills marketplace without showing legacy marketplace branding', async ({ page }) => {
     await expect(page.getByTestId('setup-page')).toBeVisible();
     await page.getByTestId('setup-skip-button').click();

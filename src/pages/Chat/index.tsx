@@ -5,14 +5,16 @@
  * are in the toolbar; messages render with markdown + streaming.
  */
 import { useEffect, useState } from 'react';
-import { AlertCircle, Loader2, Sparkles } from 'lucide-react';
+import { AlertCircle, Loader2, PanelRightClose, PanelRightOpen, Sparkles } from 'lucide-react';
 import { useChatStore, type RawMessage } from '@/stores/chat';
 import { useGatewayStore } from '@/stores/gateway';
 import { useAgentsStore } from '@/stores/agents';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
+import { Button } from '@/components/ui/button';
 import { ChatMessage } from './ChatMessage';
 import { ChatInput } from './ChatInput';
 import { ChatToolbar } from './ChatToolbar';
+import { ResearchDeskPanel } from './ResearchDeskPanel';
 import { extractImages, extractText, extractThinking, extractToolUse } from './message-utils';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
@@ -26,6 +28,7 @@ export function Chat() {
 
   const messages = useChatStore((s) => s.messages);
   const currentSessionKey = useChatStore((s) => s.currentSessionKey);
+  const currentAgentId = useChatStore((s) => s.currentAgentId);
   const loading = useChatStore((s) => s.loading);
   const sending = useChatStore((s) => s.sending);
   const error = useChatStore((s) => s.error);
@@ -37,12 +40,14 @@ export function Chat() {
   const abortRun = useChatStore((s) => s.abortRun);
   const clearError = useChatStore((s) => s.clearError);
   const fetchAgents = useAgentsStore((s) => s.fetchAgents);
+  const agents = useAgentsStore((s) => s.agents);
 
   const cleanupEmptySession = useChatStore((s) => s.cleanupEmptySession);
 
   const [streamingTimestamp, setStreamingTimestamp] = useState<number>(0);
   const [suggestedPrompt, setSuggestedPrompt] = useState<string>('');
   const [suggestedPromptNonce, setSuggestedPromptNonce] = useState<number>(0);
+  const [deskOpen, setDeskOpen] = useState(true);
   const minLoading = useMinLoading(loading && messages.length > 0);
   const { contentRef, scrollRef } = useStickToBottomInstant(currentSessionKey);
 
@@ -91,106 +96,139 @@ export function Chat() {
   const hasAnyStreamContent = hasStreamText || hasStreamThinking || hasStreamTools || hasStreamImages || hasStreamToolStatus;
 
   const isEmpty = messages.length === 0 && !sending;
+  const currentAgent = agents.find((agent) => agent.id === currentAgentId) ?? null;
 
   return (
-    <div className={cn("relative flex flex-col -m-6 transition-colors duration-500 dark:bg-background")} style={{ height: 'calc(100vh - 2.5rem)' }}>
+    <div data-testid="chat-page" className={cn("relative flex flex-col -m-6 transition-colors duration-500 dark:bg-background")} style={{ height: 'calc(100vh - 2.5rem)' }}>
       {/* Toolbar */}
-      <div className="flex shrink-0 items-center justify-end px-4 py-2">
-        <ChatToolbar />
+      <div className="flex shrink-0 items-center justify-between gap-3 px-4 py-2">
+        <div className="hidden lg:flex items-center gap-2 rounded-full border border-black/10 bg-white/65 px-3 py-1.5 text-[12px] font-medium text-foreground/75 dark:border-white/10 dark:bg-white/5">
+          <span>{t('desk.inlineHint')}</span>
+        </div>
+        <div className="ml-auto flex items-center gap-2">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            data-testid="chat-desk-toggle"
+            className="h-8 w-8"
+            onClick={() => setDeskOpen((value) => !value)}
+          >
+            {deskOpen ? <PanelRightClose className="h-4 w-4" /> : <PanelRightOpen className="h-4 w-4" />}
+          </Button>
+          <ChatToolbar />
+        </div>
       </div>
 
-      {/* Messages Area */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4">
-        <div ref={contentRef} className="max-w-4xl mx-auto space-y-4">
-          {isEmpty ? (
-            <WelcomeScreen
-              onSelectPrompt={(prompt) => {
-                setSuggestedPrompt(prompt);
-                setSuggestedPromptNonce((value) => value + 1);
-              }}
-            />
-          ) : (
-            <>
-              {messages.map((msg, idx) => (
-                <ChatMessage
-                  key={msg.id || `msg-${idx}`}
-                  message={msg}
-                  showThinking={showThinking}
+      <div className="flex min-h-0 flex-1 flex-col gap-4 px-4 pb-4 lg:flex-row">
+        <div className="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-[30px] border border-black/5 bg-[#f7f4ea] shadow-[0_24px_80px_rgba(36,39,27,0.08)] dark:border-white/5 dark:bg-background">
+          {/* Messages Area */}
+          <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4">
+            <div ref={contentRef} className="max-w-4xl mx-auto space-y-4">
+              {isEmpty ? (
+                <WelcomeScreen
+                  onSelectPrompt={(prompt) => {
+                    setSuggestedPrompt(prompt);
+                    setSuggestedPromptNonce((value) => value + 1);
+                  }}
                 />
-              ))}
+              ) : (
+                <>
+                  {messages.map((msg, idx) => (
+                    <ChatMessage
+                      key={msg.id || `msg-${idx}`}
+                      message={msg}
+                      showThinking={showThinking}
+                    />
+                  ))}
 
-              {/* Streaming message */}
-              {shouldRenderStreaming && (
-                <ChatMessage
-                  message={(streamMsg
-                    ? {
-                        ...(streamMsg as Record<string, unknown>),
-                        role: (typeof streamMsg.role === 'string' ? streamMsg.role : 'assistant') as RawMessage['role'],
-                        content: streamMsg.content ?? streamText,
-                        timestamp: streamMsg.timestamp ?? streamingTimestamp,
-                      }
-                    : {
-                        role: 'assistant',
-                        content: streamText,
-                        timestamp: streamingTimestamp,
-                      }) as RawMessage}
-                  showThinking={showThinking}
-                  isStreaming
-                  streamingTools={streamingTools}
-                />
-              )}
+                  {/* Streaming message */}
+                  {shouldRenderStreaming && (
+                    <ChatMessage
+                      message={(streamMsg
+                        ? {
+                            ...(streamMsg as Record<string, unknown>),
+                            role: (typeof streamMsg.role === 'string' ? streamMsg.role : 'assistant') as RawMessage['role'],
+                            content: streamMsg.content ?? streamText,
+                            timestamp: streamMsg.timestamp ?? streamingTimestamp,
+                          }
+                        : {
+                            role: 'assistant',
+                            content: streamText,
+                            timestamp: streamingTimestamp,
+                          }) as RawMessage}
+                      showThinking={showThinking}
+                      isStreaming
+                      streamingTools={streamingTools}
+                    />
+                  )}
 
-              {/* Activity indicator: waiting for next AI turn after tool execution */}
-              {sending && pendingFinal && !shouldRenderStreaming && (
-                <ActivityIndicator phase="tool_processing" />
-              )}
+                  {/* Activity indicator: waiting for next AI turn after tool execution */}
+                  {sending && pendingFinal && !shouldRenderStreaming && (
+                    <ActivityIndicator phase="tool_processing" />
+                  )}
 
-              {/* Typing indicator when sending but no stream content yet */}
-              {sending && !pendingFinal && !hasAnyStreamContent && (
-                <TypingIndicator />
+                  {/* Typing indicator when sending but no stream content yet */}
+                  {sending && !pendingFinal && !hasAnyStreamContent && (
+                    <TypingIndicator />
+                  )}
+                </>
               )}
-            </>
+            </div>
+          </div>
+
+          {/* Error bar */}
+          {error && (
+            <div className="border-t border-destructive/20 bg-destructive/10 px-4 py-2">
+              <div className="mx-auto flex max-w-4xl items-center justify-between">
+                <p className="flex items-center gap-2 text-sm text-destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  {error}
+                </p>
+                <button
+                  onClick={clearError}
+                  className="text-xs text-destructive/60 hover:text-destructive underline"
+                >
+                  {t('common:actions.dismiss')}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Input Area */}
+          <ChatInput
+            onSend={sendMessage}
+            onStop={abortRun}
+            disabled={!isGatewayRunning}
+            sending={sending}
+            isEmpty={isEmpty}
+            presetPrompt={suggestedPrompt}
+            presetPromptNonce={suggestedPromptNonce}
+          />
+
+          {/* Transparent loading overlay */}
+          {minLoading && !sending && (
+            <div className="absolute inset-0 z-50 flex items-center justify-center bg-background/20 backdrop-blur-[1px] rounded-xl pointer-events-auto">
+              <div className="bg-background shadow-lg rounded-full p-2.5 border border-border">
+                <LoadingSpinner size="md" />
+              </div>
+            </div>
           )}
         </div>
+
+        {deskOpen && (
+          <div className="min-h-0 w-full shrink-0 lg:w-[500px] xl:w-[560px]">
+            <ResearchDeskPanel
+              currentAgent={currentAgent}
+              currentSessionKey={currentSessionKey}
+              gatewayStatus={gatewayStatus}
+              messageCount={messages.length}
+              sending={sending}
+              showThinking={showThinking}
+            />
+          </div>
+        )}
       </div>
-
-      {/* Error bar */}
-      {error && (
-        <div className="px-4 py-2 bg-destructive/10 border-t border-destructive/20">
-          <div className="max-w-4xl mx-auto flex items-center justify-between">
-            <p className="text-sm text-destructive flex items-center gap-2">
-              <AlertCircle className="h-4 w-4" />
-              {error}
-            </p>
-            <button
-              onClick={clearError}
-              className="text-xs text-destructive/60 hover:text-destructive underline"
-            >
-              {t('common:actions.dismiss')}
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Input Area */}
-      <ChatInput
-        onSend={sendMessage}
-        onStop={abortRun}
-        disabled={!isGatewayRunning}
-        sending={sending}
-        isEmpty={isEmpty}
-        presetPrompt={suggestedPrompt}
-        presetPromptNonce={suggestedPromptNonce}
-      />
-
-      {/* Transparent loading overlay */}
-      {minLoading && !sending && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-background/20 backdrop-blur-[1px] rounded-xl pointer-events-auto">
-          <div className="bg-background shadow-lg rounded-full p-2.5 border border-border">
-            <LoadingSpinner size="md" />
-          </div>
-        </div>
-      )}
     </div>
   );
 }
