@@ -33,6 +33,7 @@
             "noAgent": "先选择或创建一个 Agent，再挂载并浏览工作区。",
             "missing": "这个工作区路径在宿主机上还不存在。",
             "empty": "这个工作区目前为空。",
+            "loadingDirectory": "正在展开目录...",
             "parentDirectory": "上一级目录",
             "directory": "目录",
             "selectFile": "从左侧文件系统中选择一个文件，即可在这里预览。",
@@ -46,6 +47,8 @@
             "back": "后退",
             "forward": "前进",
             "reload": "刷新",
+            "newTab": "新建标签",
+            "closeTab": "关闭标签",
             "go": "访问",
             "loading": "加载中"
         }

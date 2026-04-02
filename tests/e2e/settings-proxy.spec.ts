@@ -1,5 +1,5 @@
 import type { Locator, Page } from '@playwright/test';
-import { completeSetup, expect, test } from './fixtures/electron';
+import { completeSetup, expect, navigateToHash, test } from './fixtures/electron';
 
 async function ensureSwitchState(toggle: Locator, checked: boolean): Promise<void> {
   const currentState = await toggle.getAttribute('data-state');
@@ -20,7 +20,7 @@ test.describe('InvestClaw developer proxy settings', () => {
   test('keeps proxy save available when disabling proxy in developer mode', async ({ page }) => {
     await completeSetup(page);
 
-    await page.getByTestId('sidebar-nav-settings').click();
+    await navigateToHash(page, '#/settings');
     await expect(page.getByTestId('settings-page')).toBeVisible();
 
     const devModeToggle = page.getByTestId('settings-dev-mode-switch');

@@ -1,4 +1,4 @@
-import { completeSetup, expect, test } from './fixtures/electron';
+import { completeSetup, expect, navigateToHash, test } from './fixtures/electron';
 
 const TEST_PROVIDER_ID = 'moonshot-e2e';
 const TEST_PROVIDER_LABEL = 'Moonshot E2E';
@@ -24,7 +24,7 @@ test.describe('InvestClaw provider lifecycle', () => {
     await completeSetup(page);
     await seedTestProvider(page);
 
-    await page.getByTestId('sidebar-nav-models').click();
+    await navigateToHash(page, '#/models');
     await expect(page.getByTestId('providers-settings')).toBeVisible();
     await expect(page.getByTestId(`provider-card-${TEST_PROVIDER_ID}`)).toContainText(TEST_PROVIDER_LABEL);
 
@@ -39,7 +39,7 @@ test.describe('InvestClaw provider lifecycle', () => {
     await completeSetup(page);
     await seedTestProvider(page);
 
-    await page.getByTestId('sidebar-nav-models').click();
+    await navigateToHash(page, '#/models');
     await expect(page.getByTestId(`provider-card-${TEST_PROVIDER_ID}`)).toContainText(TEST_PROVIDER_LABEL);
 
     await page.getByTestId(`provider-card-${TEST_PROVIDER_ID}`).hover();
@@ -54,7 +54,7 @@ test.describe('InvestClaw provider lifecycle', () => {
       await relaunchedPage.waitForLoadState('domcontentloaded');
       await expect(relaunchedPage.getByTestId('main-layout')).toBeVisible();
 
-      await relaunchedPage.getByTestId('sidebar-nav-models').click();
+      await navigateToHash(relaunchedPage, '#/models');
       await expect(relaunchedPage.getByTestId('providers-settings')).toBeVisible();
       await expect(relaunchedPage.getByTestId(`provider-card-${TEST_PROVIDER_ID}`)).toHaveCount(0);
       await expect(relaunchedPage.getByText(TEST_PROVIDER_LABEL)).toHaveCount(0);

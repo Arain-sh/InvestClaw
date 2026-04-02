@@ -178,7 +178,7 @@ function App() {
 
           {/* Main application routes */}
           <Route element={<MainLayout />}>
-            <Route path="/" element={<Chat />} />
+            <Route index element={<Chat />} />
             <Route path="/models" element={<Models />} />
             <Route path="/agents" element={<Agents />} />
             <Route path="/channels" element={<Channels />} />

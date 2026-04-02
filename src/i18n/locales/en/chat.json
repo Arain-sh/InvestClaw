@@ -33,6 +33,7 @@
             "noAgent": "Choose or create an agent before mounting and browsing a workspace.",
             "missing": "This workspace path does not exist on the host yet.",
             "empty": "This workspace is empty.",
+            "loadingDirectory": "Loading directory...",
             "parentDirectory": "Parent directory",
             "directory": "directory",
             "selectFile": "Select a file from the workspace explorer to preview it here.",
@@ -46,6 +47,8 @@
             "back": "Back",
             "forward": "Forward",
             "reload": "Reload",
+            "newTab": "New tab",
+            "closeTab": "Close tab",
             "go": "Go",
             "loading": "Loading"
         }

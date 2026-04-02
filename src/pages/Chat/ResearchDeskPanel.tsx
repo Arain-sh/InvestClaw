@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ChevronRight,
   FileCode2,
@@ -7,8 +7,10 @@ import {
   Folder,
   FolderOpen,
   Globe,
+  Plus,
   RefreshCw,
   Search,
+  X,
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -30,6 +32,8 @@ const QUICK_BROWSER_LINKS = [
   { id: 'tradingview', url: 'https://www.tradingview.com/', label: 'TradingView' },
 ];
 
+const ROOT_WORKSPACE_PATH = '';
+
 type BrowserNavigationEvent = Event & { url?: string; title?: string };
 type BrowserWebview = HTMLElement & {
   src: string;
@@ -39,6 +43,17 @@ type BrowserWebview = HTMLElement & {
   goBack: () => void;
   goForward: () => void;
   getURL: () => string;
+};
+
+type WorkspaceListingMap = Record<string, AgentWorkspaceListing>;
+
+type BrowserTabState = {
+  id: string;
+  url: string;
+  title: string;
+  loading: boolean;
+  canGoBack: boolean;
+  canGoForward: boolean;
 };
 
 function formatByteSize(bytes: number): string {
@@ -100,14 +115,63 @@ function getWorkspaceEntryIcon(entry: AgentWorkspaceEntry) {
   return <FileCode2 className="h-4 w-4" />;
 }
 
+function createBrowserTab(url: string, fallbackTitle: string): BrowserTabState {
+  const nextId = typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+    ? crypto.randomUUID()
+    : `browser-tab-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+  return {
+    id: nextId,
+    url,
+    title: fallbackTitle,
+    loading: true,
+    canGoBack: false,
+    canGoForward: false,
+  };
+}
+
+function getBrowserTitleFallback(url: string, fallbackTitle: string): string {
+  try {
+    const parsed = new URL(url);
+    const hostname = parsed.hostname.replace(/^www\./, '');
+    return hostname || fallbackTitle;
+  } catch {
+    return fallbackTitle;
+  }
+}
+
+function safeGetBrowserUrl(webview: BrowserWebview): string | null {
+  try {
+    return webview.getURL() || null;
+  } catch {
+    return null;
+  }
+}
+
+function safeCanGoBack(webview: BrowserWebview): boolean {
+  try {
+    return webview.canGoBack();
+  } catch {
+    return false;
+  }
+}
+
+function safeCanGoForward(webview: BrowserWebview): boolean {
+  try {
+    return webview.canGoForward();
+  } catch {
+    return false;
+  }
+}
+
 function WorkspacePreviewPane({
   preview,
   loading,
-  listing,
+  fallbackPath,
 }: {
   preview: AgentWorkspaceFilePreview | null;
   loading: boolean;
-  listing: AgentWorkspaceListing | null;
+  fallbackPath: string;
 }) {
   const { t } = useTranslation('chat');
 
@@ -128,7 +192,7 @@ function WorkspacePreviewPane({
         <FileText className="mb-3 h-6 w-6 text-foreground/45" />
         <p className="text-[14px] font-medium text-foreground/80">{t('desk.files.selectFile')}</p>
         <p className="mt-1 font-mono text-[12px] text-foreground/55">
-          {listing?.currentContainerPath || '/workspace'}
+          {fallbackPath}
         </p>
       </div>
     );
@@ -201,103 +265,153 @@ function WorkspacePreviewPane({
   );
 }
 
-export function ResearchDeskPanel({
-  currentAgent,
+function WorkspaceTree({
+  entries,
+  depth,
+  listings,
+  expandedDirectories,
+  loadingDirectories,
+  selectedWorkspacePath,
+  onToggleDirectory,
+  onOpenFile,
 }: {
-  currentAgent: AgentSummary | null;
+  entries: AgentWorkspaceEntry[];
+  depth: number;
+  listings: WorkspaceListingMap;
+  expandedDirectories: Record<string, boolean>;
+  loadingDirectories: Record<string, boolean>;
+  selectedWorkspacePath: string | null;
+  onToggleDirectory: (entry: AgentWorkspaceEntry) => void;
+  onOpenFile: (entry: AgentWorkspaceEntry) => void;
 }) {
   const { t } = useTranslation('chat');
+
+  return (
+    <div className="space-y-1">
+      {entries.map((entry) => {
+        const isDirectory = entry.kind === 'directory';
+        const isExpanded = !!expandedDirectories[entry.relativePath];
+        const childListing = listings[entry.relativePath];
+        const isLoadingDirectory = !!loadingDirectories[entry.relativePath];
+
+        return (
+          <div key={entry.relativePath}>
+            <button
+              type="button"
+              data-testid={isDirectory ? `chat-desk-folder-${entry.name}` : `chat-desk-file-${entry.name}`}
+              onClick={() => (isDirectory ? onToggleDirectory(entry) : onOpenFile(entry))}
+              className={cn(
+                'flex w-full min-w-0 items-center gap-3 overflow-hidden rounded-xl px-3 py-2 text-left transition-colors hover:bg-black/5 dark:hover:bg-white/10',
+                selectedWorkspacePath === entry.relativePath && 'bg-black/10 dark:bg-white/10',
+              )}
+              style={{ paddingLeft: `${12 + depth * 18}px` }}
+            >
+              <span className="flex h-4 w-4 shrink-0 items-center justify-center text-foreground/50">
+                {isDirectory ? (
+                  <ChevronRight className={cn('h-4 w-4 transition-transform', isExpanded && 'rotate-90')} />
+                ) : (
+                  <span className="h-2 w-2 rounded-full bg-black/10 dark:bg-white/15" />
+                )}
+              </span>
+              <span className="shrink-0 text-foreground/55">{getWorkspaceEntryIcon(entry)}</span>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-[13px] font-medium text-foreground">{entry.name}</p>
+                <p className="truncate font-mono text-[11px] text-foreground/55">
+                  {entry.containerPath} · {isDirectory ? t('desk.files.directory') : formatByteSize(entry.size)}
+                </p>
+              </div>
+            </button>
+
+            {isDirectory && isExpanded && (
+              <div className="pt-1">
+                {isLoadingDirectory && (
+                  <div className="flex items-center gap-2 px-3 py-2 text-[12px] text-foreground/55" style={{ paddingLeft: `${30 + depth * 18}px` }}>
+                    <LoadingSpinner size="sm" />
+                    {t('desk.files.loadingDirectory')}
+                  </div>
+                )}
+
+                {!isLoadingDirectory && childListing && childListing.entries.length === 0 && (
+                  <div className="px-3 py-2 text-[12px] text-foreground/55" style={{ paddingLeft: `${30 + depth * 18}px` }}>
+                    {t('desk.files.empty')}
+                  </div>
+                )}
+
+                {!isLoadingDirectory && childListing && childListing.entries.length > 0 && (
+                  <WorkspaceTree
+                    entries={childListing.entries}
+                    depth={depth + 1}
+                    listings={listings}
+                    expandedDirectories={expandedDirectories}
+                    loadingDirectories={loadingDirectories}
+                    selectedWorkspacePath={selectedWorkspacePath}
+                    onToggleDirectory={onToggleDirectory}
+                    onOpenFile={onOpenFile}
+                  />
+                )}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function BrowserWebviewPane({
+  tab,
+  active,
+  fallbackTitle,
+  onStateChange,
+  onRegisterWebview,
+}: {
+  tab: BrowserTabState;
+  active: boolean;
+  fallbackTitle: string;
+  onStateChange: (tabId: string, patch: Partial<BrowserTabState>) => void;
+  onRegisterWebview: (tabId: string, webview: BrowserWebview | null) => void;
+}) {
   const webviewRef = useRef<BrowserWebview | null>(null);
-  const [activeTab, setActiveTab] = useState('files');
-  const [workspaceListing, setWorkspaceListing] = useState<AgentWorkspaceListing | null>(null);
-  const [workspacePreview, setWorkspacePreview] = useState<AgentWorkspaceFilePreview | null>(null);
-  const [workspaceLoading, setWorkspaceLoading] = useState(false);
-  const [workspacePreviewLoading, setWorkspacePreviewLoading] = useState(false);
-  const [workspaceError, setWorkspaceError] = useState<string | null>(null);
-  const [selectedWorkspacePath, setSelectedWorkspacePath] = useState<string | null>(null);
-  const [browserInput, setBrowserInput] = useState(DEFAULT_BROWSER_URL);
-  const [browserUrl, setBrowserUrl] = useState(DEFAULT_BROWSER_URL);
-  const [browserTitle, setBrowserTitle] = useState('AInvest');
-  const [browserLoading, setBrowserLoading] = useState(true);
-  const [browserCanGoBack, setBrowserCanGoBack] = useState(false);
-  const [browserCanGoForward, setBrowserCanGoForward] = useState(false);
-
-  const loadWorkspaceListing = useCallback(async (relativePath = '') => {
-    if (!currentAgent) {
-      setWorkspaceListing(null);
-      setWorkspaceError(null);
-      return;
-    }
-    setWorkspaceLoading(true);
-    try {
-      const response = await hostApiFetch<AgentWorkspaceListing>(buildWorkspaceListingPath(currentAgent.id, relativePath));
-      setWorkspaceListing(response);
-      setWorkspaceError(null);
-    } catch (error) {
-      setWorkspaceError(String(error));
-      setWorkspaceListing(null);
-    } finally {
-      setWorkspaceLoading(false);
-    }
-  }, [currentAgent]);
 
   useEffect(() => {
-    setWorkspacePreview(null);
-    setSelectedWorkspacePath(null);
-    void loadWorkspaceListing('');
-  }, [loadWorkspaceListing]);
-
-  useEffect(() => {
-    try {
-      const savedUrl = window.localStorage.getItem('investclaw:desk-browser-url');
-      if (savedUrl) {
-        setBrowserInput(savedUrl);
-        setBrowserUrl(savedUrl);
-      }
-    } catch {
-      // ignore persistence issues
-    }
-  }, []);
-
-  useEffect(() => {
-    try {
-      window.localStorage.setItem('investclaw:desk-browser-url', browserUrl);
-    } catch {
-      // ignore persistence issues
-    }
-  }, [browserUrl]);
+    onRegisterWebview(tab.id, webviewRef.current);
+    return () => {
+      onRegisterWebview(tab.id, null);
+    };
+  }, [onRegisterWebview, tab.id]);
 
   useEffect(() => {
     const webview = webviewRef.current;
     if (!webview) return;
 
-    const syncNavigationState = () => {
-      setBrowserCanGoBack(webview.canGoBack());
-      setBrowserCanGoForward(webview.canGoForward());
-      const nextUrl = webview.getURL();
-      if (nextUrl) {
-        setBrowserInput(nextUrl);
-      }
+    const syncNavigationState = (eventUrl?: string) => {
+      const nextUrl = eventUrl || safeGetBrowserUrl(webview) || tab.url;
+      onStateChange(tab.id, {
+        url: nextUrl,
+        canGoBack: safeCanGoBack(webview),
+        canGoForward: safeCanGoForward(webview),
+      });
     };
 
     const handleDidStartLoading = () => {
-      setBrowserLoading(true);
+      onStateChange(tab.id, { loading: true });
+      syncNavigationState();
     };
 
     const handleDidStopLoading = () => {
-      setBrowserLoading(false);
+      onStateChange(tab.id, { loading: false });
       syncNavigationState();
     };
 
     const handleNavigation = (event: BrowserNavigationEvent) => {
-      if (event.url) {
-        setBrowserInput(event.url);
-      }
-      syncNavigationState();
+      syncNavigationState(event.url);
     };
 
     const handleTitleUpdate = (event: BrowserNavigationEvent) => {
-      setBrowserTitle(event.title || t('desk.browser.title'));
+      const nextUrl = event.url || safeGetBrowserUrl(webview) || tab.url;
+      onStateChange(tab.id, {
+        title: event.title || getBrowserTitleFallback(nextUrl, fallbackTitle),
+      });
     };
 
     webview.addEventListener('did-start-loading', handleDidStartLoading as EventListener);
@@ -313,18 +427,158 @@ export function ResearchDeskPanel({
       webview.removeEventListener('did-navigate-in-page', handleNavigation as EventListener);
       webview.removeEventListener('page-title-updated', handleTitleUpdate as EventListener);
     };
-  }, [browserUrl, t]);
+  }, [fallbackTitle, onStateChange, tab.id, tab.url]);
 
-  const handleOpenWorkspaceEntry = async (entry: AgentWorkspaceEntry) => {
+  return (
+    <webview
+      ref={(node) => {
+        webviewRef.current = node as BrowserWebview | null;
+      }}
+      data-testid={active ? 'chat-desk-browser-webview' : undefined}
+      src={tab.url}
+      allowpopups={true}
+      partition="persist:investclaw-browser"
+      className={cn(
+        'absolute inset-0 h-full w-full',
+        active ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0',
+      )}
+    />
+  );
+}
+
+export function ResearchDeskPanel({
+  currentAgent,
+}: {
+  currentAgent: AgentSummary | null;
+}) {
+  const { t } = useTranslation('chat');
+  const browserWebviewsRef = useRef<Record<string, BrowserWebview | null>>({});
+  const [activeTab, setActiveTab] = useState('files');
+  const [workspaceListings, setWorkspaceListings] = useState<WorkspaceListingMap>({});
+  const [workspacePreview, setWorkspacePreview] = useState<AgentWorkspaceFilePreview | null>(null);
+  const [workspaceLoading, setWorkspaceLoading] = useState(false);
+  const [workspacePreviewLoading, setWorkspacePreviewLoading] = useState(false);
+  const [workspaceError, setWorkspaceError] = useState<string | null>(null);
+  const [selectedWorkspacePath, setSelectedWorkspacePath] = useState<string | null>(null);
+  const [expandedDirectories, setExpandedDirectories] = useState<Record<string, boolean>>({
+    [ROOT_WORKSPACE_PATH]: true,
+  });
+  const [loadingDirectories, setLoadingDirectories] = useState<Record<string, boolean>>({});
+  const [browserTabs, setBrowserTabs] = useState<BrowserTabState[]>([
+    createBrowserTab(DEFAULT_BROWSER_URL, 'AInvest'),
+  ]);
+  const [activeBrowserTabId, setActiveBrowserTabId] = useState<string>('');
+  const [browserInput, setBrowserInput] = useState(DEFAULT_BROWSER_URL);
+
+  const rootListing = workspaceListings[ROOT_WORKSPACE_PATH] || null;
+  const activeBrowserTab = browserTabs.find((tab) => tab.id === activeBrowserTabId) || browserTabs[0];
+
+  const updateBrowserTab = useCallback((tabId: string, patch: Partial<BrowserTabState>) => {
+    setBrowserTabs((current) => current.map((tab) => (tab.id === tabId ? { ...tab, ...patch } : tab)));
+  }, []);
+
+  const registerBrowserWebview = useCallback((tabId: string, webview: BrowserWebview | null) => {
+    browserWebviewsRef.current[tabId] = webview;
+  }, []);
+
+  const loadWorkspaceListing = useCallback(async (relativePath = ROOT_WORKSPACE_PATH) => {
+    if (!currentAgent) {
+      setWorkspaceListings({});
+      setWorkspaceError(null);
+      return;
+    }
+
+    const normalizedPath = relativePath || ROOT_WORKSPACE_PATH;
+    if (normalizedPath === ROOT_WORKSPACE_PATH) {
+      setWorkspaceLoading(true);
+    }
+    setLoadingDirectories((current) => ({ ...current, [normalizedPath]: true }));
+
+    try {
+      const response = await hostApiFetch<AgentWorkspaceListing>(buildWorkspaceListingPath(currentAgent.id, normalizedPath));
+      setWorkspaceListings((current) => ({ ...current, [normalizedPath]: response }));
+      setWorkspaceError(null);
+    } catch (error) {
+      setWorkspaceError(String(error));
+      if (normalizedPath === ROOT_WORKSPACE_PATH) {
+        setWorkspaceListings({});
+      }
+    } finally {
+      if (normalizedPath === ROOT_WORKSPACE_PATH) {
+        setWorkspaceLoading(false);
+      }
+      setLoadingDirectories((current) => {
+        const next = { ...current };
+        delete next[normalizedPath];
+        return next;
+      });
+    }
+  }, [currentAgent]);
+
+  useEffect(() => {
+    setWorkspaceListings({});
+    setExpandedDirectories({ [ROOT_WORKSPACE_PATH]: true });
+    setWorkspacePreview(null);
+    setSelectedWorkspacePath(null);
+    void loadWorkspaceListing(ROOT_WORKSPACE_PATH);
+  }, [loadWorkspaceListing]);
+
+  useEffect(() => {
+    try {
+      const savedUrl = window.localStorage.getItem('investclaw:desk-browser-url');
+      if (!savedUrl) {
+        setActiveBrowserTabId((current) => current || browserTabs[0]?.id || '');
+        return;
+      }
+
+      setBrowserTabs([createBrowserTab(savedUrl, getBrowserTitleFallback(savedUrl, t('desk.browser.title')))]);
+    } catch {
+      setActiveBrowserTabId((current) => current || browserTabs[0]?.id || '');
+    }
+  }, [t]);
+
+  useEffect(() => {
+    if (!browserTabs.length) return;
+    if (!activeBrowserTabId || !browserTabs.some((tab) => tab.id === activeBrowserTabId)) {
+      setActiveBrowserTabId(browserTabs[0].id);
+    }
+  }, [activeBrowserTabId, browserTabs]);
+
+  useEffect(() => {
+    if (!activeBrowserTab) return;
+    setBrowserInput(activeBrowserTab.url);
+
+    try {
+      window.localStorage.setItem('investclaw:desk-browser-url', activeBrowserTab.url);
+    } catch {
+      // ignore persistence issues
+    }
+  }, [activeBrowserTab]);
+
+  const syncActiveBrowserNavigation = useCallback((tabId: string) => {
+    const webview = browserWebviewsRef.current[tabId];
+    const tab = browserTabs.find((candidate) => candidate.id === tabId);
+    if (!webview || !tab) return;
+
+    updateBrowserTab(tabId, {
+      url: safeGetBrowserUrl(webview) || tab.url,
+      canGoBack: safeCanGoBack(webview),
+      canGoForward: safeCanGoForward(webview),
+    });
+  }, [browserTabs, updateBrowserTab]);
+
+  useEffect(() => {
+    if (!activeBrowserTab) return;
+    syncActiveBrowserNavigation(activeBrowserTab.id);
+  }, [activeBrowserTab, syncActiveBrowserNavigation]);
+
+  const handleOpenWorkspaceFile = async (entry: AgentWorkspaceEntry) => {
     if (!currentAgent) return;
     if (entry.kind === 'symlink') {
       setWorkspaceError(t('desk.files.symlinkUnsupported'));
       return;
     }
-    if (entry.kind === 'directory') {
-      setWorkspacePreview(null);
-      setSelectedWorkspacePath(null);
-      await loadWorkspaceListing(entry.relativePath);
+    if (entry.kind !== 'file') {
       return;
     }
 
@@ -341,8 +595,34 @@ export function ResearchDeskPanel({
     }
   };
 
+  const handleToggleWorkspaceDirectory = async (entry: AgentWorkspaceEntry) => {
+    if (entry.kind === 'symlink') {
+      setWorkspaceError(t('desk.files.symlinkUnsupported'));
+      return;
+    }
+    if (entry.kind !== 'directory') {
+      return;
+    }
+
+    const nextExpanded = !expandedDirectories[entry.relativePath];
+    setExpandedDirectories((current) => ({ ...current, [entry.relativePath]: nextExpanded }));
+    setSelectedWorkspacePath(entry.relativePath);
+
+    if (nextExpanded && !workspaceListings[entry.relativePath]) {
+      await loadWorkspaceListing(entry.relativePath);
+    }
+  };
+
+  const handleRefreshWorkspace = async () => {
+    setWorkspaceListings({});
+    setExpandedDirectories({ [ROOT_WORKSPACE_PATH]: true });
+    setWorkspacePreview(null);
+    setSelectedWorkspacePath(null);
+    await loadWorkspaceListing(ROOT_WORKSPACE_PATH);
+  };
+
   const handleOpenWorkspaceFolder = async () => {
-    const targetPath = workspaceListing?.hostPath || currentAgent?.workspace;
+    const targetPath = rootListing?.hostPath || currentAgent?.workspace;
     if (!targetPath) return;
     const result = await invokeIpc<string>('shell:openPath', targetPath);
     if (result) {
@@ -351,89 +631,48 @@ export function ResearchDeskPanel({
   };
 
   const handleBrowserNavigate = () => {
+    if (!activeBrowserTab) return;
     const nextUrl = normalizeBrowserUrl(browserInput);
     setBrowserInput(nextUrl);
-    setBrowserUrl(nextUrl);
-    setBrowserLoading(true);
+    updateBrowserTab(activeBrowserTab.id, {
+      url: nextUrl,
+      title: getBrowserTitleFallback(nextUrl, t('desk.browser.title')),
+      loading: true,
+    });
   };
 
-  const renderWorkspaceContent = () => {
-    if (!currentAgent) {
-      return (
-        <div className="rounded-2xl border border-dashed border-black/10 bg-white/70 p-4 text-[13px] text-foreground/65 dark:border-white/10 dark:bg-black/10">
-          {t('desk.files.noAgent')}
-        </div>
-      );
-    }
-
-    if (workspaceLoading) {
-      return (
-        <div className="flex min-h-0 flex-1 items-center justify-center">
-          <LoadingSpinner size="md" />
-        </div>
-      );
-    }
-
-    if (!workspaceListing?.exists) {
-      return (
-        <div className="rounded-2xl border border-dashed border-black/10 bg-white/70 p-4 text-[13px] text-foreground/65 dark:border-white/10 dark:bg-black/10">
-          {t('desk.files.missing')}
-        </div>
-      );
-    }
-
-    return (
-      <div className="flex min-h-0 flex-1 flex-col">
-        {workspaceListing.parentRelativePath !== null && (
-          <button
-            type="button"
-            onClick={() => void loadWorkspaceListing(workspaceListing.parentRelativePath || '')}
-            className="mb-2 flex w-full min-w-0 items-center gap-3 overflow-hidden rounded-xl px-3 py-2 text-left transition-colors hover:bg-black/5 dark:hover:bg-white/10"
-          >
-            <FolderOpen className="h-4 w-4 shrink-0 text-foreground/55" />
-            <div className="min-w-0">
-              <p className="text-[13px] font-medium text-foreground">{t('desk.files.parentDirectory')}</p>
-              <p className="truncate font-mono text-[11px] text-foreground/55">
-                {workspaceListing.parentRelativePath || '/workspace'}
-              </p>
-            </div>
-          </button>
-        )}
-
-        {workspaceListing.entries.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-black/10 bg-white/70 p-4 text-[13px] text-foreground/65 dark:border-white/10 dark:bg-black/10">
-            {t('desk.files.empty')}
-          </div>
-        ) : (
-          <div className="min-h-0 flex-1 overflow-y-auto">
-            <div className="space-y-1 pr-1">
-              {workspaceListing.entries.map((entry) => (
-                <button
-                  key={entry.relativePath}
-                  type="button"
-                  data-testid={entry.kind === 'file' ? `chat-desk-file-${entry.name}` : undefined}
-                  onClick={() => void handleOpenWorkspaceEntry(entry)}
-                  className={cn(
-                    'flex w-full min-w-0 items-center gap-3 overflow-hidden rounded-xl px-3 py-2 text-left transition-colors hover:bg-black/5 dark:hover:bg-white/10',
-                    selectedWorkspacePath === entry.relativePath && 'bg-black/10 dark:bg-white/10',
-                  )}
-                >
-                  <span className="shrink-0 text-foreground/55">{getWorkspaceEntryIcon(entry)}</span>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-[13px] font-medium text-foreground">{entry.name}</p>
-                    <p className="truncate font-mono text-[11px] text-foreground/55">
-                      {entry.containerPath} · {entry.kind === 'directory' ? t('desk.files.directory') : formatByteSize(entry.size)}
-                    </p>
-                  </div>
-                  {entry.kind === 'directory' && <ChevronRight className="h-4 w-4 shrink-0 text-foreground/45" />}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-    );
+  const handleCreateBrowserTab = () => {
+    const nextTab = createBrowserTab(DEFAULT_BROWSER_URL, 'AInvest');
+    setBrowserTabs((current) => [...current, nextTab]);
+    setActiveBrowserTabId(nextTab.id);
+    setBrowserInput(nextTab.url);
   };
+
+  const handleCloseBrowserTab = (tabId: string) => {
+    setBrowserTabs((current) => {
+      if (current.length === 1) {
+        return current;
+      }
+      const closingIndex = current.findIndex((tab) => tab.id === tabId);
+      const nextTabs = current.filter((tab) => tab.id !== tabId);
+      const nextActive = nextTabs[Math.max(0, closingIndex - 1)] || nextTabs[0];
+      if (tabId === activeBrowserTabId && nextActive) {
+        setActiveBrowserTabId(nextActive.id);
+      }
+      delete browserWebviewsRef.current[tabId];
+      return nextTabs;
+    });
+  };
+
+  const workspaceFallbackPath = workspacePreview?.containerPath || rootListing?.currentContainerPath || '/workspace';
+  const workspaceHostPath = rootListing?.hostPath || currentAgent?.workspace || '-';
+
+  const activeBrowserState = useMemo(() => ({
+    title: activeBrowserTab?.title || t('desk.browser.title'),
+    loading: activeBrowserTab?.loading ?? false,
+    canGoBack: activeBrowserTab?.canGoBack ?? false,
+    canGoForward: activeBrowserTab?.canGoForward ?? false,
+  }), [activeBrowserTab, t]);
 
   return (
     <Card data-testid="chat-research-desk" className="flex h-full min-h-[340px] flex-col rounded-[28px] border-0 bg-[#efe9db] shadow-[0_24px_80px_rgba(36,39,27,0.12)] dark:bg-card">
@@ -443,7 +682,7 @@ export function ResearchDeskPanel({
             <span className="truncate">{currentAgent?.name || 'Main Agent'}</span>
           </div>
           <div className="min-w-0 rounded-full border border-black/10 bg-white/50 px-3 py-1.5 font-mono text-[11px] text-foreground/60 dark:border-white/10 dark:bg-white/5">
-            <span className="block truncate">{currentAgent?.workspace || '/workspace'}</span>
+            <span className="block truncate">{workspaceHostPath}</span>
           </div>
         </div>
 
@@ -453,13 +692,13 @@ export function ResearchDeskPanel({
             <TabsTrigger data-testid="chat-desk-tab-browser" value="browser">{t('desk.tabs.browser')}</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="files" className="mt-3 flex min-h-0 flex-1 flex-col">
+          <TabsContent forceMount value="files" className={cn('mt-2 flex min-h-0 flex-1 flex-col', activeTab !== 'files' && 'hidden')}>
             <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[26px] border border-black/10 bg-[#f9f6ec] dark:border-white/10 dark:bg-white/5">
               <div className="shrink-0 border-b border-black/10 p-3 dark:border-white/10">
                 <div className="flex flex-wrap items-center gap-2">
                   <Button
                     variant="outline"
-                    onClick={() => void loadWorkspaceListing(workspaceListing?.currentRelativePath || '')}
+                    onClick={() => void handleRefreshWorkspace()}
                     className="h-8 rounded-full border-black/10 bg-white/80 px-3 text-[12px] dark:border-white/10 dark:bg-white/5"
                   >
                     <RefreshCw className="mr-2 h-3.5 w-3.5" />
@@ -468,7 +707,7 @@ export function ResearchDeskPanel({
                   <Button
                     variant="outline"
                     onClick={() => void handleOpenWorkspaceFolder()}
-                    disabled={!workspaceListing?.exists}
+                    disabled={!rootListing?.exists}
                     className="h-8 rounded-full border-black/10 bg-white/80 px-3 text-[12px] dark:border-white/10 dark:bg-white/5"
                   >
                     <FolderOpen className="mr-2 h-3.5 w-3.5" />
@@ -481,7 +720,7 @@ export function ResearchDeskPanel({
                     {t('desk.files.containerPath')}
                   </div>
                   <p className="mt-1 break-all font-mono text-[12px] text-foreground">
-                    {workspaceListing?.currentContainerPath || '/workspace'}
+                    {workspaceFallbackPath}
                   </p>
                 </div>
                 {workspaceError && (
@@ -491,59 +730,180 @@ export function ResearchDeskPanel({
                 )}
               </div>
 
-              <div className="grid min-h-0 flex-1 gap-px bg-black/10 dark:bg-white/10 xl:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]">
+              <div className="grid min-h-0 flex-1 gap-px bg-black/10 dark:bg-white/10 xl:grid-cols-[minmax(0,0.86fr)_minmax(0,1.14fr)]">
                 <div
                   data-testid="chat-desk-files"
                   className="flex min-h-0 flex-col overflow-hidden bg-[#f9f6ec] p-3 dark:bg-white/5"
                 >
-                  {renderWorkspaceContent()}
+                  {!currentAgent ? (
+                    <div className="rounded-2xl border border-dashed border-black/10 bg-white/70 p-4 text-[13px] text-foreground/65 dark:border-white/10 dark:bg-black/10">
+                      {t('desk.files.noAgent')}
+                    </div>
+                  ) : workspaceLoading ? (
+                    <div className="flex min-h-0 flex-1 items-center justify-center">
+                      <LoadingSpinner size="md" />
+                    </div>
+                  ) : !rootListing?.exists ? (
+                    <div className="rounded-2xl border border-dashed border-black/10 bg-white/70 p-4 text-[13px] text-foreground/65 dark:border-white/10 dark:bg-black/10">
+                      {t('desk.files.missing')}
+                    </div>
+                  ) : rootListing.entries.length === 0 ? (
+                    <div className="rounded-2xl border border-dashed border-black/10 bg-white/70 p-4 text-[13px] text-foreground/65 dark:border-white/10 dark:bg-black/10">
+                      {t('desk.files.empty')}
+                    </div>
+                  ) : (
+                    <div className="min-h-0 flex-1 overflow-y-auto pr-1">
+                      <div data-testid="chat-desk-tree-root" className="mb-2 flex items-center gap-2 rounded-xl border border-black/10 bg-white/70 px-3 py-2 text-[12px] font-medium text-foreground/75 dark:border-white/10 dark:bg-black/10">
+                        <FolderOpen className="h-4 w-4 text-foreground/55" />
+                        <span className="truncate">/workspace</span>
+                      </div>
+                      <WorkspaceTree
+                        entries={rootListing.entries}
+                        depth={0}
+                        listings={workspaceListings}
+                        expandedDirectories={expandedDirectories}
+                        loadingDirectories={loadingDirectories}
+                        selectedWorkspacePath={selectedWorkspacePath}
+                        onToggleDirectory={handleToggleWorkspaceDirectory}
+                        onOpenFile={handleOpenWorkspaceFile}
+                      />
+                    </div>
+                  )}
                 </div>
+
                 <div className="min-h-0 bg-[#f9f6ec] p-3 dark:bg-white/5">
                   <WorkspacePreviewPane
                     preview={workspacePreview}
                     loading={workspacePreviewLoading}
-                    listing={workspaceListing}
+                    fallbackPath={workspaceFallbackPath}
                   />
                 </div>
               </div>
             </div>
           </TabsContent>
 
-          <TabsContent value="browser" className="mt-3 flex min-h-0 flex-1 flex-col">
+          <TabsContent forceMount value="browser" className={cn('mt-1 flex min-h-0 flex-1 flex-col', activeTab !== 'browser' && 'hidden')}>
             <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[26px] border border-black/10 bg-[#f9f6ec] dark:border-white/10 dark:bg-white/5">
-              <div className="shrink-0 border-b border-black/10 p-3 dark:border-white/10">
-                <div className="mb-2 flex flex-wrap items-center gap-2">
+              <div data-testid="chat-desk-browser-tabs" className="shrink-0 border-b border-black/10 dark:border-white/10">
+                <div className="flex items-center gap-2 overflow-x-auto px-3 py-2">
+                  {browserTabs.map((tab) => (
+                    <button
+                      key={tab.id}
+                      type="button"
+                      data-testid="chat-desk-browser-tab"
+                      onClick={() => setActiveBrowserTabId(tab.id)}
+                      className={cn(
+                        'group flex min-w-0 max-w-[220px] items-center gap-2 rounded-xl border px-3 py-2 text-left transition-colors',
+                        tab.id === activeBrowserTabId
+                          ? 'border-black/15 bg-white text-foreground shadow-sm dark:border-white/15 dark:bg-black/10'
+                          : 'border-transparent bg-transparent text-foreground/65 hover:border-black/10 hover:bg-white/60 dark:hover:border-white/10 dark:hover:bg-black/10',
+                      )}
+                    >
+                      {tab.loading ? (
+                        <LoadingSpinner size="sm" />
+                      ) : (
+                        <Globe className="h-3.5 w-3.5 shrink-0 text-foreground/50" />
+                      )}
+                      <span className="truncate text-[12px] font-medium">
+                        {tab.title || getBrowserTitleFallback(tab.url, t('desk.browser.title'))}
+                      </span>
+                      {browserTabs.length > 1 && (
+                        <span
+                          role="button"
+                          tabIndex={0}
+                          aria-label={t('desk.browser.closeTab')}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            handleCloseBrowserTab(tab.id);
+                          }}
+                          onKeyDown={(event) => {
+                            if (event.key === 'Enter' || event.key === ' ') {
+                              event.preventDefault();
+                              event.stopPropagation();
+                              handleCloseBrowserTab(tab.id);
+                            }
+                          }}
+                          className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md text-foreground/45 transition-colors hover:bg-black/5 hover:text-foreground dark:hover:bg-white/10"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </span>
+                      )}
+                    </button>
+                  ))}
+
+                  <button
+                    type="button"
+                    data-testid="chat-desk-browser-new-tab"
+                    onClick={handleCreateBrowserTab}
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-black/10 bg-white/70 text-foreground/65 transition-colors hover:bg-white dark:border-white/10 dark:bg-black/10 dark:hover:bg-black/20"
+                    aria-label={t('desk.browser.newTab')}
+                  >
+                    <Plus className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="shrink-0 border-b border-black/10 px-3 py-2 dark:border-white/10">
+                <div className="flex flex-wrap items-center gap-2">
                   <Button
                     variant="outline"
-                    onClick={() => webviewRef.current?.goBack()}
-                    disabled={!browserCanGoBack}
+                    onClick={() => browserWebviewsRef.current[activeBrowserTab?.id || '']?.goBack()}
+                    disabled={!activeBrowserState.canGoBack}
                     className="h-8 rounded-full border-black/10 bg-white/80 px-3 text-[12px] dark:border-white/10 dark:bg-white/5"
                   >
                     {t('desk.browser.back')}
                   </Button>
                   <Button
                     variant="outline"
-                    onClick={() => webviewRef.current?.goForward()}
-                    disabled={!browserCanGoForward}
+                    onClick={() => browserWebviewsRef.current[activeBrowserTab?.id || '']?.goForward()}
+                    disabled={!activeBrowserState.canGoForward}
                     className="h-8 rounded-full border-black/10 bg-white/80 px-3 text-[12px] dark:border-white/10 dark:bg-white/5"
                   >
                     {t('desk.browser.forward')}
                   </Button>
                   <Button
                     variant="outline"
-                    onClick={() => webviewRef.current?.reload()}
+                    onClick={() => browserWebviewsRef.current[activeBrowserTab?.id || '']?.reload()}
                     className="h-8 rounded-full border-black/10 bg-white/80 px-3 text-[12px] dark:border-white/10 dark:bg-white/5"
                   >
-                    <RefreshCw className={cn('mr-2 h-3.5 w-3.5', browserLoading && 'animate-spin')} />
+                    <RefreshCw className={cn('mr-2 h-3.5 w-3.5', activeBrowserState.loading && 'animate-spin')} />
                     {t('desk.browser.reload')}
                   </Button>
+
+                  <div className="flex min-w-[240px] flex-1 items-center gap-2 rounded-2xl border border-black/10 bg-white/80 p-2 dark:border-white/10 dark:bg-black/10">
+                    <Globe className="ml-1 h-4 w-4 shrink-0 text-foreground/55" />
+                    <Input
+                      data-testid="chat-desk-browser-url"
+                      value={browserInput}
+                      onChange={(event) => setBrowserInput(event.target.value)}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter') {
+                          handleBrowserNavigate();
+                        }
+                      }}
+                      className="h-9 border-0 bg-transparent text-[13px] shadow-none focus-visible:ring-0"
+                    />
+                    <Button onClick={handleBrowserNavigate} className="h-9 rounded-full px-4 text-[12px]">
+                      <Search className="mr-2 h-3.5 w-3.5" />
+                      {t('desk.browser.go')}
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="mt-2 flex flex-wrap items-center gap-2">
                   {QUICK_BROWSER_LINKS.map((link) => (
                     <button
                       key={link.id}
                       type="button"
+                      data-testid={`chat-desk-browser-link-${link.id}`}
                       onClick={() => {
+                        if (!activeBrowserTab) return;
                         setBrowserInput(link.url);
-                        setBrowserUrl(link.url);
+                        updateBrowserTab(activeBrowserTab.id, {
+                          url: link.url,
+                          title: getBrowserTitleFallback(link.url, link.label),
+                          loading: true,
+                        });
                       }}
                       className="rounded-full border border-black/10 bg-white/80 px-3 py-1.5 text-[12px] font-medium text-foreground/75 transition-colors hover:bg-black/5 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10"
                     >
@@ -551,53 +911,19 @@ export function ResearchDeskPanel({
                     </button>
                   ))}
                 </div>
-
-                <div className="flex items-center gap-2 rounded-2xl border border-black/10 bg-white/80 p-2 dark:border-white/10 dark:bg-black/10">
-                  <Globe className="ml-1 h-4 w-4 shrink-0 text-foreground/55" />
-                  <Input
-                    data-testid="chat-desk-browser-url"
-                    value={browserInput}
-                    onChange={(event) => setBrowserInput(event.target.value)}
-                    onKeyDown={(event) => {
-                      if (event.key === 'Enter') {
-                        handleBrowserNavigate();
-                      }
-                    }}
-                    className="h-9 border-0 bg-transparent text-[13px] shadow-none focus-visible:ring-0"
-                  />
-                  <Button onClick={handleBrowserNavigate} className="h-9 rounded-full px-4 text-[12px]">
-                    <Search className="mr-2 h-3.5 w-3.5" />
-                    {t('desk.browser.go')}
-                  </Button>
-                </div>
               </div>
 
-              <div className="flex min-h-0 flex-1 flex-col">
-                <div className="flex shrink-0 items-center justify-between gap-3 border-b border-black/10 px-4 py-2 dark:border-white/10">
-                  <div className="min-w-0">
-                    <p className="truncate text-[13px] font-medium text-foreground">{browserTitle || t('desk.browser.title')}</p>
-                    <p className="truncate font-mono text-[11px] text-foreground/55">{browserUrl}</p>
-                  </div>
-                  {browserLoading && (
-                    <div className="flex shrink-0 items-center gap-2 text-[12px] text-foreground/55">
-                      <LoadingSpinner size="sm" />
-                      {t('desk.browser.loading')}
-                    </div>
-                  )}
-                </div>
-
-                <div data-testid="chat-desk-browser-surface" className="min-h-0 flex-1 overflow-hidden bg-white/80 dark:bg-black/10">
-                  <webview
-                    ref={(node) => {
-                      webviewRef.current = node as BrowserWebview | null;
-                    }}
-                    data-testid="chat-desk-browser-webview"
-                    src={browserUrl}
-                    allowpopups={true}
-                    partition="persist:investclaw-browser"
-                    className="h-full w-full"
+              <div data-testid="chat-desk-browser-surface" className="relative min-h-0 flex-1 overflow-hidden bg-white/80 dark:bg-black/10">
+                {browserTabs.map((tab) => (
+                  <BrowserWebviewPane
+                    key={tab.id}
+                    tab={tab}
+                    active={tab.id === activeBrowserTabId}
+                    fallbackTitle={t('desk.browser.title')}
+                    onStateChange={updateBrowserTab}
+                    onRegisterWebview={registerBrowserWebview}
                   />
-                </div>
+                ))}
               </div>
             </div>
           </TabsContent>

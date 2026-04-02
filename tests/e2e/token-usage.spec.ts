@@ -1,7 +1,7 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { Page } from '@playwright/test';
-import { completeSetup, expect, test } from './fixtures/electron';
+import { completeSetup, expect, navigateToHash, test } from './fixtures/electron';
 
 const TEST_AGENT_ID = 'agent';
 const ZERO_TOKEN_SESSION_ID = 'agent-session-zero-token';
@@ -171,7 +171,7 @@ test.describe('InvestClaw token usage history', () => {
     await completeSetup(page);
     await waitForGatewayRunning(page);
     await validateUsageHistory(page);
-    await page.getByTestId('sidebar-nav-models').click();
+    await navigateToHash(page, '#/models');
     await expect(page.getByTestId('models-page')).toBeVisible();
 
     const seededSessions = [

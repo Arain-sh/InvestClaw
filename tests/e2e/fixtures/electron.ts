@@ -111,8 +111,30 @@ export const test = base.extend<ElectronFixtures>({
   },
 });
 
+export async function navigateToHash(page: Page, hashPath: string): Promise<void> {
+  const nextUrl = new URL(page.url());
+  nextUrl.hash = hashPath.startsWith('#') ? hashPath : `#${hashPath}`;
+  await page.goto(nextUrl.toString());
+  await page.waitForLoadState('domcontentloaded');
+}
+
+export async function ensureSetupPage(page: Page): Promise<void> {
+  const setupPage = page.getByTestId('setup-page');
+  if (await setupPage.count()) {
+    await expect(setupPage).toBeVisible();
+    return;
+  }
+
+  await page.evaluate(() => {
+    window.localStorage.clear();
+  });
+  await navigateToHash(page, '#/setup');
+
+  await expect(setupPage).toBeVisible();
+}
+
 export async function completeSetup(page: Page): Promise<void> {
-  await expect(page.getByTestId('setup-page')).toBeVisible();
+  await ensureSetupPage(page);
   await page.getByTestId('setup-skip-button').click();
   await expect(page.getByTestId('main-layout')).toBeVisible();
 }

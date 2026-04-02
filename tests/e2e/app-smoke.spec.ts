@@ -1,20 +1,24 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { expect, test } from './fixtures/electron';
+import { ensureSetupPage, expect, navigateToHash, test } from './fixtures/electron';
 
 test.describe('InvestClaw Electron smoke flows', () => {
   test('shows the setup wizard on a fresh profile', async ({ page }) => {
-    await expect(page.getByTestId('setup-page')).toBeVisible();
+    await ensureSetupPage(page);
     await expect(page.getByTestId('setup-welcome-step')).toBeVisible();
     await expect(page.getByTestId('setup-skip-button')).toBeVisible();
   });
 
   test('can skip setup and navigate to the models page', async ({ page }) => {
-    await expect(page.getByTestId('setup-page')).toBeVisible();
+    await ensureSetupPage(page);
     await page.getByTestId('setup-skip-button').click();
 
     await expect(page.getByTestId('main-layout')).toBeVisible();
-    await page.getByTestId('sidebar-nav-models').click();
+    await expect(page.getByTestId('chat-page')).toBeVisible();
+    await navigateToHash(page, '#/models');
+    await expect
+      .poll(async () => await page.evaluate(() => window.location.hash))
+      .toContain('/models');
 
     await expect(page.getByTestId('models-page')).toBeVisible();
     await expect(page.getByTestId('models-page-title')).toBeVisible();
@@ -22,7 +26,7 @@ test.describe('InvestClaw Electron smoke flows', () => {
   });
 
   test('shows research quick actions on the empty chat and prefills the composer', async ({ page }) => {
-    await expect(page.getByTestId('setup-page')).toBeVisible();
+    await ensureSetupPage(page);
     await page.getByTestId('setup-skip-button').click();
 
     await expect(page.getByTestId('main-layout')).toBeVisible();
@@ -35,9 +39,10 @@ test.describe('InvestClaw Electron smoke flows', () => {
   test('shows the IDE-style research desk inside chat with files and browser tabs', async ({ page, homeDir }) => {
     const mainWorkspaceDir = join(homeDir, '.openclaw', 'workspace');
     await mkdir(mainWorkspaceDir, { recursive: true });
-    await writeFile(join(mainWorkspaceDir, 'NOTES.md'), '# Desk Panel\n\nWorkspace preview from chat.\n');
+    await mkdir(join(mainWorkspaceDir, 'research', 'q1'), { recursive: true });
+    await writeFile(join(mainWorkspaceDir, 'research', 'q1', 'THESIS.md'), '# Desk Panel\n\nWorkspace preview from chat.\n');
 
-    await expect(page.getByTestId('setup-page')).toBeVisible();
+    await ensureSetupPage(page);
     await page.getByTestId('setup-skip-button').click();
 
     await expect(page.getByTestId('chat-page')).toBeVisible();
@@ -45,9 +50,11 @@ test.describe('InvestClaw Electron smoke flows', () => {
     await expect(page.getByTestId('chat-desk-tab-runtime')).toHaveCount(0);
     await expect(page.getByTestId('chat-desk-resizer')).toBeVisible();
 
-    await page.getByTestId('chat-desk-file-NOTES.md').click();
+    await page.getByTestId('chat-desk-folder-research').click();
+    await page.getByTestId('chat-desk-folder-q1').click();
+    await page.getByTestId('chat-desk-file-THESIS.md').click();
     await expect(page.getByTestId('chat-desk-preview')).toContainText('Desk Panel');
-    await expect(page.getByTestId('chat-desk-preview')).toContainText('/workspace/NOTES.md');
+    await expect(page.getByTestId('chat-desk-preview')).toContainText('/workspace/research/q1/THESIS.md');
 
     const deskWidthBeforeResize = await page.getByTestId('chat-desk-container').evaluate((element) => Math.round(element.getBoundingClientRect().width));
     const resizerBox = await page.getByTestId('chat-desk-resizer').boundingBox();
@@ -65,15 +72,18 @@ test.describe('InvestClaw Electron smoke flows', () => {
 
     await page.getByTestId('chat-desk-tab-browser').click();
     await expect(page.getByTestId('chat-desk-browser-url')).toHaveValue(/ainvest/i);
+    await expect(page.getByTestId('chat-desk-browser-tabs').locator('[data-testid="chat-desk-browser-tab"]')).toHaveCount(1);
+    await page.getByTestId('chat-desk-browser-new-tab').click();
+    await expect(page.getByTestId('chat-desk-browser-tabs').locator('[data-testid="chat-desk-browser-tab"]')).toHaveCount(2);
     await expect(page.getByTestId('chat-desk-browser-surface')).toBeVisible();
   });
 
   test('can open the skills marketplace without showing legacy marketplace branding', async ({ page }) => {
-    await expect(page.getByTestId('setup-page')).toBeVisible();
+    await ensureSetupPage(page);
     await page.getByTestId('setup-skip-button').click();
 
     await expect(page.getByTestId('main-layout')).toBeVisible();
-    await page.getByTestId('sidebar-nav-skills').click();
+    await navigateToHash(page, '#/skills');
 
     await expect(page.getByTestId('skills-page')).toBeVisible();
     await expect(page.getByTestId('skills-page-title')).toBeVisible();
@@ -90,11 +100,11 @@ test.describe('InvestClaw Electron smoke flows', () => {
     await mkdir(workspaceDir, { recursive: true });
     await writeFile(join(workspaceDir, 'README.md'), '# Alpha Workspace\n\nContainer file browser smoke test.\n');
 
-    await expect(page.getByTestId('setup-page')).toBeVisible();
+    await ensureSetupPage(page);
     await page.getByTestId('setup-skip-button').click();
 
     await expect(page.getByTestId('main-layout')).toBeVisible();
-    await page.getByTestId('sidebar-nav-agents').click();
+    await navigateToHash(page, '#/agents');
     await expect(page.getByTestId('agents-page')).toBeVisible();
 
     await page.getByTestId('agents-add-button').click();
@@ -116,6 +126,7 @@ test.describe('InvestClaw Electron smoke flows', () => {
   test('persists skipped setup across relaunch for the same isolated profile', async ({ electronApp, launchElectronApp }) => {
     const firstWindow = await electronApp.firstWindow();
     await firstWindow.waitForLoadState('domcontentloaded');
+    await ensureSetupPage(firstWindow);
     await firstWindow.getByTestId('setup-skip-button').click();
     await expect(firstWindow.getByTestId('main-layout')).toBeVisible();
 
