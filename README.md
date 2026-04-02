@@ -160,6 +160,16 @@ pnpm run init
 # Start in development mode
 pnpm dev
 ```
+
+#### Run the Desktop App Locally
+
+If you want to use the full desktop app locally without relying on the Vite development server, build the app assets and launch the Electron entry directly:
+
+```bash
+pnpm run start:local
+```
+
+This path matches the built desktop flow used by automated Electron smoke tests and is the most reliable local launch mode when `pnpm dev` is only needed for renderer development.
 ### First Launch
 
 When you launch InvestClaw for the first time, the **Setup Wizard** will guide you through:
