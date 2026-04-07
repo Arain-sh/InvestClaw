@@ -198,6 +198,7 @@ InvestClaw 内置了代理设置，适用于需要通过本地代理客户端访
 
 - 只填写 `host:port` 时，会按 HTTP 代理处理。
 - 高级代理项留空时，会自动回退到“代理服务器”。
+- 当应用内代理关闭时，InvestClaw 会默认跟随启动环境中的代理变量；在 macOS 上也会默认跟随系统代理设置。
 - 保存代理设置后，Electron 网络层会立即重新应用代理，并自动重启 Gateway。
 - 如果启用了 Telegram，InvestClaw 还会把代理同步到运行时的 Telegram 频道配置中。
 - 当 InvestClaw 代理处于关闭状态时，Gateway 的常规重启会保留已有的 Telegram 频道代理配置。

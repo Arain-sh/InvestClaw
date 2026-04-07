@@ -208,6 +208,7 @@ Notes:
 
 - A bare `host:port` value is treated as HTTP.
 - If advanced proxy fields are left empty, InvestClaw falls back to `Proxy Server`.
+- If app proxy is disabled, InvestClaw follows inherited proxy environment variables and, on macOS, the system proxy settings by default.
 - Saving proxy settings reapplies Electron networking immediately and restarts the Gateway automatically.
 - InvestClaw also syncs the proxy to the runtime's Telegram channel config when Telegram is enabled.
 - Gateway restarts preserve an existing Telegram channel proxy if InvestClaw proxy is currently disabled.

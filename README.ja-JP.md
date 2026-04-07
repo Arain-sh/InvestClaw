@@ -194,6 +194,7 @@ InvestClawには、Electron、InvestClaw ゲートウェイ、または Telegram
 
 - `host:port`のみの値はHTTPとして扱われます。
 - 高度なプロキシフィールドが空の場合、InvestClawは`プロキシサーバー`にフォールバックします。
+- アプリ内プロキシが無効でも、InvestClaw は起動環境のプロキシ環境変数を引き継ぎ、macOS ではシステムプロキシ設定も既定で利用します。
 - プロキシ設定を保存すると、Electronのネットワーク設定が即座に再適用され、ゲートウェイが自動的に再起動されます。
 - InvestClawはTelegramが有効な場合、プロキシをランタイムの Telegram チャネル設定にも同期します。
 - InvestClawのプロキシが無効な状態では、Gatewayの通常再起動時に既存のTelegramチャネルプロキシ設定を保持します。

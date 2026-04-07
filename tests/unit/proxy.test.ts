@@ -1,8 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import {
   buildElectronProxyConfig,
+  buildGatewayProxyEnv,
   buildProxyEnv,
+  buildProxyEnvFromResolved,
   normalizeProxyServer,
+  parseMacSystemProxySettings,
   resolveProxySettings,
 } from '@electron/utils/proxy';
 
@@ -63,7 +66,7 @@ describe('proxy helpers', () => {
     });
   });
 
-  it('builds a direct Electron config when proxy is disabled', () => {
+  it('follows the system Electron proxy when app proxy is disabled', () => {
     expect(buildElectronProxyConfig({
       proxyEnabled: false,
       proxyServer: '127.0.0.1:7890',
@@ -71,7 +74,7 @@ describe('proxy helpers', () => {
       proxyHttpsServer: '',
       proxyAllServer: '',
       proxyBypassRules: '<local>',
-    })).toEqual({ mode: 'direct' });
+    })).toEqual({ mode: 'system' });
   });
 
   it('builds protocol-specific Electron rules when proxy is enabled', () => {
@@ -107,5 +110,83 @@ describe('proxy helpers', () => {
       NO_PROXY: '<local>,localhost,127.0.0.1',
       no_proxy: '<local>,localhost,127.0.0.1',
     });
+  });
+
+  it('parses macOS system proxy settings from scutil output', () => {
+    expect(parseMacSystemProxySettings(`
+<dictionary> {
+  ExceptionsList : <array> {
+    0 : 127.0.0.1
+    1 : localhost
+    2 : *.local
+  }
+  HTTPEnable : 1
+  HTTPPort : 7897
+  HTTPProxy : 127.0.0.1
+  HTTPSEnable : 1
+  HTTPSPort : 7897
+  HTTPSProxy : 127.0.0.1
+  SOCKSEnable : 1
+  SOCKSPort : 7897
+  SOCKSProxy : 127.0.0.1
+}
+`)).toEqual({
+      httpProxy: 'http://127.0.0.1:7897',
+      httpsProxy: 'http://127.0.0.1:7897',
+      allProxy: 'socks5://127.0.0.1:7897',
+      bypassRules: '127.0.0.1;localhost;*.local',
+    });
+  });
+
+  it('prefers inherited proxy env when app proxy is disabled', async () => {
+    await expect(buildGatewayProxyEnv({
+      proxyEnabled: false,
+      proxyServer: '',
+      proxyHttpServer: '',
+      proxyHttpsServer: '',
+      proxyAllServer: '',
+      proxyBypassRules: '<local>',
+    }, {
+      inheritedEnv: {
+        HTTPS_PROXY: 'http://127.0.0.1:7897',
+        HTTP_PROXY: 'http://127.0.0.1:7897',
+        NO_PROXY: 'localhost,127.0.0.1',
+      },
+    })).resolves.toEqual({
+      HTTP_PROXY: 'http://127.0.0.1:7897',
+      HTTPS_PROXY: 'http://127.0.0.1:7897',
+      ALL_PROXY: '',
+      http_proxy: 'http://127.0.0.1:7897',
+      https_proxy: 'http://127.0.0.1:7897',
+      all_proxy: '',
+      NO_PROXY: 'localhost,127.0.0.1',
+      no_proxy: 'localhost,127.0.0.1',
+    });
+  });
+
+  it('falls back to system proxy for the Gateway when app proxy is disabled', async () => {
+    const systemProxy = buildProxyEnvFromResolved({
+      httpProxy: 'http://127.0.0.1:7897',
+      httpsProxy: 'http://127.0.0.1:7897',
+      allProxy: 'socks5://127.0.0.1:7897',
+      bypassRules: '<local>;localhost;127.0.0.1',
+    });
+
+    await expect(buildGatewayProxyEnv({
+      proxyEnabled: false,
+      proxyServer: '',
+      proxyHttpServer: '',
+      proxyHttpsServer: '',
+      proxyAllServer: '',
+      proxyBypassRules: '<local>',
+    }, {
+      inheritedEnv: {},
+      systemProxySettings: {
+        httpProxy: 'http://127.0.0.1:7897',
+        httpsProxy: 'http://127.0.0.1:7897',
+        allProxy: 'socks5://127.0.0.1:7897',
+        bypassRules: '<local>;localhost;127.0.0.1',
+      },
+    })).resolves.toEqual(systemProxy);
   });
 });
