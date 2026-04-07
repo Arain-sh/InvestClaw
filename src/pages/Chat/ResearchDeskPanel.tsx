@@ -1000,8 +1000,19 @@ export function ResearchDeskPanel({
             <TabsTrigger data-testid="chat-desk-tab-browser" value="browser">{t('desk.tabs.browser')}</TabsTrigger>
           </TabsList>
 
-          <TabsContent forceMount value="files" className={cn('mt-2 flex h-full min-h-0 flex-1 flex-col', activeTab !== 'files' && 'hidden')}>
-            <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden rounded-[26px] border border-black/10 bg-[#f9f6ec] dark:border-white/10 dark:bg-white/5">
+          <div className="relative mt-2 min-h-0 flex-1">
+            <TabsContent
+              forceMount
+              value="files"
+              className={cn(
+                'absolute inset-0 m-0 flex min-h-0 flex-col data-[state=inactive]:pointer-events-none data-[state=inactive]:hidden',
+                activeTab !== 'files' && 'hidden',
+              )}
+            >
+              <div
+                data-testid="chat-desk-files-surface"
+                className="flex h-full min-h-0 flex-1 flex-col overflow-hidden rounded-[26px] border border-black/10 bg-[#f9f6ec] dark:border-white/10 dark:bg-white/5"
+              >
               <div className="shrink-0 border-b border-black/10 p-3 dark:border-white/10">
                 <div className="flex flex-wrap items-center gap-2">
                   <Button
@@ -1087,11 +1098,15 @@ export function ResearchDeskPanel({
                   />
                 </div>
               </div>
-            </div>
-          </TabsContent>
+              </div>
+            </TabsContent>
 
-          <TabsContent value="browser" className="mt-1 flex h-full min-h-0 flex-1 flex-col">
-            <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden rounded-[26px] border border-black/10 bg-[#f9f6ec] dark:border-white/10 dark:bg-white/5">
+            <TabsContent
+              forceMount
+              value="browser"
+              className="absolute inset-0 m-0 flex min-h-0 flex-col data-[state=inactive]:pointer-events-none data-[state=inactive]:hidden"
+            >
+              <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden rounded-[26px] border border-black/10 bg-[#f9f6ec] dark:border-white/10 dark:bg-white/5">
               <div data-testid="chat-desk-browser-tabs" className="shrink-0 border-b border-black/10 dark:border-white/10">
                 <div className="flex items-center gap-2 overflow-x-auto px-3 py-2">
                   {browserTabs.map((tab) => (
@@ -1225,7 +1240,7 @@ export function ResearchDeskPanel({
               <div data-testid="chat-desk-browser-surface" className="relative min-h-0 flex-1 overflow-hidden bg-white/80 dark:bg-black/10">
                 {/* Electron webviews can keep intercepting pointer events even when
                     visually hidden, so only mount the currently visible browser tab. */}
-                {activeBrowserTab && (
+                {activeTab === 'browser' && activeBrowserTab && (
                   <BrowserWebviewPane
                     key={activeBrowserTab.id}
                     tab={activeBrowserTab}
@@ -1291,8 +1306,9 @@ export function ResearchDeskPanel({
                   </div>
                 )}
               </div>
-            </div>
-          </TabsContent>
+              </div>
+            </TabsContent>
+          </div>
         </Tabs>
       </CardContent>
     </Card>

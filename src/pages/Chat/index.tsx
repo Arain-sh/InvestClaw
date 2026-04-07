@@ -389,10 +389,10 @@ export function Chat() {
             </div>
             <div
               data-testid="chat-desk-container"
-              className="min-h-0 w-full shrink-0 lg:w-auto lg:max-w-[80vw]"
+              className="flex min-h-0 w-full shrink-0 flex-col self-stretch lg:w-auto lg:max-w-[80vw]"
               style={{ '--chat-desk-width': `${effectiveDeskWidth}px` } as CSSProperties}
             >
-              <div className="h-full w-full lg:w-[var(--chat-desk-width)]">
+              <div className="flex h-full min-h-0 w-full flex-col lg:w-[var(--chat-desk-width)]">
                 <ResearchDeskPanel
                   currentAgent={currentAgent}
                 />

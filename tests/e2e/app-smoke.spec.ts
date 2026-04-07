@@ -67,6 +67,17 @@ test.describe('InvestClaw Electron smoke flows', () => {
     await expect(page.getByTestId('chat-research-desk')).toBeVisible();
     await expect(page.getByTestId('chat-desk-tab-runtime')).toHaveCount(0);
     await expect(page.getByTestId('chat-desk-resizer')).toBeVisible();
+    await expect(page.getByTestId('chat-desk-files-surface')).toBeVisible();
+
+    await expect
+      .poll(async () => {
+        const [deskHeight, filesHeight] = await Promise.all([
+          page.getByTestId('chat-research-desk').evaluate((element) => element.getBoundingClientRect().height),
+          page.getByTestId('chat-desk-files-surface').evaluate((element) => element.getBoundingClientRect().height),
+        ]);
+        return Math.round((filesHeight / deskHeight) * 100);
+      })
+      .toBeGreaterThan(68);
 
     await page.getByTestId('chat-desk-folder-research').click();
     await page.getByTestId('chat-desk-folder-q1').click();
