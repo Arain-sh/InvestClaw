@@ -99,6 +99,48 @@ function maybeLoadHistory(
   void state.loadHistory(true);
 }
 
+function readGatewayAgentErrorValue(value: unknown): string | null {
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    return trimmed || null;
+  }
+  if (!value || typeof value !== 'object') return null;
+
+  const record = value as Record<string, unknown>;
+  const nestedMessage = record.message;
+  if (typeof nestedMessage === 'string' && nestedMessage.trim()) {
+    return nestedMessage.trim();
+  }
+
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return String(value);
+  }
+}
+
+function getGatewayAgentTerminalError(
+  params: Record<string, unknown>,
+  data: Record<string, unknown>,
+): string | null {
+  const primary =
+    readGatewayAgentErrorValue(params.errorMessage)
+    || readGatewayAgentErrorValue(data.errorMessage)
+    || readGatewayAgentErrorValue(params.error)
+    || readGatewayAgentErrorValue(data.error)
+    || readGatewayAgentErrorValue(params.reason)
+    || readGatewayAgentErrorValue(data.reason);
+
+  const raw =
+    readGatewayAgentErrorValue(params.rawError)
+    || readGatewayAgentErrorValue(data.rawError);
+
+  if (primary && raw && raw !== primary) {
+    return `${primary}. Raw error: ${raw}`;
+  }
+  return primary || raw;
+}
+
 function handleGatewayNotification(notification: { method?: string; params?: Record<string, unknown> } | undefined): void {
   const payload = notification;
   if (!payload || payload.method !== 'agent' || !payload.params || typeof payload.params !== 'object') {
@@ -108,7 +150,11 @@ function handleGatewayNotification(notification: { method?: string; params?: Rec
   const p = payload.params;
   const data = (p.data && typeof p.data === 'object') ? (p.data as Record<string, unknown>) : {};
   const phase = data.phase ?? p.phase;
-  const hasChatData = (p.state ?? data.state) || (p.message ?? data.message);
+  const terminalError = getGatewayAgentTerminalError(p, data);
+  const isTerminalError =
+    (p.isError === true || data.isError === true)
+    || (typeof terminalError === 'string' && terminalError.length > 0);
+  const hasChatData = (p.state ?? data.state) || (p.message ?? data.message) || isTerminalError;
 
   if (hasChatData) {
     const normalizedEvent: Record<string, unknown> = {
@@ -117,8 +163,10 @@ function handleGatewayNotification(notification: { method?: string; params?: Rec
       sessionKey: p.sessionKey ?? data.sessionKey,
       stream: p.stream ?? data.stream,
       seq: p.seq ?? data.seq,
-      state: p.state ?? data.state,
+      state: p.state ?? data.state ?? (isTerminalError ? 'error' : undefined),
       message: p.message ?? data.message,
+      errorMessage: terminalError ?? undefined,
+      isError: isTerminalError,
     };
     if (shouldProcessGatewayEvent(normalizedEvent)) {
       import('./chat')
