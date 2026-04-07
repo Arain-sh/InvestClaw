@@ -346,6 +346,79 @@ function normalizeAgentsDefaultsCompactionMode(config: Record<string, unknown>):
   }
 }
 
+function syncStableOpenAICodexTransport(
+  config: Record<string, unknown>,
+): boolean {
+  const agents = (
+    config.agents && typeof config.agents === 'object'
+      ? { ...(config.agents as Record<string, unknown>) }
+      : {}
+  ) as Record<string, unknown>;
+  const defaults = (
+    agents.defaults && typeof agents.defaults === 'object'
+      ? { ...(agents.defaults as Record<string, unknown>) }
+      : {}
+  ) as Record<string, unknown>;
+  const configuredModels = (
+    defaults.models && typeof defaults.models === 'object'
+      ? { ...(defaults.models as Record<string, unknown>) }
+      : {}
+  ) as Record<string, unknown>;
+
+  const targetModelRefs = new Set<string>();
+  const primaryModel = typeof (defaults.model as Record<string, unknown> | undefined)?.primary === 'string'
+    ? ((defaults.model as Record<string, unknown>).primary as string)
+    : undefined;
+  if (primaryModel?.startsWith('openai-codex/')) {
+    targetModelRefs.add(primaryModel);
+  }
+
+  for (const modelRef of Object.keys(configuredModels)) {
+    if (modelRef.startsWith('openai-codex/')) {
+      targetModelRefs.add(modelRef);
+    }
+  }
+
+  if (targetModelRefs.size === 0) {
+    return false;
+  }
+
+  let changed = false;
+
+  for (const modelRef of targetModelRefs) {
+    const currentEntry = (
+      configuredModels[modelRef] && typeof configuredModels[modelRef] === 'object'
+        ? { ...(configuredModels[modelRef] as Record<string, unknown>) }
+        : {}
+    ) as Record<string, unknown>;
+    const currentParams = (
+      currentEntry.params && typeof currentEntry.params === 'object'
+        ? { ...(currentEntry.params as Record<string, unknown>) }
+        : {}
+    ) as Record<string, unknown>;
+
+    const currentTransport = currentParams.transport;
+    if (typeof currentTransport === 'string' && currentTransport !== 'auto') {
+      configuredModels[modelRef] = currentEntry;
+      continue;
+    }
+
+    currentParams.transport = 'sse';
+    currentEntry.params = currentParams;
+    configuredModels[modelRef] = currentEntry;
+    changed = true;
+  }
+
+  if (!changed) {
+    return false;
+  }
+
+  defaults.models = configuredModels;
+  agents.defaults = defaults;
+  config.agents = agents;
+  return true;
+}
+
 async function writeOpenClawJson(config: Record<string, unknown>): Promise<void> {
   normalizeAgentsDefaultsCompactionMode(config);
 
@@ -641,6 +714,7 @@ export async function setOpenClawDefaultModel(
     };
     agents.defaults = defaults;
     config.agents = agents;
+    syncStableOpenAICodexTransport(config);
 
     // Configure models.providers for providers that need explicit registration.
     const providerCfg = getProviderConfig(provider);
@@ -878,6 +952,7 @@ export async function setOpenClawDefaultModelWithOverride(
     };
     agents.defaults = defaults;
     config.agents = agents;
+    syncStableOpenAICodexTransport(config);
 
     if (override.baseUrl && override.api) {
       upsertOpenClawProviderEntry(config, provider, {
@@ -1108,6 +1183,19 @@ export async function syncBrowserConfigToOpenClaw(): Promise<void> {
     config.browser = browser;
     await writeOpenClawJson(config);
     console.log('Synced browser config to openclaw.json');
+  });
+}
+
+export async function syncStableOpenAICodexTransportToOpenClaw(): Promise<void> {
+  return withConfigLock(async () => {
+    const config = await readOpenClawJson();
+
+    if (!syncStableOpenAICodexTransport(config)) {
+      return;
+    }
+
+    await writeOpenClawJson(config);
+    console.log('Synced stable OpenAI Codex SSE transport to openclaw.json');
   });
 }
 

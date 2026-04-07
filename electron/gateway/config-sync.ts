@@ -21,7 +21,13 @@ import { getProviderEnvVar, getKeyableProviderTypes } from '../utils/provider-re
 import { getOpenClawDir, getOpenClawEntryPath, isOpenClawPresent } from '../utils/paths';
 import { getUvMirrorEnv } from '../utils/uv-env';
 import { cleanupDanglingWeChatPluginState, listConfiguredChannels, listLaunchEligibleChannels, readOpenClawConfig } from '../utils/channel-config';
-import { syncGatewayTokenToConfig, syncBrowserConfigToOpenClaw, syncSessionIdleMinutesToOpenClaw, sanitizeOpenClawConfig } from '../utils/openclaw-auth';
+import {
+  syncGatewayTokenToConfig,
+  syncBrowserConfigToOpenClaw,
+  syncSessionIdleMinutesToOpenClaw,
+  syncStableOpenAICodexTransportToOpenClaw,
+  sanitizeOpenClawConfig,
+} from '../utils/openclaw-auth';
 import { buildGatewayProxyEnv } from '../utils/proxy';
 import { syncProxyConfigToOpenClaw } from '../utils/openclaw-proxy';
 import { logger } from '../utils/logger';
@@ -244,6 +250,12 @@ export async function syncGatewayConfigBeforeLaunch(
     await syncSessionIdleMinutesToOpenClaw();
   } catch (err) {
     logger.warn('Failed to sync session idle minutes to openclaw.json:', err);
+  }
+
+  try {
+    await syncStableOpenAICodexTransportToOpenClaw();
+  } catch (err) {
+    logger.warn('Failed to sync stable OpenAI Codex transport to openclaw.json:', err);
   }
 }
 

@@ -4,8 +4,10 @@ import {
   buildGatewayProxyEnv,
   buildProxyEnv,
   buildProxyEnvFromResolved,
+  buildProxyEnvFromInheritedEnv,
   normalizeProxyServer,
   parseMacSystemProxySettings,
+  resolveInheritedProxySettings,
   resolveProxySettings,
 } from '@electron/utils/proxy';
 
@@ -155,12 +157,68 @@ describe('proxy helpers', () => {
     })).resolves.toEqual({
       HTTP_PROXY: 'http://127.0.0.1:7897',
       HTTPS_PROXY: 'http://127.0.0.1:7897',
+      ALL_PROXY: 'socks5://127.0.0.1:7897',
+      http_proxy: 'http://127.0.0.1:7897',
+      https_proxy: 'http://127.0.0.1:7897',
+      all_proxy: 'socks5://127.0.0.1:7897',
+      NO_PROXY: 'localhost,127.0.0.1',
+      no_proxy: 'localhost,127.0.0.1',
+    });
+  });
+
+  it('fills HTTP proxy from HTTPS-only inherited env', () => {
+    expect(resolveInheritedProxySettings({
+      HTTPS_PROXY: 'http://127.0.0.1:7897',
+      NO_PROXY: 'localhost,127.0.0.1',
+    })).toEqual({
+      httpProxy: 'http://127.0.0.1:7897',
+      httpsProxy: 'http://127.0.0.1:7897',
+      allProxy: '',
+      bypassRules: 'localhost;127.0.0.1',
+    });
+
+    expect(buildProxyEnvFromInheritedEnv({
+      HTTPS_PROXY: 'http://127.0.0.1:7897',
+      NO_PROXY: 'localhost,127.0.0.1',
+    })).toEqual({
+      HTTP_PROXY: 'http://127.0.0.1:7897',
+      HTTPS_PROXY: 'http://127.0.0.1:7897',
       ALL_PROXY: '',
       http_proxy: 'http://127.0.0.1:7897',
       https_proxy: 'http://127.0.0.1:7897',
       all_proxy: '',
       NO_PROXY: 'localhost,127.0.0.1',
       no_proxy: 'localhost,127.0.0.1',
+    });
+  });
+
+  it('fills missing inherited proxy fields from system proxy settings', async () => {
+    await expect(buildGatewayProxyEnv({
+      proxyEnabled: false,
+      proxyServer: '',
+      proxyHttpServer: '',
+      proxyHttpsServer: '',
+      proxyAllServer: '',
+      proxyBypassRules: '<local>',
+    }, {
+      inheritedEnv: {
+        HTTPS_PROXY: 'http://127.0.0.1:7897',
+      },
+      systemProxySettings: {
+        httpProxy: 'http://127.0.0.1:7897',
+        httpsProxy: 'http://127.0.0.1:7897',
+        allProxy: 'socks5://127.0.0.1:7897',
+        bypassRules: '<local>;localhost;127.0.0.1',
+      },
+    })).resolves.toEqual({
+      HTTP_PROXY: 'http://127.0.0.1:7897',
+      HTTPS_PROXY: 'http://127.0.0.1:7897',
+      ALL_PROXY: 'socks5://127.0.0.1:7897',
+      http_proxy: 'http://127.0.0.1:7897',
+      https_proxy: 'http://127.0.0.1:7897',
+      all_proxy: 'socks5://127.0.0.1:7897',
+      NO_PROXY: '<local>,localhost,127.0.0.1',
+      no_proxy: '<local>,localhost,127.0.0.1',
     });
   });
 

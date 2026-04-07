@@ -138,30 +138,58 @@ function pickProxyValue(env: NodeJS.ProcessEnv, ...keys: string[]): string {
   return '';
 }
 
-export function buildProxyEnvFromInheritedEnv(env: NodeJS.ProcessEnv): Record<string, string> {
-  const httpProxy = pickProxyValue(env, 'http_proxy', 'HTTP_PROXY');
-  const httpsProxy = pickProxyValue(env, 'https_proxy', 'HTTPS_PROXY') || httpProxy;
+export function resolveInheritedProxySettings(env: NodeJS.ProcessEnv): ResolvedProxySettings | null {
+  const rawHttpProxy = pickProxyValue(env, 'http_proxy', 'HTTP_PROXY');
+  const rawHttpsProxy = pickProxyValue(env, 'https_proxy', 'HTTPS_PROXY');
+  const httpProxy = rawHttpProxy || rawHttpsProxy;
+  const httpsProxy = rawHttpsProxy || rawHttpProxy;
   const allProxy = pickProxyValue(env, 'all_proxy', 'ALL_PROXY');
-  const noProxy = pickProxyValue(env, 'no_proxy', 'NO_PROXY')
+  const bypassRules = pickProxyValue(env, 'no_proxy', 'NO_PROXY')
     .split(/[,\n;]/)
     .map((rule) => rule.trim())
     .filter(Boolean)
-    .join(',');
+    .join(';');
+
+  if (!httpProxy && !httpsProxy && !allProxy) {
+    return null;
+  }
 
   return {
-    HTTP_PROXY: httpProxy,
-    HTTPS_PROXY: httpsProxy,
-    ALL_PROXY: allProxy,
-    http_proxy: httpProxy,
-    https_proxy: httpsProxy,
-    all_proxy: allProxy,
-    NO_PROXY: noProxy,
-    no_proxy: noProxy,
+    httpProxy,
+    httpsProxy,
+    allProxy,
+    bypassRules,
   };
 }
 
-function hasAnyProxyValue(proxyEnv: Record<string, string>): boolean {
-  return Boolean(proxyEnv.HTTP_PROXY || proxyEnv.HTTPS_PROXY || proxyEnv.ALL_PROXY);
+export function buildProxyEnvFromInheritedEnv(env: NodeJS.ProcessEnv): Record<string, string> {
+  const resolved = resolveInheritedProxySettings(env);
+  if (!resolved) {
+    return { ...BLANK_PROXY_ENV };
+  }
+
+  return buildProxyEnvFromResolved(resolved);
+}
+
+function mergeProxySettings(
+  primary: ResolvedProxySettings | null,
+  fallback: ResolvedProxySettings | null,
+): ResolvedProxySettings | null {
+  if (!primary && !fallback) {
+    return null;
+  }
+
+  const httpProxy = primary?.httpProxy || fallback?.httpProxy || primary?.httpsProxy || fallback?.httpsProxy || '';
+  const httpsProxy = primary?.httpsProxy || fallback?.httpsProxy || primary?.httpProxy || fallback?.httpProxy || '';
+  const allProxy = primary?.allProxy || fallback?.allProxy || '';
+  const bypassRules = primary?.bypassRules || fallback?.bypassRules || '';
+
+  return {
+    httpProxy,
+    httpsProxy,
+    allProxy,
+    bypassRules,
+  };
 }
 
 function parseScutilBooleanValue(output: string, key: string): boolean {
@@ -242,16 +270,15 @@ export async function buildGatewayProxyEnv(
     return buildProxyEnv(settings);
   }
 
-  const inheritedEnv = buildProxyEnvFromInheritedEnv(options?.inheritedEnv ?? process.env);
-  if (hasAnyProxyValue(inheritedEnv)) {
-    return inheritedEnv;
-  }
+  const inheritedSettings = resolveInheritedProxySettings(options?.inheritedEnv ?? process.env);
 
   const systemProxySettings = options?.systemProxySettings !== undefined
     ? options.systemProxySettings
     : await detectSystemProxySettings();
-  if (systemProxySettings) {
-    return buildProxyEnvFromResolved(systemProxySettings);
+
+  const effectiveProxySettings = mergeProxySettings(inheritedSettings, systemProxySettings);
+  if (effectiveProxySettings) {
+    return buildProxyEnvFromResolved(effectiveProxySettings);
   }
 
   return { ...BLANK_PROXY_ENV };

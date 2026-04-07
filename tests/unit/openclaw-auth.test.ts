@@ -562,3 +562,85 @@ describe('auth-backed provider discovery', () => {
     await expect(getActiveOpenClawProviders()).resolves.toEqual(new Set());
   });
 });
+
+describe('syncStableOpenAICodexTransportToOpenClaw', () => {
+  beforeEach(async () => {
+    vi.resetModules();
+    vi.restoreAllMocks();
+    await rm(testHome, { recursive: true, force: true });
+    await rm(testUserData, { recursive: true, force: true });
+  });
+
+  it('forces SSE for openai-codex models when transport is unset or auto', async () => {
+    await writeOpenClawJson({
+      agents: {
+        defaults: {
+          model: {
+            primary: 'openai-codex/gpt-5.4',
+            fallbacks: [],
+          },
+          models: {
+            'openai-codex/gpt-5.4': {},
+            'openai-codex/gpt-5.2-codex': {
+              params: {
+                transport: 'auto',
+              },
+            },
+            'openai/gpt-5.4': {
+              params: {
+                transport: 'websocket',
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const { syncStableOpenAICodexTransportToOpenClaw } = await import('@electron/utils/openclaw-auth');
+
+    await syncStableOpenAICodexTransportToOpenClaw();
+
+    const config = await readOpenClawJson();
+    const defaults = ((config.agents as Record<string, unknown>).defaults as Record<string, unknown>);
+    const models = defaults.models as Record<string, Record<string, unknown>>;
+    expect((models['openai-codex/gpt-5.4'].params as Record<string, unknown>).transport).toBe('sse');
+    expect((models['openai-codex/gpt-5.2-codex'].params as Record<string, unknown>).transport).toBe('sse');
+    expect((models['openai/gpt-5.4'].params as Record<string, unknown>).transport).toBe('websocket');
+
+    expect(logSpy).toHaveBeenCalledWith('Synced stable OpenAI Codex SSE transport to openclaw.json');
+    logSpy.mockRestore();
+  });
+
+  it('preserves explicit websocket transport for openai-codex when user already set it', async () => {
+    await writeOpenClawJson({
+      agents: {
+        defaults: {
+          model: {
+            primary: 'openai-codex/gpt-5.4',
+            fallbacks: [],
+          },
+          models: {
+            'openai-codex/gpt-5.4': {
+              params: {
+                transport: 'websocket',
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const { syncStableOpenAICodexTransportToOpenClaw } = await import('@electron/utils/openclaw-auth');
+
+    await syncStableOpenAICodexTransportToOpenClaw();
+
+    const config = await readOpenClawJson();
+    const defaults = ((config.agents as Record<string, unknown>).defaults as Record<string, unknown>);
+    const models = defaults.models as Record<string, Record<string, unknown>>;
+    expect((models['openai-codex/gpt-5.4'].params as Record<string, unknown>).transport).toBe('websocket');
+    expect(logSpy).not.toHaveBeenCalledWith('Synced stable OpenAI Codex SSE transport to openclaw.json');
+    logSpy.mockRestore();
+  });
+});
