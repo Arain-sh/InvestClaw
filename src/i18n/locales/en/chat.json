@@ -50,7 +50,11 @@
             "newTab": "New tab",
             "closeTab": "Close tab",
             "go": "Go",
-            "loading": "Loading"
+            "loading": "Loading",
+            "retry": "Retry",
+            "openExternal": "Open externally",
+            "loadFailedTitle": "Page failed to load",
+            "loadFailedBody": "This site could not be opened in the built-in browser. The cause is usually the network, certificates, site policy, or Electron WebView compatibility."
         }
     },
     "composer": {

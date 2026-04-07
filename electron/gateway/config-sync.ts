@@ -20,7 +20,7 @@ import { getApiKey, getDefaultProvider, getProvider } from '../utils/secure-stor
 import { getProviderEnvVar, getKeyableProviderTypes } from '../utils/provider-registry';
 import { getOpenClawDir, getOpenClawEntryPath, isOpenClawPresent } from '../utils/paths';
 import { getUvMirrorEnv } from '../utils/uv-env';
-import { cleanupDanglingWeChatPluginState, listConfiguredChannels, readOpenClawConfig } from '../utils/channel-config';
+import { cleanupDanglingWeChatPluginState, listConfiguredChannels, listLaunchEligibleChannels, readOpenClawConfig } from '../utils/channel-config';
 import { syncGatewayTokenToConfig, syncBrowserConfigToOpenClaw, syncSessionIdleMinutesToOpenClaw, sanitizeOpenClawConfig } from '../utils/openclaw-auth';
 import { buildProxyEnv, resolveProxySettings } from '../utils/proxy';
 import { syncProxyConfigToOpenClaw } from '../utils/openclaw-proxy';
@@ -293,7 +293,7 @@ async function resolveChannelStartupPolicy(): Promise<{
   channelStartupSummary: string;
 }> {
   try {
-    const configuredChannels = await listConfiguredChannels();
+    const configuredChannels = await listLaunchEligibleChannels();
     if (configuredChannels.length === 0) {
       return {
         skipChannels: true,

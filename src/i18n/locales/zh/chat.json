@@ -50,7 +50,11 @@
             "newTab": "新建标签",
             "closeTab": "关闭标签",
             "go": "访问",
-            "loading": "加载中"
+            "loading": "加载中",
+            "retry": "重试",
+            "openExternal": "在外部打开",
+            "loadFailedTitle": "页面加载失败",
+            "loadFailedBody": "这个站点暂时无法在内置浏览器里打开。可能是网络、证书、站点策略，或 Electron WebView 兼容性导致。"
         }
     },
     "composer": {

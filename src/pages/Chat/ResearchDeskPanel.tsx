@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
+  AlertCircle,
   ChevronRight,
+  ExternalLink,
   FileCode2,
   FileImage,
   FileText,
@@ -35,6 +37,12 @@ const QUICK_BROWSER_LINKS = [
 const ROOT_WORKSPACE_PATH = '';
 
 type BrowserNavigationEvent = Event & { url?: string; title?: string };
+type BrowserLoadFailureEvent = Event & {
+  errorCode?: number;
+  errorDescription?: string;
+  validatedURL?: string;
+  isMainFrame?: boolean;
+};
 type BrowserWebview = HTMLElement & {
   src: string;
   reload: () => void;
@@ -54,6 +62,11 @@ type BrowserTabState = {
   loading: boolean;
   canGoBack: boolean;
   canGoForward: boolean;
+  error: {
+    code?: number;
+    description: string;
+    url: string;
+  } | null;
 };
 
 function formatByteSize(bytes: number): string {
@@ -127,6 +140,7 @@ function createBrowserTab(url: string, fallbackTitle: string): BrowserTabState {
     loading: true,
     canGoBack: false,
     canGoForward: false,
+    error: null,
   };
 }
 
@@ -381,6 +395,10 @@ function BrowserWebviewPane({
   }, [onRegisterWebview, tab.id]);
 
   useEffect(() => {
+    onStateChange(tab.id, { loading: true, error: null });
+  }, [onStateChange, tab.id, tab.url]);
+
+  useEffect(() => {
     const webview = webviewRef.current;
     if (!webview) return;
 
@@ -394,7 +412,7 @@ function BrowserWebviewPane({
     };
 
     const handleDidStartLoading = () => {
-      onStateChange(tab.id, { loading: true });
+      onStateChange(tab.id, { loading: true, error: null });
       syncNavigationState();
     };
 
@@ -414,11 +432,43 @@ function BrowserWebviewPane({
       });
     };
 
+    const handleDidFailLoad = (event: BrowserLoadFailureEvent) => {
+      if (event.isMainFrame === false) {
+        return;
+      }
+
+      const errorCode = typeof event.errorCode === 'number' ? event.errorCode : undefined;
+      const failedUrl = event.validatedURL || tab.url;
+
+      // ERR_ABORTED is commonly emitted during legitimate navigation changes
+      // and redirects; it should not put the browser into a hard failure state.
+      if (errorCode === -3) {
+        onStateChange(tab.id, { loading: false });
+        syncNavigationState(failedUrl);
+        return;
+      }
+
+      const description = event.errorDescription || 'Failed to load this page';
+      onStateChange(tab.id, {
+        loading: false,
+        url: failedUrl,
+        title: getBrowserTitleFallback(failedUrl, fallbackTitle),
+        canGoBack: safeCanGoBack(webview),
+        canGoForward: safeCanGoForward(webview),
+        error: {
+          code: errorCode,
+          description,
+          url: failedUrl,
+        },
+      });
+    };
+
     webview.addEventListener('did-start-loading', handleDidStartLoading as EventListener);
     webview.addEventListener('did-stop-loading', handleDidStopLoading as EventListener);
     webview.addEventListener('did-navigate', handleNavigation as EventListener);
     webview.addEventListener('did-navigate-in-page', handleNavigation as EventListener);
     webview.addEventListener('page-title-updated', handleTitleUpdate as EventListener);
+    webview.addEventListener('did-fail-load', handleDidFailLoad as EventListener);
 
     return () => {
       webview.removeEventListener('did-start-loading', handleDidStartLoading as EventListener);
@@ -426,6 +476,7 @@ function BrowserWebviewPane({
       webview.removeEventListener('did-navigate', handleNavigation as EventListener);
       webview.removeEventListener('did-navigate-in-page', handleNavigation as EventListener);
       webview.removeEventListener('page-title-updated', handleTitleUpdate as EventListener);
+      webview.removeEventListener('did-fail-load', handleDidFailLoad as EventListener);
     };
   }, [fallbackTitle, onStateChange, tab.id, tab.url]);
 
@@ -638,6 +689,7 @@ export function ResearchDeskPanel({
       url: nextUrl,
       title: getBrowserTitleFallback(nextUrl, t('desk.browser.title')),
       loading: true,
+      error: null,
     });
   };
 
@@ -903,6 +955,7 @@ export function ResearchDeskPanel({
                           url: link.url,
                           title: getBrowserTitleFallback(link.url, link.label),
                           loading: true,
+                          error: null,
                         });
                       }}
                       className="rounded-full border border-black/10 bg-white/80 px-3 py-1.5 text-[12px] font-medium text-foreground/75 transition-colors hover:bg-black/5 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10"
@@ -925,6 +978,61 @@ export function ResearchDeskPanel({
                     onStateChange={updateBrowserTab}
                     onRegisterWebview={registerBrowserWebview}
                   />
+                )}
+                {activeBrowserTab?.error && (
+                  <div
+                    data-testid="chat-desk-browser-error"
+                    className="absolute inset-0 z-10 flex items-center justify-center bg-[#f9f6ec]/96 p-5 dark:bg-black/90"
+                  >
+                    <div className="w-full max-w-md rounded-[24px] border border-black/10 bg-white/90 p-5 shadow-xl dark:border-white/10 dark:bg-card">
+                      <div className="flex items-start gap-3">
+                        <div className="mt-0.5 rounded-full bg-destructive/10 p-2 text-destructive">
+                          <AlertCircle className="h-4 w-4" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[15px] font-semibold text-foreground">
+                            {t('desk.browser.loadFailedTitle')}
+                          </p>
+                          <p className="mt-1 text-[13px] leading-6 text-foreground/70">
+                            {t('desk.browser.loadFailedBody')}
+                          </p>
+                          <p className="mt-3 break-all rounded-2xl border border-black/10 bg-black/[0.03] px-3 py-2 font-mono text-[12px] text-foreground/70 dark:border-white/10 dark:bg-white/[0.04]">
+                            {activeBrowserTab.error.url}
+                          </p>
+                          <p className="mt-2 text-[12px] text-foreground/55">
+                            {activeBrowserTab.error.description}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="mt-4 flex flex-wrap items-center gap-2">
+                        <Button
+                          className="h-9 rounded-full px-4 text-[12px]"
+                          onClick={() => {
+                            if (!activeBrowserTab) return;
+                            updateBrowserTab(activeBrowserTab.id, { loading: true, error: null });
+                            const webview = browserWebviewsRef.current[activeBrowserTab.id];
+                            if (webview) {
+                              webview.reload();
+                            }
+                          }}
+                        >
+                          <RefreshCw className="mr-2 h-3.5 w-3.5" />
+                          {t('desk.browser.retry')}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          className="h-9 rounded-full px-4 text-[12px]"
+                          onClick={() => {
+                            const targetUrl = activeBrowserTab.error?.url || activeBrowserTab.url;
+                            window.electron?.openExternal?.(targetUrl);
+                          }}
+                        >
+                          <ExternalLink className="mr-2 h-3.5 w-3.5" />
+                          {t('desk.browser.openExternal')}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
                 )}
               </div>
             </div>

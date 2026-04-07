@@ -208,6 +208,63 @@ describe('WeCom plugin configuration', () => {
   });
 });
 
+describe('launch-eligible channel detection', () => {
+  beforeEach(async () => {
+    vi.resetAllMocks();
+    vi.resetModules();
+    await rm(testHome, { recursive: true, force: true });
+    await rm(testUserData, { recursive: true, force: true });
+  });
+
+  it('ignores whatsapp credential leftovers without explicit channel config', async () => {
+    const { listConfiguredChannels, listLaunchEligibleChannels } = await import('@electron/utils/channel-config');
+
+    const whatsappCredentialsDir = join(testHome, '.openclaw', 'credentials', 'whatsapp', 'default');
+    await mkdir(whatsappCredentialsDir, { recursive: true });
+
+    expect(await listConfiguredChannels()).toContain('whatsapp');
+    expect(await listLaunchEligibleChannels()).not.toContain('whatsapp');
+  });
+
+  it('does not auto-start telegram when only proxy metadata exists', async () => {
+    const { listLaunchEligibleChannels, writeOpenClawConfig } = await import('@electron/utils/channel-config');
+
+    await writeOpenClawConfig({
+      channels: {
+        telegram: {
+          proxy: 'http://127.0.0.1:7890',
+        },
+      },
+    });
+
+    expect(await listLaunchEligibleChannels()).not.toContain('telegram');
+  });
+
+  it('keeps explicitly enabled built-in channels launch-eligible', async () => {
+    const { listLaunchEligibleChannels, writeOpenClawConfig } = await import('@electron/utils/channel-config');
+
+    await writeOpenClawConfig({
+      channels: {
+        whatsapp: {
+          enabled: true,
+          defaultAccount: 'default',
+          accounts: {
+            default: {
+              enabled: true,
+            },
+          },
+        },
+        telegram: {
+          botToken: 'bot-token',
+        },
+      },
+    });
+
+    const launchEligible = await listLaunchEligibleChannels();
+    expect(launchEligible).toEqual(expect.arrayContaining(['whatsapp', 'telegram']));
+  });
+});
+
 describe('WeChat dangling plugin cleanup', () => {
   beforeEach(async () => {
     vi.resetAllMocks();

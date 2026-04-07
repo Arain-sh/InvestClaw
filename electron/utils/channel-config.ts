@@ -995,6 +995,50 @@ function channelHasAnyAccount(channelSection: ChannelConfigData): boolean {
     return false;
 }
 
+function hasMeaningfulChannelValue(value: unknown): boolean {
+    if (value == null) return false;
+    if (typeof value === 'string') return value.trim().length > 0;
+    if (typeof value === 'number' || typeof value === 'boolean') return true;
+    if (Array.isArray(value)) return value.length > 0;
+    if (typeof value === 'object') return Object.keys(value as Record<string, unknown>).length > 0;
+    return false;
+}
+
+function accountHasLaunchConfig(account: ChannelConfigData): boolean {
+    if (!account || typeof account !== 'object') return false;
+    if (account.enabled === true) return true;
+
+    return Object.entries(account).some(([key, value]) => {
+        if (key === 'enabled') return false;
+        return hasMeaningfulChannelValue(value);
+    });
+}
+
+function channelHasDirectLaunchConfig(channelSection: ChannelConfigData): boolean {
+    return Object.entries(channelSection).some(([key, value]) => {
+        if (key === 'enabled' || key === 'defaultAccount' || key === 'accounts' || key === 'proxy') {
+            return false;
+        }
+        return hasMeaningfulChannelValue(value);
+    });
+}
+
+function isChannelLaunchEligible(channelSection: ChannelConfigData): boolean {
+    if (!channelSection || typeof channelSection !== 'object') return false;
+    if (channelSection.enabled === false) return false;
+    if (channelSection.enabled === true) return true;
+
+    const accounts = channelSection.accounts as Record<string, ChannelConfigData> | undefined;
+    if (accounts && typeof accounts === 'object') {
+        const hasLaunchableAccount = Object.values(accounts).some((account) => accountHasLaunchConfig(account));
+        if (hasLaunchableAccount) {
+            return true;
+        }
+    }
+
+    return channelHasDirectLaunchConfig(channelSection);
+}
+
 export async function listConfiguredChannels(): Promise<string[]> {
     const config = await readOpenClawConfig();
     const channels: string[] = [];
@@ -1029,6 +1073,23 @@ export async function listConfiguredChannels(): Promise<string[]> {
         }
     } catch {
         // Ignore errors checking whatsapp dir
+    }
+
+    return channels;
+}
+
+export async function listLaunchEligibleChannels(): Promise<string[]> {
+    const config = await readOpenClawConfig();
+    const channels: string[] = [];
+
+    if (!config.channels) {
+        return channels;
+    }
+
+    for (const [channelType, section] of Object.entries(config.channels)) {
+        if (isChannelLaunchEligible(section)) {
+            channels.push(channelType);
+        }
     }
 
     return channels;

@@ -81,6 +81,7 @@ test.describe('InvestClaw Electron smoke flows', () => {
     await page.getByTestId('chat-desk-browser-new-tab').click();
     await expect(page.getByTestId('chat-desk-browser-tabs').locator('[data-testid="chat-desk-browser-tab"]')).toHaveCount(2);
     await expect(page.getByTestId('chat-desk-browser-surface')).toBeVisible();
+    await expect(page.getByTestId('chat-desk-browser-webview')).toHaveCount(1);
 
     await page.getByTestId('chat-desk-tab-files').click();
     await page.getByTestId('sidebar-nav-agents').click();
