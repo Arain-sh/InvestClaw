@@ -70,6 +70,8 @@ test.describe('InvestClaw Electron smoke flows', () => {
 
     await page.getByTestId('chat-desk-folder-research').click();
     await page.getByTestId('chat-desk-folder-q1').click();
+    await expect(page.getByTestId('chat-desk-preview-empty-state')).toBeVisible();
+
     await page.getByTestId('chat-desk-file-THESIS.md').click();
     await expect(page.getByTestId('chat-desk-preview')).toContainText('Desk Panel');
     await expect(page.getByTestId('chat-desk-preview')).toContainText('/workspace/research/q1/THESIS.md');

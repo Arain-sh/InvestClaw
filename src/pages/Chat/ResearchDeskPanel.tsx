@@ -421,13 +421,15 @@ function WorkspacePreviewPane({
     return (
       <div
         data-testid="chat-desk-preview"
-        className="flex h-full min-h-0 flex-col items-center justify-center rounded-[20px] border border-dashed border-black/10 bg-white/70 px-6 text-center dark:border-white/10 dark:bg-black/10"
+        className="flex h-full min-h-0 flex-col rounded-[20px] border border-dashed border-black/10 bg-white/70 px-6 pt-10 text-center dark:border-white/10 dark:bg-black/10"
       >
-        <FileText className="mb-3 h-6 w-6 text-foreground/45" />
-        <p className="text-[14px] font-medium text-foreground/80">{t('desk.files.selectFile')}</p>
-        <p className="mt-1 font-mono text-[12px] text-foreground/55">
-          {fallbackPath}
-        </p>
+        <div data-testid="chat-desk-preview-empty-state" className="flex flex-col items-center">
+          <FileText className="mb-3 h-6 w-6 text-foreground/45" />
+          <p className="text-[14px] font-medium text-foreground/80">{t('desk.files.selectFile')}</p>
+          <p className="mt-1 font-mono text-[12px] text-foreground/55">
+            {fallbackPath}
+          </p>
+        </div>
       </div>
     );
   }
@@ -992,14 +994,14 @@ export function ResearchDeskPanel({
           </div>
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex min-h-0 flex-1 flex-col">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex h-full min-h-0 flex-1 flex-col">
           <TabsList className="grid w-full grid-cols-2 rounded-2xl bg-white/65 p-1 dark:bg-white/5">
             <TabsTrigger data-testid="chat-desk-tab-files" value="files">{t('desk.tabs.files')}</TabsTrigger>
             <TabsTrigger data-testid="chat-desk-tab-browser" value="browser">{t('desk.tabs.browser')}</TabsTrigger>
           </TabsList>
 
-          <TabsContent forceMount value="files" className={cn('mt-2 flex min-h-0 flex-1 flex-col', activeTab !== 'files' && 'hidden')}>
-            <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[26px] border border-black/10 bg-[#f9f6ec] dark:border-white/10 dark:bg-white/5">
+          <TabsContent forceMount value="files" className={cn('mt-2 flex h-full min-h-0 flex-1 flex-col', activeTab !== 'files' && 'hidden')}>
+            <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden rounded-[26px] border border-black/10 bg-[#f9f6ec] dark:border-white/10 dark:bg-white/5">
               <div className="shrink-0 border-b border-black/10 p-3 dark:border-white/10">
                 <div className="flex flex-wrap items-center gap-2">
                   <Button
@@ -1036,10 +1038,10 @@ export function ResearchDeskPanel({
                 )}
               </div>
 
-              <div className="grid min-h-0 flex-1 gap-px bg-black/10 dark:bg-white/10 xl:grid-cols-[minmax(0,0.86fr)_minmax(0,1.14fr)]">
+              <div className="grid h-full min-h-0 flex-1 grid-rows-[minmax(0,1fr)] items-stretch content-stretch gap-px bg-black/10 dark:bg-white/10 xl:grid-cols-[minmax(0,0.86fr)_minmax(0,1.14fr)]">
                 <div
                   data-testid="chat-desk-files"
-                  className="flex min-h-0 flex-col overflow-hidden bg-[#f9f6ec] p-3 dark:bg-white/5"
+                  className="flex h-full min-h-0 flex-col overflow-hidden bg-[#f9f6ec] p-3 dark:bg-white/5"
                 >
                   {!currentAgent ? (
                     <div className="rounded-2xl border border-dashed border-black/10 bg-white/70 p-4 text-[13px] text-foreground/65 dark:border-white/10 dark:bg-black/10">
@@ -1077,7 +1079,7 @@ export function ResearchDeskPanel({
                   )}
                 </div>
 
-                <div className="min-h-0 bg-[#f9f6ec] p-3 dark:bg-white/5">
+                <div className="flex h-full min-h-0 flex-col overflow-hidden bg-[#f9f6ec] p-3 dark:bg-white/5">
                   <WorkspacePreviewPane
                     preview={workspacePreview}
                     loading={workspacePreviewLoading}
@@ -1088,8 +1090,8 @@ export function ResearchDeskPanel({
             </div>
           </TabsContent>
 
-          <TabsContent value="browser" className="mt-1 flex min-h-0 flex-1 flex-col">
-            <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[26px] border border-black/10 bg-[#f9f6ec] dark:border-white/10 dark:bg-white/5">
+          <TabsContent value="browser" className="mt-1 flex h-full min-h-0 flex-1 flex-col">
+            <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden rounded-[26px] border border-black/10 bg-[#f9f6ec] dark:border-white/10 dark:bg-white/5">
               <div data-testid="chat-desk-browser-tabs" className="shrink-0 border-b border-black/10 dark:border-white/10">
                 <div className="flex items-center gap-2 overflow-x-auto px-3 py-2">
                   {browserTabs.map((tab) => (
