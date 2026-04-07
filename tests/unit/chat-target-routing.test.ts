@@ -85,6 +85,36 @@ describe('chat target routing', () => {
 
   it('switches to the selected agent main session before sending text', async () => {
     const { useChatStore } = await import('@/stores/chat');
+    const { useProviderStore } = await import('@/stores/providers');
+
+    useProviderStore.setState({
+      isInitialized: true,
+      loading: false,
+      accounts: [
+        {
+          id: 'openai-default',
+          vendorId: 'openai',
+          label: 'OpenAI',
+          authMode: 'api_key',
+          enabled: true,
+          isDefault: true,
+          createdAt: '2026-03-11T12:00:00.000Z',
+          updatedAt: '2026-03-11T12:00:00.000Z',
+        },
+      ],
+      statuses: [
+        {
+          id: 'openai-default',
+          name: 'OpenAI',
+          type: 'openai',
+          enabled: true,
+          createdAt: '2026-03-11T12:00:00.000Z',
+          updatedAt: '2026-03-11T12:00:00.000Z',
+          hasKey: true,
+          keyMasked: 'sk-***',
+        },
+      ],
+    });
 
     useChatStore.setState({
       currentSessionKey: 'agent:main:main',
@@ -129,6 +159,36 @@ describe('chat target routing', () => {
 
   it('uses the selected agent main session for attachment sends', async () => {
     const { useChatStore } = await import('@/stores/chat');
+    const { useProviderStore } = await import('@/stores/providers');
+
+    useProviderStore.setState({
+      isInitialized: true,
+      loading: false,
+      accounts: [
+        {
+          id: 'openai-default',
+          vendorId: 'openai',
+          label: 'OpenAI',
+          authMode: 'api_key',
+          enabled: true,
+          isDefault: true,
+          createdAt: '2026-03-11T12:00:00.000Z',
+          updatedAt: '2026-03-11T12:00:00.000Z',
+        },
+      ],
+      statuses: [
+        {
+          id: 'openai-default',
+          name: 'OpenAI',
+          type: 'openai',
+          enabled: true,
+          createdAt: '2026-03-11T12:00:00.000Z',
+          updatedAt: '2026-03-11T12:00:00.000Z',
+          hasKey: true,
+          keyMasked: 'sk-***',
+        },
+      ],
+    });
 
     useChatStore.setState({
       currentSessionKey: 'agent:main:main',
@@ -186,5 +246,47 @@ describe('chat target routing', () => {
     expect(payload.sessionKey).toBe('agent:research:desk');
     expect(payload.message).toBe('Process the attached file(s).');
     expect(payload.media[0]?.filePath).toBe('/tmp/design.png');
+  });
+
+  it('surfaces a configuration error when no provider is available', async () => {
+    const { useChatStore } = await import('@/stores/chat');
+    const { useProviderStore } = await import('@/stores/providers');
+
+    useProviderStore.setState({
+      isInitialized: true,
+      loading: false,
+      accounts: [],
+      statuses: [],
+      vendors: [],
+      defaultAccountId: null,
+      error: null,
+    });
+
+    useChatStore.setState({
+      currentSessionKey: 'agent:main:main',
+      currentAgentId: 'main',
+      sessions: [{ key: 'agent:main:main' }],
+      messages: [],
+      sessionLabels: {},
+      sessionLastActivity: {},
+      sending: false,
+      activeRunId: null,
+      streamingText: '',
+      streamingMessage: null,
+      streamingTools: [],
+      pendingFinal: false,
+      lastUserMessageAt: null,
+      pendingToolImages: [],
+      error: null,
+      loading: false,
+      thinkingLevel: null,
+      showThinking: true,
+    });
+
+    await useChatStore.getState().sendMessage('Hello?');
+
+    expect(gatewayRpcMock).not.toHaveBeenCalledWith('chat.send', expect.anything(), expect.anything());
+    expect(useChatStore.getState().messages).toHaveLength(0);
+    expect(useChatStore.getState().error).toContain('No AI provider is configured');
   });
 });

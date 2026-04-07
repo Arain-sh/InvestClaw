@@ -1,5 +1,7 @@
 import { invokeIpc } from '@/lib/api-client';
+import { hasAvailableProvider } from '@/lib/provider-readiness';
 import { useAgentsStore } from '@/stores/agents';
+import { useProviderStore } from '@/stores/providers';
 import {
   clearErrorRecoveryTimer,
   clearHistoryPoll,
@@ -10,6 +12,9 @@ import {
 } from './helpers';
 import type { ChatSession, RawMessage } from './types';
 import type { ChatGet, ChatSet, RuntimeActions } from './store-api';
+
+const MISSING_PROVIDER_CHAT_ERROR =
+  'No AI provider is configured. Open Models and add an API key or local model before sending a message.';
 
 function normalizeAgentId(value: string | undefined | null): string {
   return (value ?? '').trim().toLowerCase() || 'main';
@@ -48,6 +53,16 @@ export function createRuntimeSendActions(set: ChatSet, get: ChatGet): Pick<Runti
     ) => {
       const trimmed = text.trim();
       if (!trimmed && (!attachments || attachments.length === 0)) return;
+
+      const providerState = useProviderStore.getState();
+      if (
+        providerState.isInitialized
+        && !providerState.loading
+        && !hasAvailableProvider(providerState.accounts, providerState.statuses)
+      ) {
+        set({ error: MISSING_PROVIDER_CHAT_ERROR, sending: false });
+        return;
+      }
 
       const targetSessionKey = resolveMainSessionKeyForAgent(targetAgentId) ?? get().currentSessionKey;
       if (targetSessionKey !== get().currentSessionKey) {

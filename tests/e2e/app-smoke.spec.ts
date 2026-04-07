@@ -30,10 +30,20 @@ test.describe('InvestClaw Electron smoke flows', () => {
     await page.getByTestId('setup-skip-button').click();
 
     await expect(page.getByTestId('main-layout')).toBeVisible();
+    await expect(page.locator('textarea')).toBeDisabled();
     await expect(page.getByTestId('chat-quick-action-askQuestions')).toBeVisible();
 
     await page.getByTestId('chat-quick-action-askQuestions').click();
     await expect(page.locator('textarea')).not.toHaveValue('');
+  });
+
+  test('shows the gateway disconnected composer state after setup skip', async ({ page }) => {
+    await ensureSetupPage(page);
+    await page.getByTestId('setup-skip-button').click();
+
+    await expect(page.getByTestId('chat-page')).toBeVisible();
+    await expect(page.locator('textarea')).toBeDisabled();
+    await expect(page.locator('textarea')).toHaveAttribute('placeholder', /网关未连接/);
   });
 
   test('shows the IDE-style research desk inside chat with files and browser tabs', async ({ page, homeDir }) => {

@@ -36,6 +36,7 @@ interface ChatInputProps {
   onSend: (text: string, attachments?: FileAttachment[], targetAgentId?: string | null) => void;
   onStop?: () => void;
   disabled?: boolean;
+  disabledPlaceholder?: string;
   sending?: boolean;
   isEmpty?: boolean;
   presetPrompt?: string;
@@ -86,7 +87,16 @@ function readFileAsBase64(file: globalThis.File): Promise<string> {
 
 // ── Component ────────────────────────────────────────────────────
 
-export function ChatInput({ onSend, onStop, disabled = false, sending = false, isEmpty = false, presetPrompt = '', presetPromptNonce = 0 }: ChatInputProps) {
+export function ChatInput({
+  onSend,
+  onStop,
+  disabled = false,
+  disabledPlaceholder,
+  sending = false,
+  isEmpty = false,
+  presetPrompt = '',
+  presetPromptNonce = 0,
+}: ChatInputProps) {
   const { t } = useTranslation('chat');
   const [input, setInput] = useState('');
   const [attachments, setAttachments] = useState<FileAttachment[]>([]);
@@ -497,7 +507,7 @@ export function ChatInput({ onSend, onStop, disabled = false, sending = false, i
                   isComposingRef.current = false;
                 }}
                 onPaste={handlePaste}
-                placeholder={disabled ? t('composer.gatewayDisconnectedPlaceholder') : t('composer.placeholder')}
+                placeholder={disabled ? (disabledPlaceholder || t('composer.gatewayDisconnectedPlaceholder')) : t('composer.placeholder')}
                 disabled={disabled}
                 className="min-h-[40px] max-h-[200px] resize-none border-0 focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none bg-transparent py-2.5 px-2 text-[15px] placeholder:text-muted-foreground/60 leading-relaxed"
                 rows={1}

@@ -20,6 +20,11 @@
         "hideThinking": "隐藏思考过程",
         "currentAgent": "当前对话对象：{{agent}}"
     },
+    "providerRequired": {
+        "title": "先配置可用模型，聊天才能正常开始",
+        "body": "当前没有可用的 AI Provider。请先到模型页添加 API Key 或本地模型，再回来开始对话。",
+        "cta": "前往模型配置"
+    },
     "desk": {
         "inlineHint": "IDE 风格工作台：文件、浏览器",
         "tabs": {
@@ -64,6 +69,7 @@
         "targetChip": "@{{agent}}",
         "agentPickerTitle": "将下一条消息直接发送给其他 Agent",
         "gatewayDisconnectedPlaceholder": "网关未连接...",
+        "providerMissingPlaceholder": "请先到模型页配置 API Key 或本地模型...",
         "placeholder": "询问市场、财报、估值、观察列表或交易策略...",
         "send": "发送",
         "stop": "停止",

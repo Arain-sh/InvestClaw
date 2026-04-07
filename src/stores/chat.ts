@@ -5,8 +5,10 @@
  */
 import { create } from 'zustand';
 import { hostApiFetch } from '@/lib/host-api';
+import { hasAvailableProvider } from '@/lib/provider-readiness';
 import { useGatewayStore } from './gateway';
 import { useAgentsStore } from './agents';
+import { useProviderStore } from './providers';
 import { buildCronSessionHistoryPath, isCronSessionKey } from './chat/cron-session-utils';
 import {
   DEFAULT_CANONICAL_PREFIX,
@@ -56,6 +58,8 @@ const SESSION_LOAD_MIN_INTERVAL_MS = 1_200;
 const HISTORY_LOAD_MIN_INTERVAL_MS = 800;
 const HISTORY_POLL_SILENCE_WINDOW_MS = 2_500;
 const CHAT_EVENT_DEDUPE_TTL_MS = 30_000;
+const MISSING_PROVIDER_CHAT_ERROR =
+  'No AI provider is configured. Open Models and add an API key or local model before sending a message.';
 const _chatEventDedupe = new Map<string, number>();
 
 function clearErrorRecoveryTimer(): void {
@@ -1486,6 +1490,16 @@ export const useChatStore = create<ChatState>((set, get) => ({
   ) => {
     const trimmed = text.trim();
     if (!trimmed && (!attachments || attachments.length === 0)) return;
+
+    const providerState = useProviderStore.getState();
+    if (
+      providerState.isInitialized
+      && !providerState.loading
+      && !hasAvailableProvider(providerState.accounts, providerState.statuses)
+    ) {
+      set({ error: MISSING_PROVIDER_CHAT_ERROR, sending: false });
+      return;
+    }
 
     const targetSessionKey = resolveMainSessionKeyForAgent(targetAgentId) ?? get().currentSessionKey;
 

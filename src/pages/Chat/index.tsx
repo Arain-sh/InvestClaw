@@ -4,11 +4,13 @@
  * via gateway:rpc IPC. Session selector, thinking toggle, and refresh
  * are in the toolbar; messages render with markdown + streaming.
  */
-import { useEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react';
 import { AlertCircle, Loader2, PanelRightClose, PanelRightOpen, Sparkles } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useChatStore, type RawMessage } from '@/stores/chat';
 import { useGatewayStore } from '@/stores/gateway';
 import { useAgentsStore } from '@/stores/agents';
+import { useProviderStore } from '@/stores/providers';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { Button } from '@/components/ui/button';
 import { ChatMessage } from './ChatMessage';
@@ -20,6 +22,7 @@ import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { useStickToBottomInstant } from '@/hooks/use-stick-to-bottom-instant';
 import { useMinLoading } from '@/hooks/use-min-loading';
+import { hasAvailableProvider } from '@/lib/provider-readiness';
 
 const DEFAULT_DESK_WIDTH = 560;
 const MIN_DESK_WIDTH = 320;
@@ -43,9 +46,14 @@ function clampDeskWidth(width: number, layoutWidth?: number): number {
 }
 
 export function Chat() {
+  const navigate = useNavigate();
   const { t } = useTranslation('chat');
   const gatewayStatus = useGatewayStore((s) => s.status);
   const isGatewayRunning = gatewayStatus.state === 'running';
+  const providerAccounts = useProviderStore((s) => s.accounts);
+  const providerStatuses = useProviderStore((s) => s.statuses);
+  const providersInitialized = useProviderStore((s) => s.isInitialized);
+  const providersLoading = useProviderStore((s) => s.loading);
 
   const messages = useChatStore((s) => s.messages);
   const currentSessionKey = useChatStore((s) => s.currentSessionKey);
@@ -200,6 +208,17 @@ export function Chat() {
   const isEmpty = messages.length === 0 && !sending;
   const currentAgent = agents.find((agent) => agent.id === currentAgentId) ?? null;
   const effectiveDeskWidth = clampDeskWidth(deskWidth, layoutWidth);
+  const providerReady = useMemo(
+    () => hasAvailableProvider(providerAccounts, providerStatuses),
+    [providerAccounts, providerStatuses],
+  );
+  const providerMissing = isGatewayRunning && providersInitialized && !providersLoading && !providerReady;
+  const composerDisabled = !isGatewayRunning || providerMissing;
+  const composerDisabledPlaceholder = !isGatewayRunning
+    ? t('composer.gatewayDisconnectedPlaceholder')
+    : providerMissing
+      ? t('composer.providerMissingPlaceholder')
+      : undefined;
 
   const handleDeskResizeStart = (event: ReactPointerEvent<HTMLDivElement>) => {
     if (!deskOpen) return;
@@ -308,11 +327,39 @@ export function Chat() {
             </div>
           )}
 
+          {providerMissing && (
+            <div className="border-t border-amber-500/20 bg-amber-500/10 px-4 py-3">
+              <div className="mx-auto flex max-w-4xl items-center justify-between gap-4">
+                <div className="space-y-0.5">
+                  <p
+                    data-testid="chat-provider-required"
+                    className="text-sm font-medium text-amber-900 dark:text-amber-100"
+                  >
+                    {t('providerRequired.title')}
+                  </p>
+                  <p className="text-xs text-amber-900/80 dark:text-amber-100/80">
+                    {t('providerRequired.body')}
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  size="sm"
+                  data-testid="chat-provider-required-cta"
+                  className="shrink-0"
+                  onClick={() => navigate('/models')}
+                >
+                  {t('providerRequired.cta')}
+                </Button>
+              </div>
+            </div>
+          )}
+
           {/* Input Area */}
           <ChatInput
             onSend={sendMessage}
             onStop={abortRun}
-            disabled={!isGatewayRunning}
+            disabled={composerDisabled}
+            disabledPlaceholder={composerDisabledPlaceholder}
             sending={sending}
             isEmpty={isEmpty}
             presetPrompt={suggestedPrompt}

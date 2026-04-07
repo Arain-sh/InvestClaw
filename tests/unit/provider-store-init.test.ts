@@ -23,6 +23,7 @@ describe('useProviderStore – init()', () => {
       accounts: [],
       vendors: [],
       defaultAccountId: null,
+      isInitialized: false,
       loading: false,
       error: null,
     });
@@ -49,6 +50,7 @@ describe('useProviderStore – init()', () => {
     expect(state.accounts).toEqual(fakeSnapshot.accounts);
     expect(state.vendors).toEqual(fakeSnapshot.vendors);
     expect(state.defaultAccountId).toBe('acc-1');
+    expect(state.isInitialized).toBe(true);
     expect(state.loading).toBe(false);
     expect(state.error).toBeNull();
   });
@@ -62,6 +64,7 @@ describe('useProviderStore – init()', () => {
 
     const state = useProviderStore.getState();
     expect(state.error).toBe('Error: Network error');
+    expect(state.isInitialized).toBe(true);
     expect(state.loading).toBe(false);
     expect(state.statuses).toEqual([]);
   });
@@ -84,6 +87,7 @@ describe('useProviderStore – init()', () => {
     expect(state.accounts).toEqual([]);
     expect(state.vendors).toEqual([]);
     expect(state.defaultAccountId).toBeNull();
+    expect(state.isInitialized).toBe(true);
     expect(state.loading).toBe(false);
   });
 

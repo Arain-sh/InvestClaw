@@ -20,6 +20,11 @@
         "hideThinking": "思考を非表示",
         "currentAgent": "現在の会話相手: {{agent}}"
     },
+    "providerRequired": {
+        "title": "チャットを始める前にモデルプロバイダーを設定してください",
+        "body": "現在利用できる AI Provider がありません。Models で API Key かローカルモデルを追加してから、チャットに戻ってください。",
+        "cta": "Models を開く"
+    },
     "desk": {
         "inlineHint": "IDE スタイルのデスク: ファイル、ブラウザ",
         "tabs": {
@@ -64,6 +69,7 @@
         "targetChip": "@{{agent}}",
         "agentPickerTitle": "次のメッセージを別の Agent に直接送信します",
         "gatewayDisconnectedPlaceholder": "ゲートウェイ未接続...",
+        "providerMissingPlaceholder": "先に Models で API Key かローカルモデルを設定してください...",
         "placeholder": "相場、決算、ウォッチリスト、バリュエーション、戦略案について質問してください...",
         "send": "送信",
         "stop": "停止",

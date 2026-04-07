@@ -28,6 +28,7 @@ interface ProviderState {
   accounts: ProviderAccount[];
   vendors: ProviderVendorInfo[];
   defaultAccountId: string | null;
+  isInitialized: boolean;
   loading: boolean;
   error: string | null;
 
@@ -73,6 +74,7 @@ export const useProviderStore = create<ProviderState>((set, get) => ({
   accounts: [],
   vendors: [],
   defaultAccountId: null,
+  isInitialized: false,
   loading: false,
   error: null,
 
@@ -91,10 +93,11 @@ export const useProviderStore = create<ProviderState>((set, get) => ({
         accounts: snapshot.accounts ?? [],
         vendors: snapshot.vendors ?? [],
         defaultAccountId: snapshot.defaultAccountId ?? null,
+        isInitialized: true,
         loading: false 
       });
     } catch (error) {
-      set({ error: String(error), loading: false });
+      set({ error: String(error), loading: false, isInitialized: true });
     }
   },
 

@@ -20,6 +20,11 @@
         "hideThinking": "Hide thinking",
         "currentAgent": "Talking to {{agent}}"
     },
+    "providerRequired": {
+        "title": "Configure a model provider before starting chat",
+        "body": "No usable AI provider is configured right now. Add an API key or a local model in Models, then come back to chat.",
+        "cta": "Open models"
+    },
     "desk": {
         "inlineHint": "IDE-style desk: files, browser",
         "tabs": {
@@ -64,6 +69,7 @@
         "targetChip": "@{{agent}}",
         "agentPickerTitle": "Route the next message to another agent",
         "gatewayDisconnectedPlaceholder": "Gateway not connected...",
+        "providerMissingPlaceholder": "Add an API key or local model in Models before chatting...",
         "placeholder": "Ask about markets, filings, watchlists, valuation, or strategy ideas...",
         "send": "Send",
         "stop": "Stop",
