@@ -53,11 +53,11 @@ test.describe('InvestClaw Electron smoke flows', () => {
     await writeFile(join(mainWorkspaceDir, 'research', 'q1', 'THESIS.md'), '# Desk Panel\n\nWorkspace preview from chat.\n');
     await writeFile(
       join(mainWorkspaceDir, 'research', 'q1', 'pitch.html'),
-      '<!doctype html><html><body><main><h1>Pitch Room</h1><p>HTML preview is live.</p></main></body></html>',
+      '<!doctype html><html><body><main style="width: 1200px; padding: 24px; border-radius: 24px; background: linear-gradient(135deg, #e0f2fe, #fef3c7);"><h1>Pitch Room</h1><p>HTML preview is live.</p></main></body></html>',
     );
     await writeFile(
       join(mainWorkspaceDir, 'research', 'q1', 'SignalCard.tsx'),
-      'export default function SignalCard() { return <section><h2>Momentum Signal</h2><p>TSX preview is live.</p></section>; }\n',
+      'export default function SignalCard() { return <section style={{ width: 1180, padding: 24, borderRadius: 24, background: "linear-gradient(135deg, #ecfccb, #dbeafe)" }}><h2>Momentum Signal</h2><p>TSX preview is live.</p></section>; }\n',
     );
 
     await ensureSetupPage(page);
@@ -90,10 +90,29 @@ test.describe('InvestClaw Electron smoke flows', () => {
     await page.getByTestId('chat-desk-file-pitch.html').click();
     await expect(page.getByTestId('chat-desk-preview-mode-render')).toBeVisible();
     await expect(page.frameLocator('[data-testid="chat-desk-html-preview"]').getByText('Pitch Room')).toBeVisible();
+    await expect
+      .poll(async () => {
+        return await page
+          .frameLocator('[data-testid="chat-desk-html-preview"]')
+          .locator('html')
+          .evaluate((element) => {
+            const root = element.ownerDocument.getElementById('investclaw-preview-root');
+            if (!root) return 9999;
+            return Math.max(0, Math.round(root.getBoundingClientRect().right - window.innerWidth));
+          });
+      })
+      .toBeLessThan(6);
 
     await page.getByTestId('chat-desk-file-SignalCard.tsx').click();
     await expect(page.getByTestId('chat-desk-component-preview')).toContainText('Momentum Signal');
     await expect(page.getByTestId('chat-desk-component-preview')).toContainText('TSX preview is live.');
+    await expect
+      .poll(async () => {
+        return await page.getByTestId('chat-desk-component-preview-shell').evaluate((element) => {
+          return Math.round(element.scrollWidth - element.clientWidth);
+        });
+      })
+      .toBeLessThan(6);
 
     const deskWidthBeforeResize = await page.getByTestId('chat-desk-container').evaluate((element) => Math.round(element.getBoundingClientRect().width));
     const resizerBox = await page.getByTestId('chat-desk-resizer').boundingBox();
@@ -113,6 +132,14 @@ test.describe('InvestClaw Electron smoke flows', () => {
         return Math.abs(currentWidth - deskWidthBeforeResize);
       })
       .toBeGreaterThan(8);
+
+    await expect
+      .poll(async () => {
+        return await page.getByTestId('chat-desk-component-preview-shell').evaluate((element) => {
+          return Math.round(element.scrollWidth - element.clientWidth);
+        });
+      })
+      .toBeLessThan(6);
 
     await page.getByTestId('chat-desk-tab-browser').click();
     await expect(page.getByTestId('chat-desk-browser-url')).toHaveValue(/ainvest/i);

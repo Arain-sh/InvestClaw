@@ -71,6 +71,171 @@ type BrowserTabState = {
   } | null;
 };
 
+const ADAPTIVE_RENDER_CSS = `
+  html, body {
+    margin: 0;
+    min-height: 100%;
+    background: #ffffff;
+    color: #111827;
+    overflow: auto;
+  }
+
+  body {
+    box-sizing: border-box;
+    padding: clamp(12px, 2vw, 20px);
+    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+
+  img, video, canvas, svg, iframe, embed, object {
+    max-width: 100% !important;
+    height: auto !important;
+  }
+
+  pre {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
+  table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  #investclaw-preview-root {
+    width: 100%;
+    transform-origin: top left;
+  }
+
+  #investclaw-preview-root > *,
+  #investclaw-preview-root main,
+  #investclaw-preview-root section,
+  #investclaw-preview-root article,
+  #investclaw-preview-root div,
+  #investclaw-preview-root [style*="width"] {
+    max-width: 100% !important;
+  }
+`;
+
+const ADAPTIVE_COMPONENT_PREVIEW_CSS = `
+  [data-investclaw-component-preview-root] {
+    width: 100%;
+    color: inherit;
+  }
+
+  [data-investclaw-component-preview-root] > *,
+  [data-investclaw-component-preview-root] main,
+  [data-investclaw-component-preview-root] section,
+  [data-investclaw-component-preview-root] article,
+  [data-investclaw-component-preview-root] div,
+  [data-investclaw-component-preview-root] [style*="width"] {
+    max-width: 100% !important;
+  }
+
+  [data-investclaw-component-preview-root],
+  [data-investclaw-component-preview-root] *,
+  [data-investclaw-component-preview-root] *::before,
+  [data-investclaw-component-preview-root] *::after {
+    box-sizing: border-box;
+  }
+
+  [data-investclaw-component-preview-root] img,
+  [data-investclaw-component-preview-root] video,
+  [data-investclaw-component-preview-root] canvas,
+  [data-investclaw-component-preview-root] svg,
+  [data-investclaw-component-preview-root] iframe,
+  [data-investclaw-component-preview-root] embed,
+  [data-investclaw-component-preview-root] object {
+    max-width: 100% !important;
+    height: auto !important;
+  }
+
+  [data-investclaw-component-preview-root] pre {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
+  [data-investclaw-component-preview-root] table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+`;
+
+const ADAPTIVE_RENDER_SCRIPT = `
+  (() => {
+    const ROOT_ID = 'investclaw-preview-root';
+    let resizeFrame = 0;
+
+    function ensureRoot() {
+      const body = document.body || document.documentElement;
+      let root = document.getElementById(ROOT_ID);
+      if (!root) {
+        root = document.createElement('div');
+        root.id = ROOT_ID;
+        while (body.firstChild) {
+          root.appendChild(body.firstChild);
+        }
+        body.appendChild(root);
+      }
+      return root;
+    }
+
+    function fit() {
+      const body = document.body || document.documentElement;
+      const root = ensureRoot();
+      const viewportWidth = Math.max(window.innerWidth - 32, 1);
+
+      root.style.transform = 'scale(1)';
+      root.style.width = '100%';
+
+      const naturalWidth = Math.max(
+        root.scrollWidth,
+        root.getBoundingClientRect().width,
+        body.scrollWidth,
+        document.documentElement.scrollWidth,
+        viewportWidth,
+      );
+      const scale = naturalWidth > viewportWidth ? viewportWidth / naturalWidth : 1;
+
+      root.style.transform = 'scale(' + scale + ')';
+      root.style.width = scale < 1 ? (100 / scale) + '%' : '100%';
+
+      const naturalHeight = Math.max(
+        root.scrollHeight,
+        body.scrollHeight,
+        document.documentElement.scrollHeight,
+      );
+      body.style.minHeight = Math.ceil(naturalHeight * scale + 32) + 'px';
+    }
+
+    function scheduleFit() {
+      if (resizeFrame) {
+        cancelAnimationFrame(resizeFrame);
+      }
+      resizeFrame = requestAnimationFrame(() => {
+        resizeFrame = 0;
+        fit();
+      });
+    }
+
+    window.addEventListener('load', scheduleFit);
+    window.addEventListener('resize', scheduleFit);
+    document.addEventListener('DOMContentLoaded', scheduleFit);
+
+    if (typeof ResizeObserver === 'function') {
+      const observer = new ResizeObserver(scheduleFit);
+      observer.observe(document.documentElement);
+    }
+
+    scheduleFit();
+  })();
+`;
+
 function formatByteSize(bytes: number): string {
   if (!Number.isFinite(bytes) || bytes <= 0) return '0 B';
   const units = ['B', 'KB', 'MB', 'GB'];
@@ -180,6 +345,30 @@ function safeCanGoForward(webview: BrowserWebview): boolean {
   }
 }
 
+function buildAdaptiveHtmlPreviewDocument(source: string): string {
+  const injection = `
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>${ADAPTIVE_RENDER_CSS}</style>
+    <script>${ADAPTIVE_RENDER_SCRIPT}</script>
+  `;
+
+  const hasDocumentShell = /<html[\s>]/i.test(source) || /<!doctype/i.test(source);
+  if (!hasDocumentShell) {
+    return `<!doctype html><html><head>${injection}</head><body>${source}</body></html>`;
+  }
+
+  if (/<head[\s>]/i.test(source)) {
+    return source.replace(/<head(\s[^>]*)?>/i, (match) => `${match}${injection}`);
+  }
+
+  if (/<html(\s[^>]*)?>/i.test(source)) {
+    return source.replace(/<html(\s[^>]*)?>/i, (match) => `${match}<head>${injection}</head>`);
+  }
+
+  return `${injection}${source}`;
+}
+
 function isHtmlWorkspacePreview(preview: AgentWorkspaceFilePreview): boolean {
   return preview.kind === 'text' && !preview.truncated && ['.html', '.htm'].includes(preview.extension);
 }
@@ -233,7 +422,7 @@ function HtmlPreviewSurface({
           data-testid="chat-desk-html-preview"
           title={preview.name}
           sandbox="allow-scripts allow-forms allow-modals allow-popups"
-          srcDoc={preview.content || ''}
+          srcDoc={buildAdaptiveHtmlPreviewDocument(preview.content || '')}
           className="h-full w-full border-0 bg-white"
         />
       </div>
@@ -250,6 +439,10 @@ function ComponentPreviewSurface({
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
   const [renderNode, setRenderNode] = useState<React.ReactNode>(null);
   const [renderError, setRenderError] = useState<string | null>(null);
+  const previewShellRef = useRef<HTMLDivElement | null>(null);
+  const previewCanvasRef = useRef<HTMLDivElement | null>(null);
+  const [renderScale, setRenderScale] = useState(1);
+  const [scaledHeight, setScaledHeight] = useState<number | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -345,6 +538,65 @@ function ComponentPreviewSurface({
     };
   }, [preview.content, preview.name, t]);
 
+  useEffect(() => {
+    if (status !== 'ready' || !renderNode) {
+      setRenderScale(1);
+      setScaledHeight(null);
+      return;
+    }
+
+    let frameId = 0;
+    const shell = previewShellRef.current;
+    const canvas = previewCanvasRef.current;
+    if (!shell || !canvas) {
+      return;
+    }
+
+    const fitPreview = () => {
+      const nextShell = previewShellRef.current;
+      const nextCanvas = previewCanvasRef.current;
+      if (!nextShell || !nextCanvas) return;
+
+      const availableWidth = Math.max(nextShell.clientWidth - 32, 1);
+      const naturalWidth = Math.max(nextCanvas.scrollWidth, nextCanvas.clientWidth, 1);
+      const naturalHeight = Math.max(nextCanvas.scrollHeight, nextCanvas.clientHeight, 220);
+      const nextScale = naturalWidth > availableWidth ? availableWidth / naturalWidth : 1;
+
+      setRenderScale(nextScale);
+      setScaledHeight(Math.ceil(naturalHeight * nextScale));
+    };
+
+    const scheduleFit = () => {
+      if (frameId) {
+        cancelAnimationFrame(frameId);
+      }
+      frameId = requestAnimationFrame(() => {
+        frameId = 0;
+        fitPreview();
+      });
+    };
+
+    scheduleFit();
+
+    const resizeObserver = typeof ResizeObserver === 'function'
+      ? new ResizeObserver(() => {
+          scheduleFit();
+        })
+      : null;
+
+    resizeObserver?.observe(shell);
+    resizeObserver?.observe(canvas);
+    window.addEventListener('resize', scheduleFit);
+
+    return () => {
+      if (frameId) {
+        cancelAnimationFrame(frameId);
+      }
+      resizeObserver?.disconnect();
+      window.removeEventListener('resize', scheduleFit);
+    };
+  }, [renderNode, status, preview.relativePath]);
+
   if (status === 'loading') {
     return (
       <div className="flex h-full min-h-0 items-center justify-center rounded-[20px] border border-black/10 bg-white/75 dark:border-white/10 dark:bg-black/10">
@@ -371,7 +623,11 @@ function ComponentPreviewSurface({
 
   return (
     <div className="min-h-0 flex-1 overflow-auto p-3">
-      <div className="overflow-hidden rounded-2xl border border-black/10 bg-white shadow-sm dark:border-white/10 dark:bg-black/20">
+      <div
+        ref={previewShellRef}
+        data-testid="chat-desk-component-preview-shell"
+        className="h-full min-h-0 overflow-auto rounded-2xl border border-black/10 bg-white shadow-sm dark:border-white/10 dark:bg-black/20"
+      >
         <ComponentPreviewErrorBoundary
           key={preview.relativePath}
           onError={(error) => {
@@ -379,8 +635,23 @@ function ComponentPreviewSurface({
             setRenderError(error.message);
           }}
         >
-          <div data-testid="chat-desk-component-preview" className="min-h-[220px] px-5 py-5 text-foreground">
-            {renderNode}
+          <div
+            className="min-h-full"
+            style={scaledHeight ? { minHeight: `${scaledHeight}px` } : undefined}
+          >
+            <div
+              ref={previewCanvasRef}
+              data-testid="chat-desk-component-preview"
+              data-investclaw-component-preview-root="true"
+              className="min-h-[220px] origin-top-left px-5 py-5 text-foreground"
+              style={{
+                transform: `scale(${renderScale})`,
+                width: renderScale < 1 ? `${100 / renderScale}%` : '100%',
+              }}
+            >
+              <style>{ADAPTIVE_COMPONENT_PREVIEW_CSS}</style>
+              {renderNode}
+            </div>
           </div>
         </ComponentPreviewErrorBoundary>
       </div>
