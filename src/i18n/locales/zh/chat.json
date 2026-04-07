@@ -35,6 +35,8 @@
             "refresh": "刷新",
             "openFolder": "打开文件夹",
             "containerPath": "容器路径",
+            "render": "渲染",
+            "source": "源码",
             "noAgent": "先选择或创建一个 Agent，再挂载并浏览工作区。",
             "missing": "这个工作区路径在宿主机上还不存在。",
             "empty": "这个工作区目前为空。",
@@ -45,6 +47,10 @@
             "unsupportedPreview": "这种文件类型暂时还不支持内联预览。",
             "imageTooLarge": "这张图片过大，暂时不做内联预览，但文件已经存在于工作区中。",
             "previewTruncated": "预览内容仅展示文件前半部分。",
+            "renderingPreview": "正在生成渲染预览...",
+            "componentPreviewFailed": "组件暂时无法渲染，已回退到安全错误提示。",
+            "componentUnsupportedImports": "当前组件预览只支持独立 React 文件，暂不解析这些导入：{{imports}}",
+            "componentMissingDefault": "没有找到可渲染的默认导出组件。",
             "symlinkUnsupported": "文件系统浏览器暂不跟随符号链接。"
         },
         "browser": {

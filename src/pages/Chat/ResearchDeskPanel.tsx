@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import * as ReactJsxRuntime from 'react/jsx-runtime';
 import {
   AlertCircle,
   ChevronRight,
@@ -54,6 +55,7 @@ type BrowserWebview = HTMLElement & {
 };
 
 type WorkspaceListingMap = Record<string, AgentWorkspaceListing>;
+type WorkspacePreviewMode = 'render' | 'source';
 
 type BrowserTabState = {
   id: string;
@@ -178,6 +180,214 @@ function safeCanGoForward(webview: BrowserWebview): boolean {
   }
 }
 
+function isHtmlWorkspacePreview(preview: AgentWorkspaceFilePreview): boolean {
+  return preview.kind === 'text' && !preview.truncated && ['.html', '.htm'].includes(preview.extension);
+}
+
+function isComponentWorkspacePreview(preview: AgentWorkspaceFilePreview): boolean {
+  return preview.kind === 'text' && !preview.truncated && ['.tsx', '.jsx'].includes(preview.extension);
+}
+
+function getRuntimeImportSpecifiers(compiledSource: string): string[] {
+  const specifiers = new Set<string>();
+  const pattern = /require\(["']([^"']+)["']\)/g;
+  let match: RegExpExecArray | null = pattern.exec(compiledSource);
+  while (match) {
+    specifiers.add(match[1]);
+    match = pattern.exec(compiledSource);
+  }
+  return [...specifiers];
+}
+
+class ComponentPreviewErrorBoundary extends React.Component<{
+  children: React.ReactNode;
+  onError: (error: Error) => void;
+}, { hasError: boolean }> {
+  state = { hasError: false };
+
+  static getDerivedStateFromError(): { hasError: boolean } {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error): void {
+    this.props.onError(error);
+  }
+
+  render(): React.ReactNode {
+    if (this.state.hasError) {
+      return null;
+    }
+    return this.props.children;
+  }
+}
+
+function HtmlPreviewSurface({
+  preview,
+}: {
+  preview: AgentWorkspaceFilePreview;
+}) {
+  return (
+    <div className="min-h-0 flex-1 overflow-hidden p-3">
+      <div className="h-full overflow-hidden rounded-2xl border border-black/10 bg-white shadow-sm dark:border-white/10 dark:bg-black/20">
+        <iframe
+          data-testid="chat-desk-html-preview"
+          title={preview.name}
+          sandbox="allow-scripts allow-forms allow-modals allow-popups"
+          srcDoc={preview.content || ''}
+          className="h-full w-full border-0 bg-white"
+        />
+      </div>
+    </div>
+  );
+}
+
+function ComponentPreviewSurface({
+  preview,
+}: {
+  preview: AgentWorkspaceFilePreview;
+}) {
+  const { t } = useTranslation('chat');
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
+  const [renderNode, setRenderNode] = useState<React.ReactNode>(null);
+  const [renderError, setRenderError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const compilePreview = async () => {
+      setStatus('loading');
+      setRenderNode(null);
+      setRenderError(null);
+
+      try {
+        const ts = await import('typescript');
+        const source = preview.content || '';
+        const transpiled = ts.transpileModule(source, {
+          fileName: preview.name,
+          reportDiagnostics: true,
+          compilerOptions: {
+            jsx: ts.JsxEmit.React,
+            module: ts.ModuleKind.CommonJS,
+            target: ts.ScriptTarget.ES2020,
+            esModuleInterop: true,
+            allowSyntheticDefaultImports: true,
+          },
+        });
+
+        const diagnostics = transpiled.diagnostics?.filter((diagnostic) => diagnostic.category === ts.DiagnosticCategory.Error) || [];
+        if (diagnostics.length > 0) {
+          const message = ts.flattenDiagnosticMessageText(diagnostics[0].messageText, '\n');
+          throw new Error(message);
+        }
+
+        const runtimeImports = getRuntimeImportSpecifiers(transpiled.outputText);
+        const unsupportedImports = runtimeImports.filter((specifier) => ![
+          'react',
+          'react/jsx-runtime',
+          'react/jsx-dev-runtime',
+        ].includes(specifier));
+
+        if (unsupportedImports.length > 0) {
+          throw new Error(t('desk.files.componentUnsupportedImports', {
+            imports: unsupportedImports.join(', '),
+          }));
+        }
+
+        const runtimeRequire = (specifier: string) => {
+          if (specifier === 'react') return React;
+          if (specifier === 'react/jsx-runtime' || specifier === 'react/jsx-dev-runtime') {
+            return ReactJsxRuntime;
+          }
+          throw new Error(t('desk.files.componentUnsupportedImports', { imports: specifier }));
+        };
+
+        const exportsObject: Record<string, unknown> = {};
+        const moduleObject = { exports: exportsObject };
+        const evaluator = new Function(
+          'exports',
+          'module',
+          'require',
+          'React',
+          `${transpiled.outputText}\n//# sourceURL=${preview.name}\nreturn module.exports ?? exports;`,
+        ) as (
+          exports: Record<string, unknown>,
+          module: { exports: Record<string, unknown> },
+          require: (specifier: string) => unknown,
+          react: typeof React,
+        ) => Record<string, unknown>;
+
+        const evaluatedModule = evaluator(exportsObject, moduleObject, runtimeRequire, React);
+        const exportedValue = evaluatedModule?.default ?? evaluatedModule;
+
+        let nextNode: React.ReactNode = null;
+        if (React.isValidElement(exportedValue)) {
+          nextNode = exportedValue;
+        } else if (typeof exportedValue === 'function') {
+          nextNode = React.createElement(exportedValue as React.ComponentType);
+        } else {
+          throw new Error(t('desk.files.componentMissingDefault'));
+        }
+
+        if (cancelled) return;
+        setRenderNode(nextNode);
+        setStatus('ready');
+      } catch (error) {
+        if (cancelled) return;
+        setStatus('error');
+        setRenderError(error instanceof Error ? error.message : String(error));
+      }
+    };
+
+    void compilePreview();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [preview.content, preview.name, t]);
+
+  if (status === 'loading') {
+    return (
+      <div className="flex h-full min-h-0 items-center justify-center rounded-[20px] border border-black/10 bg-white/75 dark:border-white/10 dark:bg-black/10">
+        <div className="flex items-center gap-3 text-[13px] text-foreground/65">
+          <LoadingSpinner size="sm" />
+          {t('desk.files.renderingPreview')}
+        </div>
+      </div>
+    );
+  }
+
+  if (status === 'error' || !renderNode) {
+    return (
+      <div className="min-h-0 flex-1 p-3">
+        <div className="rounded-2xl border border-dashed border-amber-300/70 bg-amber-50/80 p-4 text-[13px] text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100">
+          <p className="font-medium">{t('desk.files.componentPreviewFailed')}</p>
+          <p className="mt-2 break-words font-mono text-[12px] opacity-80">
+            {renderError || t('desk.files.componentMissingDefault')}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-0 flex-1 overflow-auto p-3">
+      <div className="overflow-hidden rounded-2xl border border-black/10 bg-white shadow-sm dark:border-white/10 dark:bg-black/20">
+        <ComponentPreviewErrorBoundary
+          key={preview.relativePath}
+          onError={(error) => {
+            setStatus('error');
+            setRenderError(error.message);
+          }}
+        >
+          <div data-testid="chat-desk-component-preview" className="min-h-[220px] px-5 py-5 text-foreground">
+            {renderNode}
+          </div>
+        </ComponentPreviewErrorBoundary>
+      </div>
+    </div>
+  );
+}
+
 function WorkspacePreviewPane({
   preview,
   loading,
@@ -188,6 +398,16 @@ function WorkspacePreviewPane({
   fallbackPath: string;
 }) {
   const { t } = useTranslation('chat');
+  const [previewMode, setPreviewMode] = useState<WorkspacePreviewMode>('source');
+
+  const canRenderPreview = !!preview && (
+    isHtmlWorkspacePreview(preview)
+    || isComponentWorkspacePreview(preview)
+  );
+
+  useEffect(() => {
+    setPreviewMode(canRenderPreview ? 'render' : 'source');
+  }, [canRenderPreview, preview?.relativePath]);
 
   if (loading) {
     return (
@@ -215,9 +435,35 @@ function WorkspacePreviewPane({
   return (
     <div data-testid="chat-desk-preview" className="flex h-full min-h-0 flex-col overflow-hidden rounded-[20px] border border-black/10 bg-white/75 dark:border-white/10 dark:bg-black/10">
       <div className="shrink-0 border-b border-black/10 px-4 py-3 dark:border-white/10">
-        <div className="flex items-center gap-2 text-[15px] font-semibold text-foreground">
-          <FileText className="h-4 w-4 text-foreground/55" />
-          <span className="truncate">{preview.name}</span>
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-2 text-[15px] font-semibold text-foreground">
+            <FileText className="h-4 w-4 text-foreground/55" />
+            <span className="truncate">{preview.name}</span>
+          </div>
+          {canRenderPreview && (
+            <div className="flex shrink-0 items-center gap-1 rounded-full border border-black/10 bg-white/80 p-1 dark:border-white/10 dark:bg-black/10">
+              <Button
+                type="button"
+                size="sm"
+                variant={previewMode === 'render' ? 'secondary' : 'ghost'}
+                data-testid="chat-desk-preview-mode-render"
+                onClick={() => setPreviewMode('render')}
+                className="h-7 rounded-full px-3 text-[11px]"
+              >
+                {t('desk.files.render')}
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant={previewMode === 'source' ? 'secondary' : 'ghost'}
+                data-testid="chat-desk-preview-mode-source"
+                onClick={() => setPreviewMode('source')}
+                className="h-7 rounded-full px-3 text-[11px]"
+              >
+                {t('desk.files.source')}
+              </Button>
+            </div>
+          )}
         </div>
         <p className="mt-1 break-all font-mono text-[12px] text-foreground/70">{preview.containerPath}</p>
         <p className="break-all font-mono text-[11px] text-foreground/50">{preview.hostPath}</p>
@@ -225,6 +471,14 @@ function WorkspacePreviewPane({
           {preview.mimeType} · {formatByteSize(preview.size)} · {formatTimestamp(preview.modifiedAt)}
         </p>
       </div>
+
+      {previewMode === 'render' && isHtmlWorkspacePreview(preview) && (
+        <HtmlPreviewSurface preview={preview} />
+      )}
+
+      {previewMode === 'render' && isComponentWorkspacePreview(preview) && (
+        <ComponentPreviewSurface preview={preview} />
+      )}
 
       {preview.kind === 'image' && preview.dataUrl && (
         <div className="min-h-0 flex-1 overflow-auto p-3">
@@ -242,7 +496,7 @@ function WorkspacePreviewPane({
         </div>
       )}
 
-      {preview.kind === 'text' && preview.extension === '.md' && (
+      {previewMode === 'source' && preview.kind === 'text' && preview.extension === '.md' && (
         <div className="min-h-0 flex-1 overflow-auto">
           <div className="prose prose-sm max-w-none px-4 py-4 prose-headings:font-serif prose-pre:bg-black prose-pre:text-white dark:prose-invert">
             <ReactMarkdown remarkPlugins={[remarkGfm]}>{preview.content || ''}</ReactMarkdown>
@@ -255,7 +509,7 @@ function WorkspacePreviewPane({
         </div>
       )}
 
-      {preview.kind === 'text' && preview.extension !== '.md' && (
+      {previewMode === 'source' && preview.kind === 'text' && preview.extension !== '.md' && (
         <div className="min-h-0 flex-1 overflow-auto">
           <pre className="min-h-full px-4 py-4 font-mono text-[12px] leading-5 text-foreground">
             {preview.content}

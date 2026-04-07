@@ -35,6 +35,8 @@
             "refresh": "更新",
             "openFolder": "フォルダを開く",
             "containerPath": "コンテナパス",
+            "render": "Render",
+            "source": "Source",
             "noAgent": "先に Agent を選択または作成してから、ワークスペースをマウントして参照してください。",
             "missing": "このワークスペースパスはホスト上にまだ存在しません。",
             "empty": "このワークスペースは空です。",
@@ -45,6 +47,10 @@
             "unsupportedPreview": "この種類のファイルはまだインラインプレビューに対応していません。",
             "imageTooLarge": "この画像は大きすぎるためインラインプレビューを表示しませんが、ワークスペース内には存在しています。",
             "previewTruncated": "プレビューはファイルの先頭部分のみ表示しています。",
+            "renderingPreview": "レンダープレビューを生成しています...",
+            "componentPreviewFailed": "このコンポーネントはインラインでレンダリングできませんでした。",
+            "componentUnsupportedImports": "コンポーネントプレビューは現在、単体の React ファイルのみ対応しています。未対応の import: {{imports}}",
+            "componentMissingDefault": "レンダリング可能な default export コンポーネントが見つかりませんでした。",
             "symlinkUnsupported": "ファイルエクスプローラーはシンボリックリンクをたどりません。"
         },
         "browser": {

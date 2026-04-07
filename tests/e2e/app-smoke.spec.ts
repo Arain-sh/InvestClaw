@@ -51,6 +51,14 @@ test.describe('InvestClaw Electron smoke flows', () => {
     await mkdir(mainWorkspaceDir, { recursive: true });
     await mkdir(join(mainWorkspaceDir, 'research', 'q1'), { recursive: true });
     await writeFile(join(mainWorkspaceDir, 'research', 'q1', 'THESIS.md'), '# Desk Panel\n\nWorkspace preview from chat.\n');
+    await writeFile(
+      join(mainWorkspaceDir, 'research', 'q1', 'pitch.html'),
+      '<!doctype html><html><body><main><h1>Pitch Room</h1><p>HTML preview is live.</p></main></body></html>',
+    );
+    await writeFile(
+      join(mainWorkspaceDir, 'research', 'q1', 'SignalCard.tsx'),
+      'export default function SignalCard() { return <section><h2>Momentum Signal</h2><p>TSX preview is live.</p></section>; }\n',
+    );
 
     await ensureSetupPage(page);
     await page.getByTestId('setup-skip-button').click();
@@ -65,6 +73,14 @@ test.describe('InvestClaw Electron smoke flows', () => {
     await page.getByTestId('chat-desk-file-THESIS.md').click();
     await expect(page.getByTestId('chat-desk-preview')).toContainText('Desk Panel');
     await expect(page.getByTestId('chat-desk-preview')).toContainText('/workspace/research/q1/THESIS.md');
+
+    await page.getByTestId('chat-desk-file-pitch.html').click();
+    await expect(page.getByTestId('chat-desk-preview-mode-render')).toBeVisible();
+    await expect(page.frameLocator('[data-testid="chat-desk-html-preview"]').getByText('Pitch Room')).toBeVisible();
+
+    await page.getByTestId('chat-desk-file-SignalCard.tsx').click();
+    await expect(page.getByTestId('chat-desk-component-preview')).toContainText('Momentum Signal');
+    await expect(page.getByTestId('chat-desk-component-preview')).toContainText('TSX preview is live.');
 
     const deskWidthBeforeResize = await page.getByTestId('chat-desk-container').evaluate((element) => Math.round(element.getBoundingClientRect().width));
     const resizerBox = await page.getByTestId('chat-desk-resizer').boundingBox();

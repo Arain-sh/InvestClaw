@@ -35,6 +35,8 @@
             "refresh": "Refresh",
             "openFolder": "Open folder",
             "containerPath": "Container path",
+            "render": "Render",
+            "source": "Source",
             "noAgent": "Choose or create an agent before mounting and browsing a workspace.",
             "missing": "This workspace path does not exist on the host yet.",
             "empty": "This workspace is empty.",
@@ -45,6 +47,10 @@
             "unsupportedPreview": "This file type does not have an inline preview yet.",
             "imageTooLarge": "This image is too large for inline preview, but it exists in the workspace.",
             "previewTruncated": "Preview truncated to the first part of the file.",
+            "renderingPreview": "Rendering preview...",
+            "componentPreviewFailed": "This component could not be rendered in-place.",
+            "componentUnsupportedImports": "Component preview currently supports standalone React files only. Unsupported imports: {{imports}}",
+            "componentMissingDefault": "No renderable default export component was found.",
             "symlinkUnsupported": "Workspace explorer does not follow symbolic links."
         },
         "browser": {
