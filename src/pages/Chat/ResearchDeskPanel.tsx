@@ -337,6 +337,15 @@ function getBrowserTitleFallback(url: string, fallbackTitle: string): string {
   }
 }
 
+function getBrowserHostname(url: string): string {
+  try {
+    const parsed = new URL(url);
+    return parsed.hostname.replace(/^www\./, '') || url;
+  } catch {
+    return url;
+  }
+}
+
 function safeGetBrowserUrl(webview: BrowserWebview): string | null {
   try {
     return webview.getURL() || null;
@@ -1244,23 +1253,38 @@ function EmbeddedMarketAppPane({
   onLaunch: (app: MarketAppDescriptor) => void;
 }) {
   const { t } = useTranslation('chat');
+  const hostname = state ? getBrowserHostname(state.url) : '';
+  const interactionLabel = interactive ? t('desk.apps.interactiveOn') : t('desk.apps.readOnly');
 
   if (!app || !state) {
     return (
       <section
         data-testid="chat-market-app-embed-surface"
-        className="flex min-h-0 flex-col overflow-hidden rounded-[22px] border border-black/10 bg-[#f9f6ec] dark:border-white/10 dark:bg-white/5"
+        className="flex min-h-0 flex-col overflow-hidden rounded-[22px] border border-white/10 bg-[#10161d] text-white shadow-[0_24px_60px_rgba(6,10,15,0.28)]"
       >
+        <div className="shrink-0 border-b border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] px-3 py-2">
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
+              <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
+              <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
+              <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
+            </div>
+            <div className="rounded-full border border-white/10 bg-white/6 px-2 py-0.5 text-[10px] font-medium text-white/70">
+              {t('desk.apps.nativeShell')}
+            </div>
+          </div>
+        </div>
+
         <div className="flex min-h-0 flex-1 items-center justify-center p-4">
           <div
             data-testid="chat-market-app-embed-empty"
-            className="max-w-md rounded-[18px] border border-dashed border-black/10 bg-white/70 px-4 py-5 text-center dark:border-white/10 dark:bg-black/10"
+            className="max-w-md rounded-[18px] border border-dashed border-white/10 bg-white/5 px-4 py-5 text-center"
           >
-            <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-2xl bg-black/5 text-foreground/55 dark:bg-white/10">
-              <Monitor className="h-4.5 w-4.5" />
+            <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-2xl bg-white/8 text-white/70">
+              <Monitor className="h-[18px] w-[18px]" />
             </div>
-            <p className="mt-3 text-[13px] font-semibold text-foreground">{t('desk.apps.embedEmptyTitle')}</p>
-            <p className="mt-1.5 text-[11px] leading-5 text-foreground/65">{t('desk.apps.embedEmptyBody')}</p>
+            <p className="mt-3 text-[13px] font-semibold text-white">{t('desk.apps.embedEmptyTitle')}</p>
+            <p className="mt-1.5 text-[11px] leading-5 text-white/65">{t('desk.apps.embedEmptyBody')}</p>
           </div>
         </div>
       </section>
@@ -1270,30 +1294,63 @@ function EmbeddedMarketAppPane({
   return (
     <section
       data-testid="chat-market-app-embed-surface"
-      className="flex min-h-0 flex-col overflow-hidden rounded-[22px] border border-black/10 bg-[#f9f6ec] dark:border-white/10 dark:bg-white/5"
+      className="flex min-h-0 flex-col overflow-hidden rounded-[22px] border border-white/10 bg-[#10161d] text-white shadow-[0_24px_60px_rgba(6,10,15,0.28)]"
     >
-      <div className="shrink-0 border-b border-black/10 px-2.5 py-2 dark:border-white/10">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="min-w-0">
-            <div className="flex items-center gap-2">
-              <span className="flex h-6.5 w-6.5 shrink-0 items-center justify-center rounded-2xl bg-black/5 text-foreground/70 dark:bg-white/10">
-                {getMarketAppIcon(app)}
-              </span>
-              <div className="min-w-0">
-                <p data-testid="chat-market-app-embed-title" className="truncate text-[13px] font-semibold text-foreground">
-                  {app.name}
-                </p>
-                <p className="truncate text-[10px] text-foreground/55">{app.vendor}</p>
-              </div>
+      <div
+        data-testid="chat-market-app-native-shell"
+        className="shrink-0 border-b border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] px-3 py-2"
+      >
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex min-w-0 items-center gap-2">
+            <div className="flex items-center gap-1.5">
+              <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
+              <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
+              <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
+            </div>
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-2xl bg-white/8 text-white/75">
+              {getMarketAppIcon(app)}
+            </span>
+            <div className="min-w-0">
+              <p data-testid="chat-market-app-embed-title" className="truncate text-[13px] font-semibold text-white">
+                {app.name}
+              </p>
+              <p className="truncate text-[10px] text-white/45">
+                {app.vendor} · {hostname}
+              </p>
             </div>
           </div>
+
           <div className="flex flex-wrap items-center justify-end gap-1.5">
+            <Button
+              variant="outline"
+              onClick={onGoBack}
+              disabled={!state.canGoBack}
+              className="h-7 rounded-[11px] border-white/12 bg-white/6 px-2.5 text-[10px] text-white/78 hover:bg-white/10 hover:text-white disabled:bg-white/4 disabled:text-white/25"
+            >
+              {t('desk.browser.back')}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={onGoForward}
+              disabled={!state.canGoForward}
+              className="h-7 rounded-[11px] border-white/12 bg-white/6 px-2.5 text-[10px] text-white/78 hover:bg-white/10 hover:text-white disabled:bg-white/4 disabled:text-white/25"
+            >
+              {t('desk.browser.forward')}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={onReload}
+              className="h-7 rounded-[11px] border-white/12 bg-white/6 px-2.5 text-[10px] text-white/78 hover:bg-white/10 hover:text-white"
+            >
+              <RefreshCw className={cn('mr-1.5 h-3 w-3', state.loading && 'animate-spin')} />
+              {t('desk.browser.reload')}
+            </Button>
             {app.installed && (
               <Button
                 type="button"
                 size="sm"
                 variant="outline"
-                className="h-7 rounded-[11px] px-2.5 text-[10px]"
+                className="h-7 rounded-[11px] border-white/12 bg-white/6 px-2.5 text-[10px] text-white/78 hover:bg-white/10 hover:text-white"
                 onClick={() => onLaunch(app)}
               >
                 <Play className="mr-1.5 h-3 w-3" />
@@ -1304,7 +1361,7 @@ function EmbeddedMarketAppPane({
               type="button"
               size="sm"
               variant="outline"
-              className="h-7 rounded-[11px] px-2.5 text-[10px]"
+              className="h-7 rounded-[11px] border-white/12 bg-white/6 px-2.5 text-[10px] text-white/78 hover:bg-white/10 hover:text-white"
               onClick={() => onOpenExternal(app.websiteUrl)}
             >
               <ExternalLink className="mr-1.5 h-3 w-3" />
@@ -1312,108 +1369,105 @@ function EmbeddedMarketAppPane({
             </Button>
           </div>
         </div>
-      </div>
 
-      <div className="shrink-0 border-b border-black/10 px-2.5 py-1.5 dark:border-white/10">
-        <div className="flex flex-wrap items-center gap-1.5">
-          <Button
-            variant="outline"
-            onClick={onGoBack}
-            disabled={!state.canGoBack}
-            className="h-6.5 rounded-[11px] border-black/10 bg-white/80 px-2.5 text-[10px] dark:border-white/10 dark:bg-white/5"
-          >
-            {t('desk.browser.back')}
-          </Button>
-          <Button
-            variant="outline"
-            onClick={onGoForward}
-            disabled={!state.canGoForward}
-            className="h-6.5 rounded-[11px] border-black/10 bg-white/80 px-2.5 text-[10px] dark:border-white/10 dark:bg-white/5"
-          >
-            {t('desk.browser.forward')}
-          </Button>
-          <Button
-            variant="outline"
-            onClick={onReload}
-            className="h-6.5 rounded-[11px] border-black/10 bg-white/80 px-2.5 text-[10px] dark:border-white/10 dark:bg-white/5"
-          >
-            <RefreshCw className={cn('mr-1.5 h-3 w-3', state.loading && 'animate-spin')} />
-            {t('desk.browser.reload')}
-          </Button>
-          <div className="min-w-[220px] flex-1 rounded-[14px] border border-black/10 bg-white/80 px-2.5 py-1 font-mono text-[10px] text-foreground/65 dark:border-white/10 dark:bg-black/10">
-            <span className="block truncate">{state.url}</span>
+        <div className="mt-2 flex flex-wrap items-center gap-1.5">
+          <div className="rounded-full border border-white/10 bg-white/6 px-2.5 py-1 text-[10px] font-medium text-white/72">
+            {t('desk.apps.nativeShell')}
+          </div>
+          <div className="rounded-full border border-white/10 bg-white/6 px-2.5 py-1 text-[10px] text-white/58">
+            {t('desk.apps.webEntry')}: {hostname}
+          </div>
+          <div className="rounded-full border border-white/10 bg-white/6 px-2.5 py-1 text-[10px] text-white/58">
+            {interactionLabel}
           </div>
         </div>
       </div>
 
       <div
         ref={surfaceRef}
-        className="relative min-h-0 flex-1 overflow-hidden bg-white/80 dark:bg-black/10"
+        data-testid="chat-market-app-native-canvas"
+        className="min-h-0 flex-1 bg-[#0b1116] p-2.5"
       >
-        <BrowserWebviewPane
-          tab={state}
-          active
-          interactive={interactive}
-          fallbackTitle={app.name}
-          testId="chat-market-app-embedded-webview"
-          partition="persist:investclaw-market-apps"
-          onStateChange={onStateChange}
-          onRegisterWebview={onRegisterWebview}
-        />
+        <div className="relative h-full overflow-hidden rounded-[18px] border border-white/10 bg-white shadow-[0_24px_60px_rgba(0,0,0,0.36)]">
+          <BrowserWebviewPane
+            tab={state}
+            active
+            interactive={interactive}
+            fallbackTitle={app.name}
+            testId="chat-market-app-embedded-webview"
+            partition="persist:investclaw-market-apps"
+            onStateChange={onStateChange}
+            onRegisterWebview={onRegisterWebview}
+          />
 
-        {!state.error && !interactive && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center bg-gradient-to-b from-[#f9f6ec]/12 via-transparent to-[#f9f6ec]/26 p-5 dark:from-black/5 dark:to-black/30">
-            <button
-              type="button"
-              data-testid="chat-market-app-activate"
-              onClick={() => onSetInteractive(true)}
-              className="max-w-sm rounded-[18px] border border-black/10 bg-white/92 px-4 py-3 text-center shadow-lg transition-transform hover:-translate-y-0.5 dark:border-white/10 dark:bg-card/92"
+          {!state.error && !interactive && (
+            <div className="absolute inset-0 z-10 flex items-center justify-center bg-gradient-to-b from-[#0b1116]/10 via-transparent to-[#0b1116]/36 p-5">
+              <button
+                type="button"
+                data-testid="chat-market-app-activate"
+                onClick={() => onSetInteractive(true)}
+                className="max-w-sm rounded-[18px] border border-black/10 bg-white/94 px-4 py-3 text-center shadow-xl transition-transform hover:-translate-y-0.5"
+              >
+                <p className="text-[13px] font-semibold text-foreground">{t('desk.apps.activate')}</p>
+                <p className="mt-2 text-[11px] leading-6 text-foreground/65">{t('desk.apps.activateBody')}</p>
+              </button>
+            </div>
+          )}
+
+          {state.error && (
+            <div
+              data-testid="chat-market-app-embed-error"
+              className="absolute inset-0 z-10 flex items-center justify-center bg-[#0b1116]/70 p-5"
             >
-              <p className="text-[13px] font-semibold text-foreground">{t('desk.apps.activate')}</p>
-              <p className="mt-2 text-[11px] leading-6 text-foreground/65">{t('desk.apps.activateBody')}</p>
-            </button>
-          </div>
-        )}
-
-        {state.error && (
-          <div
-            data-testid="chat-market-app-embed-error"
-            className="absolute inset-0 z-10 flex items-center justify-center bg-[#f9f6ec]/96 p-5 dark:bg-black/90"
-          >
-            <div className="w-full max-w-md rounded-[18px] border border-black/10 bg-white/90 p-4 shadow-xl dark:border-white/10 dark:bg-card">
-              <div className="flex items-start gap-3">
-                <div className="mt-0.5 rounded-full bg-destructive/10 p-2 text-destructive">
-                  <AlertCircle className="h-4 w-4" />
+              <div className="w-full max-w-md rounded-[18px] border border-black/10 bg-white/94 p-4 shadow-xl">
+                <div className="flex items-start gap-3">
+                  <div className="mt-0.5 rounded-full bg-destructive/10 p-2 text-destructive">
+                    <AlertCircle className="h-4 w-4" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[14px] font-semibold text-foreground">{t('desk.browser.loadFailedTitle')}</p>
+                    <p className="mt-1 text-[12px] leading-6 text-foreground/70">{t('desk.browser.loadFailedBody')}</p>
+                    <p className="mt-3 break-all rounded-[14px] border border-black/10 bg-black/[0.03] px-3 py-2 font-mono text-[11px] text-foreground/70">
+                      {state.error.url}
+                    </p>
+                    <p className="mt-2 text-[11px] text-foreground/55">{state.error.description}</p>
+                  </div>
                 </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-[14px] font-semibold text-foreground">{t('desk.browser.loadFailedTitle')}</p>
-                  <p className="mt-1 text-[12px] leading-6 text-foreground/70">{t('desk.browser.loadFailedBody')}</p>
-                  <p className="mt-3 break-all rounded-[14px] border border-black/10 bg-black/[0.03] px-3 py-2 font-mono text-[11px] text-foreground/70 dark:border-white/10 dark:bg-white/[0.04]">
-                    {state.error.url}
-                  </p>
-                  <p className="mt-2 text-[11px] text-foreground/55">{state.error.description}</p>
+                <div className="mt-4 flex flex-wrap items-center gap-2">
+                  <Button
+                    className="h-8 rounded-[12px] px-3 text-[11px]"
+                    onClick={onReload}
+                  >
+                    <RefreshCw className="mr-1.5 h-3 w-3" />
+                    {t('desk.browser.retry')}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="h-8 rounded-[12px] px-3 text-[11px]"
+                    onClick={() => onOpenExternal(state.error?.url || state.url)}
+                  >
+                    <ExternalLink className="mr-1.5 h-3 w-3" />
+                    {t('desk.browser.openExternal')}
+                  </Button>
                 </div>
-              </div>
-              <div className="mt-4 flex flex-wrap items-center gap-2">
-                <Button
-                  className="h-8 rounded-[12px] px-3 text-[11px]"
-                  onClick={onReload}
-                >
-                  <RefreshCw className="mr-1.5 h-3 w-3" />
-                  {t('desk.browser.retry')}
-                </Button>
-                <Button
-                  variant="outline"
-                  className="h-8 rounded-[12px] px-3 text-[11px]"
-                  onClick={() => onOpenExternal(state.error?.url || state.url)}
-                >
-                  <ExternalLink className="mr-1.5 h-3 w-3" />
-                  {t('desk.browser.openExternal')}
-                </Button>
               </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
+      </div>
+
+      <div className="shrink-0 border-t border-white/10 bg-black/[0.18] px-3 py-1.5 text-[10px] text-white/46">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+          <span>{hostname}</span>
+          <span>•</span>
+          <span>{interactionLabel}</span>
+          {state.loading && (
+            <>
+              <span>•</span>
+              <span>{t('desk.browser.loading')}</span>
+            </>
+          )}
+        </div>
       </div>
     </section>
   );

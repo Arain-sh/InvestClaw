@@ -128,6 +128,8 @@ test.describe('InvestClaw Electron smoke flows', () => {
 
     await page.getByTestId('chat-market-app-browser-tradingview').click();
     await expect(page.getByTestId('chat-market-app-embed-surface')).toBeVisible();
+    await expect(page.getByTestId('chat-market-app-native-shell')).toBeVisible();
+    await expect(page.getByTestId('chat-market-app-native-canvas')).toBeVisible();
     await expect(page.getByTestId('chat-market-app-embed-title')).toContainText('TradingView');
     await expect(page.getByTestId('chat-market-app-embedded-webview')).toHaveCount(1);
     await expect
@@ -139,6 +141,15 @@ test.describe('InvestClaw Electron smoke flows', () => {
         return embedWidth - dockWidth;
       })
       .toBeGreaterThan(55);
+    await expect
+      .poll(async () => {
+        const [surfaceHeight, canvasHeight] = await Promise.all([
+          page.getByTestId('chat-market-app-embed-surface').evaluate((element) => Math.round(element.getBoundingClientRect().height)),
+          page.getByTestId('chat-market-app-native-canvas').evaluate((element) => Math.round(element.getBoundingClientRect().height)),
+        ]);
+        return Math.round((canvasHeight / surfaceHeight) * 100);
+      })
+      .toBeGreaterThan(72);
 
     await page.getByTestId('chat-desk-view-browser').click();
     await expect(page.getByTestId('chat-desk-browser-surface')).toBeVisible();
