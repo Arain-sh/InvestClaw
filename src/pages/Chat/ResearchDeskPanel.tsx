@@ -2068,38 +2068,45 @@ export function ResearchDeskPanel({
     canGoForward: activeBrowserTab?.canGoForward ?? false,
   }), [activeBrowserTab, t]);
 
+  const getDeskViewButtonClass = (view: DeskView) => cn(
+    'h-8 rounded-[14px] px-3 text-[11px] font-medium transition-colors',
+    activeDeskView === view
+      ? 'bg-white text-foreground shadow-sm dark:bg-black/20'
+      : 'text-foreground/60 hover:bg-black/[0.04] hover:text-foreground dark:hover:bg-white/[0.06] dark:hover:text-foreground',
+  );
+
   return (
     <Card data-testid="chat-research-desk" className="flex h-full min-h-[340px] flex-col rounded-[28px] border-0 bg-[#efe9db] shadow-[0_24px_80px_rgba(36,39,27,0.12)] dark:bg-card">
       <CardContent className="flex min-h-0 flex-1 flex-col p-3">
-        <div className="mb-3 flex flex-col gap-3">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex flex-wrap items-center gap-2">
-              <div className="flex items-center gap-2 rounded-full border border-black/10 bg-white/70 px-3 py-1.5 text-[12px] font-medium text-foreground/80 dark:border-white/10 dark:bg-white/5">
+        <div className="mb-2.5 flex flex-col gap-2">
+          <div className="flex flex-wrap items-center justify-between gap-2 rounded-[20px] border border-black/10 bg-white/55 px-2.5 py-2 dark:border-white/10 dark:bg-white/[0.04]">
+            <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+              <div className="flex items-center gap-2 rounded-full border border-black/10 bg-white/75 px-2.5 py-1 text-[11px] font-medium text-foreground/80 dark:border-white/10 dark:bg-white/[0.08]">
                 <span className="truncate">{currentAgent?.name || 'Main Agent'}</span>
               </div>
-              <div className="rounded-full border border-black/10 bg-white/65 px-3 py-1.5 text-[11px] font-medium text-foreground/65 dark:border-white/10 dark:bg-white/5">
+              <div className="rounded-full border border-black/10 bg-white/70 px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.08em] text-foreground/55 dark:border-white/10 dark:bg-white/[0.06]">
                 {activeViewLabel}
               </div>
-              <div className="rounded-full border border-black/10 bg-white/65 px-3 py-1.5 text-[11px] font-medium text-foreground/65 dark:border-white/10 dark:bg-white/5">
+              <div className="hidden rounded-full border border-black/10 bg-white/70 px-2.5 py-1 text-[10px] font-medium text-foreground/55 dark:border-white/10 dark:bg-white/[0.06] sm:block">
                 {t('desk.apps.detectedCount', { count: installedAppCount })}
               </div>
             </div>
-            <div className="min-w-0 rounded-full border border-black/10 bg-white/50 px-3 py-1.5 font-mono text-[11px] text-foreground/60 dark:border-white/10 dark:bg-white/5">
+            <div className="min-w-0 flex-1 rounded-full border border-black/10 bg-white/55 px-3 py-1 font-mono text-[10px] text-foreground/55 dark:border-white/10 dark:bg-white/[0.05] md:max-w-[420px] md:flex-none">
               <span className="block truncate">{workspaceHostPath}</span>
             </div>
           </div>
 
           <div
             data-testid="chat-desk-view-switcher"
-            className="flex flex-wrap items-center gap-2 rounded-[22px] border border-black/10 bg-white/60 p-2 dark:border-white/10 dark:bg-white/5"
+            className="inline-flex max-w-full flex-wrap items-center gap-1 self-start rounded-[18px] border border-black/10 bg-white/65 p-1 dark:border-white/10 dark:bg-white/[0.05]"
           >
             <Button
               type="button"
               size="sm"
-              variant={activeDeskView === 'files' ? 'secondary' : 'ghost'}
+              variant="ghost"
               data-testid="chat-desk-view-files"
               onClick={() => setActiveDeskView('files')}
-              className="h-9 rounded-full px-4 text-[12px]"
+              className={getDeskViewButtonClass('files')}
             >
               <FolderOpen className="mr-2 h-3.5 w-3.5" />
               {t('desk.files.title')}
@@ -2107,10 +2114,10 @@ export function ResearchDeskPanel({
             <Button
               type="button"
               size="sm"
-              variant={activeDeskView === 'apps' ? 'secondary' : 'ghost'}
+              variant="ghost"
               data-testid="chat-desk-view-apps"
               onClick={() => setActiveDeskView('apps')}
-              className="h-9 rounded-full px-4 text-[12px]"
+              className={getDeskViewButtonClass('apps')}
             >
               <Monitor className="mr-2 h-3.5 w-3.5" />
               {t('desk.apps.title')}
@@ -2118,10 +2125,10 @@ export function ResearchDeskPanel({
             <Button
               type="button"
               size="sm"
-              variant={activeDeskView === 'browser' ? 'secondary' : 'ghost'}
+              variant="ghost"
               data-testid="chat-desk-view-browser"
               onClick={() => setActiveDeskView('browser')}
-              className="h-9 rounded-full px-4 text-[12px]"
+              className={getDeskViewButtonClass('browser')}
             >
               <Globe className="mr-2 h-3.5 w-3.5" />
               {t('desk.browser.title')}

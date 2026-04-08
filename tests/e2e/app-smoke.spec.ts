@@ -68,6 +68,13 @@ test.describe('InvestClaw Electron smoke flows', () => {
     await expect(page.getByTestId('chat-desk-view-apps')).toBeVisible();
     await expect(page.getByTestId('chat-desk-view-browser')).toBeVisible();
     await expect(page.getByTestId('chat-desk-files-surface')).toBeVisible();
+    await expect
+      .poll(async () => {
+        return await page
+          .getByTestId('chat-desk-view-switcher')
+          .evaluate((element) => Math.round(element.getBoundingClientRect().height));
+      })
+      .toBeLessThan(52);
 
     await expect
       .poll(async () => {
