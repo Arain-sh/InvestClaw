@@ -43,7 +43,7 @@ test.describe('InvestClaw Electron smoke flows', () => {
     await expect(page.locator('textarea')).toHaveAttribute('placeholder', /网关未连接/);
   });
 
-  test('shows the IDE-style research desk inside chat with files and browser tabs', async ({ page, homeDir }) => {
+  test('shows the unified investment workbench inside chat with adaptive files, apps, and browser views', async ({ page, homeDir }) => {
     const mainWorkspaceDir = join(homeDir, '.openclaw', 'workspace');
     await mkdir(mainWorkspaceDir, { recursive: true });
     await mkdir(join(mainWorkspaceDir, 'research', 'q1'), { recursive: true });
@@ -63,10 +63,11 @@ test.describe('InvestClaw Electron smoke flows', () => {
     await expect(page.getByTestId('chat-page')).toBeVisible();
     await expect(page.getByTestId('chat-research-desk')).toBeVisible();
     await expect(page.getByTestId('chat-desk-resizer')).toBeVisible();
+    await expect(page.getByTestId('chat-desk-view-switcher')).toBeVisible();
+    await expect(page.getByTestId('chat-desk-view-files')).toBeVisible();
+    await expect(page.getByTestId('chat-desk-view-apps')).toBeVisible();
+    await expect(page.getByTestId('chat-desk-view-browser')).toBeVisible();
     await expect(page.getByTestId('chat-desk-files-surface')).toBeVisible();
-    await expect(page.getByTestId('chat-market-apps-surface')).toBeVisible();
-    await expect(page.getByTestId('chat-market-app-card-tradingview')).toBeVisible();
-    await expect(page.getByTestId('chat-desk-browser-surface')).toBeVisible();
 
     await expect
       .poll(async () => {
@@ -113,7 +114,12 @@ test.describe('InvestClaw Electron smoke flows', () => {
       })
       .toBeLessThan(6);
 
+    await page.getByTestId('chat-desk-view-apps').click();
+    await expect(page.getByTestId('chat-market-apps-surface')).toBeVisible();
+    await expect(page.getByTestId('chat-market-app-card-tradingview')).toBeVisible();
+
     await page.getByTestId('chat-market-app-browser-tradingview').click();
+    await expect(page.getByTestId('chat-desk-browser-surface')).toBeVisible();
     await expect(page.getByTestId('chat-desk-browser-url')).toHaveValue(/tradingview/i);
     await expect(page.getByTestId('chat-desk-browser-webview')).toHaveCount(1);
     await expect(page.getByTestId('chat-desk-browser-tabs').locator('[data-testid="chat-desk-browser-tab"]')).toHaveCount(1);
@@ -141,6 +147,8 @@ test.describe('InvestClaw Electron smoke flows', () => {
       })
       .toBeGreaterThan(8);
 
+    await page.getByTestId('chat-desk-view-files').click();
+    await expect(page.getByTestId('chat-desk-files-surface')).toBeVisible();
     await expect
       .poll(async () => {
         return await page.getByTestId('chat-desk-component-preview-shell').evaluate((element) => {

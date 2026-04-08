@@ -65,6 +65,7 @@ type BrowserWebview = HTMLElement & {
 
 type WorkspaceListingMap = Record<string, AgentWorkspaceListing>;
 type WorkspacePreviewMode = 'render' | 'source';
+type DeskView = 'files' | 'apps' | 'browser';
 
 type BrowserTabState = {
   id: string;
@@ -945,6 +946,7 @@ function NativeAppsDock({
   onOpenExternal,
   onReveal,
   onLaunchPinned,
+  embedded = false,
 }: {
   apps: MarketAppDescriptor[];
   loading: boolean;
@@ -962,6 +964,7 @@ function NativeAppsDock({
   onOpenExternal: (url: string) => void;
   onReveal: (app: MarketAppDescriptor) => void;
   onLaunchPinned: () => void;
+  embedded?: boolean;
 }) {
   const { t } = useTranslation('chat');
   const pinnedApps = apps.filter((app) => app.pinned);
@@ -969,7 +972,12 @@ function NativeAppsDock({
   return (
     <section
       data-testid="chat-market-apps-surface"
-      className="flex min-h-0 flex-col overflow-hidden rounded-[26px] border border-black/10 bg-[#f9f6ec] dark:border-white/10 dark:bg-white/5"
+      className={cn(
+        'flex min-h-0 flex-col overflow-hidden bg-[#f9f6ec] dark:bg-white/5',
+        embedded
+          ? 'h-full rounded-[24px]'
+          : 'rounded-[26px] border border-black/10 dark:border-white/10',
+      )}
     >
       <div className="shrink-0 border-b border-black/10 p-3 dark:border-white/10">
         <div className="flex flex-wrap items-center justify-between gap-2">
@@ -1346,6 +1354,7 @@ export function ResearchDeskPanel({
   const [activeBrowserTabId, setActiveBrowserTabId] = useState<string>('');
   const [browserInput, setBrowserInput] = useState(DEFAULT_BROWSER_URL);
   const [browserInteractive, setBrowserInteractive] = useState(false);
+  const [activeDeskView, setActiveDeskView] = useState<DeskView>('files');
   const [marketApps, setMarketApps] = useState<MarketAppDescriptor[]>([]);
   const [marketAppsLoading, setMarketAppsLoading] = useState(false);
   const [marketAppsError, setMarketAppsError] = useState<string | null>(null);
@@ -1563,6 +1572,7 @@ export function ResearchDeskPanel({
     const nextUrl = normalizeBrowserUrl(browserInput);
     setBrowserInput(nextUrl);
     setBrowserInteractive(false);
+    setActiveDeskView('browser');
     updateBrowserTab(activeBrowserTab.id, {
       url: nextUrl,
       title: getBrowserTitleFallback(nextUrl, t('desk.browser.title')),
@@ -1577,6 +1587,7 @@ export function ResearchDeskPanel({
     setActiveBrowserTabId(nextTab.id);
     setBrowserInput(nextTab.url);
     setBrowserInteractive(false);
+    setActiveDeskView('browser');
   };
 
   const handleCloseBrowserTab = (tabId: string) => {
@@ -1602,6 +1613,7 @@ export function ResearchDeskPanel({
 
     setBrowserInput(nextUrl);
     setBrowserInteractive(false);
+    setActiveDeskView('browser');
 
     if (!targetTabId) {
       const nextTab = createBrowserTab(nextUrl, fallbackTitle);
@@ -1727,6 +1739,11 @@ export function ResearchDeskPanel({
   const workspaceFallbackPath = workspacePreview?.containerPath || rootListing?.currentContainerPath || '/workspace';
   const workspaceHostPath = rootListing?.hostPath || currentAgent?.workspace || '-';
   const installedAppCount = marketApps.filter((app) => app.installed).length;
+  const activeViewLabel = activeDeskView === 'files'
+    ? t('desk.files.title')
+    : activeDeskView === 'apps'
+      ? t('desk.apps.title')
+      : t('desk.browser.title');
 
   const activeBrowserState = useMemo(() => ({
     title: activeBrowserTab?.title || t('desk.browser.title'),
@@ -1738,373 +1755,424 @@ export function ResearchDeskPanel({
   return (
     <Card data-testid="chat-research-desk" className="flex h-full min-h-[340px] flex-col rounded-[28px] border-0 bg-[#efe9db] shadow-[0_24px_80px_rgba(36,39,27,0.12)] dark:bg-card">
       <CardContent className="flex min-h-0 flex-1 flex-col p-3">
-        <div className="mb-3 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2 rounded-full border border-black/10 bg-white/70 px-3 py-1.5 text-[12px] font-medium text-foreground/80 dark:border-white/10 dark:bg-white/5">
-            <span className="truncate">{currentAgent?.name || 'Main Agent'}</span>
-          </div>
-          <div className="flex flex-wrap items-center justify-end gap-2">
-            <div className="rounded-full border border-black/10 bg-white/65 px-3 py-1.5 text-[11px] font-medium text-foreground/65 dark:border-white/10 dark:bg-white/5">
-              {t('desk.apps.detectedCount', { count: installedAppCount })}
+        <div className="mb-3 flex flex-col gap-3">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="flex items-center gap-2 rounded-full border border-black/10 bg-white/70 px-3 py-1.5 text-[12px] font-medium text-foreground/80 dark:border-white/10 dark:bg-white/5">
+                <span className="truncate">{currentAgent?.name || 'Main Agent'}</span>
+              </div>
+              <div className="rounded-full border border-black/10 bg-white/65 px-3 py-1.5 text-[11px] font-medium text-foreground/65 dark:border-white/10 dark:bg-white/5">
+                {activeViewLabel}
+              </div>
+              <div className="rounded-full border border-black/10 bg-white/65 px-3 py-1.5 text-[11px] font-medium text-foreground/65 dark:border-white/10 dark:bg-white/5">
+                {t('desk.apps.detectedCount', { count: installedAppCount })}
+              </div>
             </div>
             <div className="min-w-0 rounded-full border border-black/10 bg-white/50 px-3 py-1.5 font-mono text-[11px] text-foreground/60 dark:border-white/10 dark:bg-white/5">
               <span className="block truncate">{workspaceHostPath}</span>
             </div>
           </div>
+
+          <div
+            data-testid="chat-desk-view-switcher"
+            className="flex flex-wrap items-center gap-2 rounded-[22px] border border-black/10 bg-white/60 p-2 dark:border-white/10 dark:bg-white/5"
+          >
+            <Button
+              type="button"
+              size="sm"
+              variant={activeDeskView === 'files' ? 'secondary' : 'ghost'}
+              data-testid="chat-desk-view-files"
+              onClick={() => setActiveDeskView('files')}
+              className="h-9 rounded-full px-4 text-[12px]"
+            >
+              <FolderOpen className="mr-2 h-3.5 w-3.5" />
+              {t('desk.files.title')}
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant={activeDeskView === 'apps' ? 'secondary' : 'ghost'}
+              data-testid="chat-desk-view-apps"
+              onClick={() => setActiveDeskView('apps')}
+              className="h-9 rounded-full px-4 text-[12px]"
+            >
+              <Monitor className="mr-2 h-3.5 w-3.5" />
+              {t('desk.apps.title')}
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant={activeDeskView === 'browser' ? 'secondary' : 'ghost'}
+              data-testid="chat-desk-view-browser"
+              onClick={() => setActiveDeskView('browser')}
+              className="h-9 rounded-full px-4 text-[12px]"
+            >
+              <Globe className="mr-2 h-3.5 w-3.5" />
+              {t('desk.browser.title')}
+            </Button>
+          </div>
         </div>
 
-        <div className="grid min-h-0 flex-1 gap-3 xl:grid-cols-[minmax(0,0.95fr)_minmax(300px,0.82fr)_minmax(0,1.12fr)]">
-          <section
-            data-testid="chat-desk-files-surface"
-            className="flex min-h-0 flex-col overflow-hidden rounded-[26px] border border-black/10 bg-[#f9f6ec] dark:border-white/10 dark:bg-white/5"
-          >
-            <div className="shrink-0 border-b border-black/10 p-3 dark:border-white/10">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div>
-                  <p className="text-[15px] font-semibold text-foreground">{t('desk.files.title')}</p>
-                  <p className="text-[12px] text-foreground/60">{t('desk.files.subtitle')}</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => void handleRefreshWorkspace()}
-                    className="h-8 rounded-full border-black/10 bg-white/80 px-3 text-[12px] dark:border-white/10 dark:bg-white/5"
-                  >
-                    <RefreshCw className="mr-2 h-3.5 w-3.5" />
-                    {t('desk.files.refresh')}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => void handleOpenWorkspaceFolder()}
-                    disabled={!rootListing?.exists}
-                    className="h-8 rounded-full border-black/10 bg-white/80 px-3 text-[12px] dark:border-white/10 dark:bg-white/5"
-                  >
-                    <FolderOpen className="mr-2 h-3.5 w-3.5" />
-                    {t('desk.files.openFolder')}
-                  </Button>
-                </div>
-              </div>
-              <div className="mt-3 rounded-2xl border border-black/10 bg-white/80 px-4 py-3 dark:border-white/10 dark:bg-black/10">
-                <div className="flex items-center gap-2 text-[12px] uppercase tracking-[0.08em] text-foreground/55">
-                  <Folder className="h-3.5 w-3.5" />
-                  {t('desk.files.containerPath')}
-                </div>
-                <p className="mt-1 break-all font-mono text-[12px] text-foreground">
-                  {workspaceFallbackPath}
-                </p>
-              </div>
-              {workspaceError && (
-                <div className="mt-3 rounded-2xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-[12px] text-destructive">
-                  {workspaceError}
-                </div>
-              )}
-            </div>
-
-            <div className="grid min-h-0 flex-1 gap-px bg-black/10 dark:bg-white/10 xl:grid-rows-[minmax(220px,0.92fr)_minmax(220px,1.08fr)]">
-              <div
-                data-testid="chat-desk-files"
-                className="flex min-h-0 flex-col overflow-hidden bg-[#f9f6ec] p-3 dark:bg-white/5"
-              >
-                {!currentAgent ? (
-                  <div className="rounded-2xl border border-dashed border-black/10 bg-white/70 p-4 text-[13px] text-foreground/65 dark:border-white/10 dark:bg-black/10">
-                    {t('desk.files.noAgent')}
+        <div data-testid="chat-desk-active-view" className="min-h-0 flex-1">
+          {activeDeskView === 'files' && (
+            <section
+              data-testid="chat-desk-files-surface"
+              className="flex h-full min-h-0 flex-col overflow-hidden rounded-[26px] border border-black/10 bg-[#f9f6ec] dark:border-white/10 dark:bg-white/5"
+            >
+              <div className="shrink-0 border-b border-black/10 p-3 dark:border-white/10">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <p className="text-[15px] font-semibold text-foreground">{t('desk.files.title')}</p>
+                    <p className="text-[12px] text-foreground/60">{t('desk.files.subtitle')}</p>
                   </div>
-                ) : workspaceLoading ? (
-                  <div className="flex min-h-0 flex-1 items-center justify-center">
-                    <LoadingSpinner size="md" />
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => void handleRefreshWorkspace()}
+                      className="h-8 rounded-full border-black/10 bg-white/80 px-3 text-[12px] dark:border-white/10 dark:bg-white/5"
+                    >
+                      <RefreshCw className="mr-2 h-3.5 w-3.5" />
+                      {t('desk.files.refresh')}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => void handleOpenWorkspaceFolder()}
+                      disabled={!rootListing?.exists}
+                      className="h-8 rounded-full border-black/10 bg-white/80 px-3 text-[12px] dark:border-white/10 dark:bg-white/5"
+                    >
+                      <FolderOpen className="mr-2 h-3.5 w-3.5" />
+                      {t('desk.files.openFolder')}
+                    </Button>
                   </div>
-                ) : !rootListing?.exists ? (
-                  <div className="rounded-2xl border border-dashed border-black/10 bg-white/70 p-4 text-[13px] text-foreground/65 dark:border-white/10 dark:bg-black/10">
-                    {t('desk.files.missing')}
+                </div>
+                <div className="mt-3 rounded-2xl border border-black/10 bg-white/80 px-4 py-3 dark:border-white/10 dark:bg-black/10">
+                  <div className="flex items-center gap-2 text-[12px] uppercase tracking-[0.08em] text-foreground/55">
+                    <Folder className="h-3.5 w-3.5" />
+                    {t('desk.files.containerPath')}
                   </div>
-                ) : rootListing.entries.length === 0 ? (
-                  <div className="rounded-2xl border border-dashed border-black/10 bg-white/70 p-4 text-[13px] text-foreground/65 dark:border-white/10 dark:bg-black/10">
-                    {t('desk.files.empty')}
-                  </div>
-                ) : (
-                  <div className="min-h-0 flex-1 overflow-y-auto pr-1">
-                    <div data-testid="chat-desk-tree-root" className="mb-2 flex items-center gap-2 rounded-xl border border-black/10 bg-white/70 px-3 py-2 text-[12px] font-medium text-foreground/75 dark:border-white/10 dark:bg-black/10">
-                      <FolderOpen className="h-4 w-4 text-foreground/55" />
-                      <span className="truncate">/workspace</span>
-                    </div>
-                    <WorkspaceTree
-                      entries={rootListing.entries}
-                      depth={0}
-                      listings={workspaceListings}
-                      expandedDirectories={expandedDirectories}
-                      loadingDirectories={loadingDirectories}
-                      selectedWorkspacePath={selectedWorkspacePath}
-                      onToggleDirectory={handleToggleWorkspaceDirectory}
-                      onOpenFile={handleOpenWorkspaceFile}
-                    />
+                  <p className="mt-1 break-all font-mono text-[12px] text-foreground">
+                    {workspaceFallbackPath}
+                  </p>
+                </div>
+                {workspaceError && (
+                  <div className="mt-3 rounded-2xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-[12px] text-destructive">
+                    {workspaceError}
                   </div>
                 )}
               </div>
 
-              <div className="flex min-h-0 flex-col overflow-hidden bg-[#f9f6ec] p-3 dark:bg-white/5">
-                <WorkspacePreviewPane
-                  preview={workspacePreview}
-                  loading={workspacePreviewLoading}
-                  fallbackPath={workspaceFallbackPath}
-                />
-              </div>
-            </div>
-          </section>
-
-          <NativeAppsDock
-            apps={marketApps}
-            loading={marketAppsLoading}
-            error={marketAppsError}
-            drafts={marketAppDrafts}
-            savingAppIds={savingAppIds}
-            launchingAppIds={launchingAppIds}
-            onRefresh={() => void loadMarketApps()}
-            onDraftChange={(appId, nextValue) => {
-              setMarketAppDrafts((current) => ({ ...current, [appId]: nextValue }));
-            }}
-            onSavePath={(appId) => {
-              void handleSaveAppPath(appId);
-            }}
-            onClearPath={(appId) => {
-              void handleClearAppPath(appId);
-            }}
-            onTogglePinned={(app) => {
-              void handleTogglePinned(app);
-            }}
-            onLaunch={(app) => {
-              void handleLaunchApp(app);
-            }}
-            onOpenBrowser={(app) => {
-              navigateBrowserTo(app.browserUrl, app.name);
-            }}
-            onOpenExternal={(url) => {
-              void handleOpenExternalUrl(url);
-            }}
-            onReveal={(app) => {
-              void handleRevealApp(app);
-            }}
-            onLaunchPinned={() => {
-              void handleLaunchPinnedApps();
-            }}
-          />
-
-          <section className="flex min-h-0 flex-col overflow-hidden rounded-[26px] border border-black/10 bg-[#f9f6ec] dark:border-white/10 dark:bg-white/5">
-            <div className="shrink-0 border-b border-black/10 px-3 py-3 dark:border-white/10">
-              <div className="flex flex-col gap-2">
-                <div>
-                  <p className="text-[15px] font-semibold text-foreground">{t('desk.browser.title')}</p>
-                  <p className="text-[12px] text-foreground/60">{t('desk.browser.subtitle')}</p>
+              <div className="grid min-h-0 flex-1 gap-px bg-black/10 dark:bg-white/10 lg:grid-cols-[minmax(240px,0.78fr)_minmax(0,1.22fr)]">
+                <div
+                  data-testid="chat-desk-files"
+                  className="flex min-h-0 flex-col overflow-hidden bg-[#f9f6ec] p-3 dark:bg-white/5"
+                >
+                  {!currentAgent ? (
+                    <div className="rounded-2xl border border-dashed border-black/10 bg-white/70 p-4 text-[13px] text-foreground/65 dark:border-white/10 dark:bg-black/10">
+                      {t('desk.files.noAgent')}
+                    </div>
+                  ) : workspaceLoading ? (
+                    <div className="flex min-h-0 flex-1 items-center justify-center">
+                      <LoadingSpinner size="md" />
+                    </div>
+                  ) : !rootListing?.exists ? (
+                    <div className="rounded-2xl border border-dashed border-black/10 bg-white/70 p-4 text-[13px] text-foreground/65 dark:border-white/10 dark:bg-black/10">
+                      {t('desk.files.missing')}
+                    </div>
+                  ) : rootListing.entries.length === 0 ? (
+                    <div className="rounded-2xl border border-dashed border-black/10 bg-white/70 p-4 text-[13px] text-foreground/65 dark:border-white/10 dark:bg-black/10">
+                      {t('desk.files.empty')}
+                    </div>
+                  ) : (
+                    <div className="min-h-0 flex-1 overflow-y-auto pr-1">
+                      <div data-testid="chat-desk-tree-root" className="mb-2 flex items-center gap-2 rounded-xl border border-black/10 bg-white/70 px-3 py-2 text-[12px] font-medium text-foreground/75 dark:border-white/10 dark:bg-black/10">
+                        <FolderOpen className="h-4 w-4 text-foreground/55" />
+                        <span className="truncate">/workspace</span>
+                      </div>
+                      <WorkspaceTree
+                        entries={rootListing.entries}
+                        depth={0}
+                        listings={workspaceListings}
+                        expandedDirectories={expandedDirectories}
+                        loadingDirectories={loadingDirectories}
+                        selectedWorkspacePath={selectedWorkspacePath}
+                        onToggleDirectory={handleToggleWorkspaceDirectory}
+                        onOpenFile={handleOpenWorkspaceFile}
+                      />
+                    </div>
+                  )}
                 </div>
-                <div data-testid="chat-desk-browser-tabs" className="flex items-center gap-2 overflow-x-auto pb-1">
-                  {browserTabs.map((tab) => (
-                    <button
-                      key={tab.id}
-                      type="button"
-                      data-testid="chat-desk-browser-tab"
-                      onClick={() => setActiveBrowserTabId(tab.id)}
-                      className={cn(
-                        'group flex min-w-0 max-w-[180px] items-center gap-2 rounded-xl border px-3 py-2 text-left transition-colors',
-                        tab.id === activeBrowserTabId
-                          ? 'border-black/15 bg-white text-foreground shadow-sm dark:border-white/15 dark:bg-black/10'
-                          : 'border-transparent bg-transparent text-foreground/65 hover:border-black/10 hover:bg-white/60 dark:hover:border-white/10 dark:hover:bg-black/10',
-                      )}
-                    >
-                      {tab.loading ? (
-                        <LoadingSpinner size="sm" />
-                      ) : (
-                        <Globe className="h-3.5 w-3.5 shrink-0 text-foreground/50" />
-                      )}
-                      <span className="truncate text-[12px] font-medium">
-                        {tab.title || getBrowserTitleFallback(tab.url, t('desk.browser.title'))}
-                      </span>
-                      {browserTabs.length > 1 && (
-                        <span
-                          role="button"
-                          tabIndex={0}
-                          aria-label={t('desk.browser.closeTab')}
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            handleCloseBrowserTab(tab.id);
-                          }}
-                          onKeyDown={(event) => {
-                            if (event.key === 'Enter' || event.key === ' ') {
-                              event.preventDefault();
+
+                <div className="flex min-h-0 flex-col overflow-hidden bg-[#f9f6ec] p-3 dark:bg-white/5">
+                  <WorkspacePreviewPane
+                    preview={workspacePreview}
+                    loading={workspacePreviewLoading}
+                    fallbackPath={workspaceFallbackPath}
+                  />
+                </div>
+              </div>
+            </section>
+          )}
+
+          {activeDeskView === 'apps' && (
+            <NativeAppsDock
+              embedded
+              apps={marketApps}
+              loading={marketAppsLoading}
+              error={marketAppsError}
+              drafts={marketAppDrafts}
+              savingAppIds={savingAppIds}
+              launchingAppIds={launchingAppIds}
+              onRefresh={() => void loadMarketApps()}
+              onDraftChange={(appId, nextValue) => {
+                setMarketAppDrafts((current) => ({ ...current, [appId]: nextValue }));
+              }}
+              onSavePath={(appId) => {
+                void handleSaveAppPath(appId);
+              }}
+              onClearPath={(appId) => {
+                void handleClearAppPath(appId);
+              }}
+              onTogglePinned={(app) => {
+                void handleTogglePinned(app);
+              }}
+              onLaunch={(app) => {
+                void handleLaunchApp(app);
+              }}
+              onOpenBrowser={(app) => {
+                navigateBrowserTo(app.browserUrl, app.name);
+              }}
+              onOpenExternal={(url) => {
+                void handleOpenExternalUrl(url);
+              }}
+              onReveal={(app) => {
+                void handleRevealApp(app);
+              }}
+              onLaunchPinned={() => {
+                void handleLaunchPinnedApps();
+              }}
+            />
+          )}
+
+          {activeDeskView === 'browser' && (
+            <section className="flex h-full min-h-0 flex-col overflow-hidden rounded-[26px] border border-black/10 bg-[#f9f6ec] dark:border-white/10 dark:bg-white/5">
+              <div className="shrink-0 border-b border-black/10 px-3 py-3 dark:border-white/10">
+                <div className="flex flex-col gap-2">
+                  <div>
+                    <p className="text-[15px] font-semibold text-foreground">{t('desk.browser.title')}</p>
+                    <p className="text-[12px] text-foreground/60">{t('desk.browser.subtitle')}</p>
+                  </div>
+                  <div data-testid="chat-desk-browser-tabs" className="flex items-center gap-2 overflow-x-auto pb-1">
+                    {browserTabs.map((tab) => (
+                      <button
+                        key={tab.id}
+                        type="button"
+                        data-testid="chat-desk-browser-tab"
+                        onClick={() => setActiveBrowserTabId(tab.id)}
+                        className={cn(
+                          'group flex min-w-0 max-w-[180px] items-center gap-2 rounded-xl border px-3 py-2 text-left transition-colors',
+                          tab.id === activeBrowserTabId
+                            ? 'border-black/15 bg-white text-foreground shadow-sm dark:border-white/15 dark:bg-black/10'
+                            : 'border-transparent bg-transparent text-foreground/65 hover:border-black/10 hover:bg-white/60 dark:hover:border-white/10 dark:hover:bg-black/10',
+                        )}
+                      >
+                        {tab.loading ? (
+                          <LoadingSpinner size="sm" />
+                        ) : (
+                          <Globe className="h-3.5 w-3.5 shrink-0 text-foreground/50" />
+                        )}
+                        <span className="truncate text-[12px] font-medium">
+                          {tab.title || getBrowserTitleFallback(tab.url, t('desk.browser.title'))}
+                        </span>
+                        {browserTabs.length > 1 && (
+                          <span
+                            role="button"
+                            tabIndex={0}
+                            aria-label={t('desk.browser.closeTab')}
+                            onClick={(event) => {
                               event.stopPropagation();
                               handleCloseBrowserTab(tab.id);
-                            }
-                          }}
-                          className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md text-foreground/45 transition-colors hover:bg-black/5 hover:text-foreground dark:hover:bg-white/10"
-                        >
-                          <X className="h-3.5 w-3.5" />
-                        </span>
-                      )}
+                            }}
+                            onKeyDown={(event) => {
+                              if (event.key === 'Enter' || event.key === ' ') {
+                                event.preventDefault();
+                                event.stopPropagation();
+                                handleCloseBrowserTab(tab.id);
+                              }
+                            }}
+                            className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md text-foreground/45 transition-colors hover:bg-black/5 hover:text-foreground dark:hover:bg-white/10"
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </span>
+                        )}
+                      </button>
+                    ))}
+
+                    <button
+                      type="button"
+                      data-testid="chat-desk-browser-new-tab"
+                      onClick={handleCreateBrowserTab}
+                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-black/10 bg-white/70 text-foreground/65 transition-colors hover:bg-white dark:border-white/10 dark:bg-black/10 dark:hover:bg-black/20"
+                      aria-label={t('desk.browser.newTab')}
+                    >
+                      <Plus className="h-4 w-4" />
                     </button>
-                  ))}
-
-                  <button
-                    type="button"
-                    data-testid="chat-desk-browser-new-tab"
-                    onClick={handleCreateBrowserTab}
-                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-black/10 bg-white/70 text-foreground/65 transition-colors hover:bg-white dark:border-white/10 dark:bg-black/10 dark:hover:bg-black/20"
-                    aria-label={t('desk.browser.newTab')}
-                  >
-                    <Plus className="h-4 w-4" />
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div className="shrink-0 border-b border-black/10 px-3 py-2 dark:border-white/10">
-              <div className="flex flex-wrap items-center gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => browserWebviewsRef.current[activeBrowserTab?.id || '']?.goBack()}
-                  disabled={!activeBrowserState.canGoBack}
-                  className="h-8 rounded-full border-black/10 bg-white/80 px-3 text-[12px] dark:border-white/10 dark:bg-white/5"
-                >
-                  {t('desk.browser.back')}
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => browserWebviewsRef.current[activeBrowserTab?.id || '']?.goForward()}
-                  disabled={!activeBrowserState.canGoForward}
-                  className="h-8 rounded-full border-black/10 bg-white/80 px-3 text-[12px] dark:border-white/10 dark:bg-white/5"
-                >
-                  {t('desk.browser.forward')}
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => browserWebviewsRef.current[activeBrowserTab?.id || '']?.reload()}
-                  className="h-8 rounded-full border-black/10 bg-white/80 px-3 text-[12px] dark:border-white/10 dark:bg-white/5"
-                >
-                  <RefreshCw className={cn('mr-2 h-3.5 w-3.5', activeBrowserState.loading && 'animate-spin')} />
-                  {t('desk.browser.reload')}
-                </Button>
-
-                <div className="flex min-w-[240px] flex-1 items-center gap-2 rounded-2xl border border-black/10 bg-white/80 p-2 dark:border-white/10 dark:bg-black/10">
-                  <Globe className="ml-1 h-4 w-4 shrink-0 text-foreground/55" />
-                  <Input
-                    data-testid="chat-desk-browser-url"
-                    value={browserInput}
-                    onChange={(event) => setBrowserInput(event.target.value)}
-                    onKeyDown={(event) => {
-                      if (event.key === 'Enter') {
-                        handleBrowserNavigate();
-                      }
-                    }}
-                    className="h-9 border-0 bg-transparent text-[13px] shadow-none focus-visible:ring-0"
-                  />
-                  <Button onClick={handleBrowserNavigate} className="h-9 rounded-full px-4 text-[12px]">
-                    <Search className="mr-2 h-3.5 w-3.5" />
-                    {t('desk.browser.go')}
-                  </Button>
-                </div>
-              </div>
-
-              <div className="mt-2 flex flex-wrap items-center gap-2">
-                {QUICK_BROWSER_LINKS.map((link) => (
-                  <button
-                    key={link.id}
-                    type="button"
-                    data-testid={`chat-desk-browser-link-${link.id}`}
-                    onClick={() => navigateBrowserTo(link.url, link.label)}
-                    className="rounded-full border border-black/10 bg-white/80 px-3 py-1.5 text-[12px] font-medium text-foreground/75 transition-colors hover:bg-black/5 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10"
-                  >
-                    {link.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div
-              ref={browserSurfaceRef}
-              data-testid="chat-desk-browser-surface"
-              className="relative min-h-0 flex-1 overflow-hidden bg-white/80 dark:bg-black/10"
-            >
-              {activeBrowserTab && (
-                <BrowserWebviewPane
-                  key={activeBrowserTab.id}
-                  tab={activeBrowserTab}
-                  active
-                  interactive={browserInteractive}
-                  fallbackTitle={t('desk.browser.title')}
-                  onStateChange={updateBrowserTab}
-                  onRegisterWebview={registerBrowserWebview}
-                />
-              )}
-              {!activeBrowserTab?.error && !browserInteractive && (
-                <div className="absolute inset-0 z-10 flex items-center justify-center bg-gradient-to-b from-[#f9f6ec]/12 via-transparent to-[#f9f6ec]/26 p-5 dark:from-black/5 dark:to-black/30">
-                  <button
-                    type="button"
-                    data-testid="chat-desk-browser-activate"
-                    onClick={() => setBrowserInteractive(true)}
-                    className="max-w-sm rounded-[22px] border border-black/10 bg-white/92 px-5 py-4 text-center shadow-lg transition-transform hover:-translate-y-0.5 dark:border-white/10 dark:bg-card/92"
-                  >
-                    <p className="text-[14px] font-semibold text-foreground">
-                      {t('desk.browser.activate')}
-                    </p>
-                    <p className="mt-2 text-[12px] leading-6 text-foreground/65">
-                      {t('desk.browser.activateBody')}
-                    </p>
-                  </button>
-                </div>
-              )}
-              {activeBrowserTab?.error && (
-                <div
-                  data-testid="chat-desk-browser-error"
-                  className="absolute inset-0 z-10 flex items-center justify-center bg-[#f9f6ec]/96 p-5 dark:bg-black/90"
-                >
-                  <div className="w-full max-w-md rounded-[24px] border border-black/10 bg-white/90 p-5 shadow-xl dark:border-white/10 dark:bg-card">
-                    <div className="flex items-start gap-3">
-                      <div className="mt-0.5 rounded-full bg-destructive/10 p-2 text-destructive">
-                        <AlertCircle className="h-4 w-4" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-[15px] font-semibold text-foreground">
-                          {t('desk.browser.loadFailedTitle')}
-                        </p>
-                        <p className="mt-1 text-[13px] leading-6 text-foreground/70">
-                          {t('desk.browser.loadFailedBody')}
-                        </p>
-                        <p className="mt-3 break-all rounded-2xl border border-black/10 bg-black/[0.03] px-3 py-2 font-mono text-[12px] text-foreground/70 dark:border-white/10 dark:bg-white/[0.04]">
-                          {activeBrowserTab.error.url}
-                        </p>
-                        <p className="mt-2 text-[12px] text-foreground/55">
-                          {activeBrowserTab.error.description}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="mt-4 flex flex-wrap items-center gap-2">
-                      <Button
-                        className="h-9 rounded-full px-4 text-[12px]"
-                        onClick={() => {
-                          if (!activeBrowserTab) return;
-                          updateBrowserTab(activeBrowserTab.id, { loading: true, error: null });
-                          const webview = browserWebviewsRef.current[activeBrowserTab.id];
-                          if (webview) {
-                            webview.reload();
-                          }
-                        }}
-                      >
-                        <RefreshCw className="mr-2 h-3.5 w-3.5" />
-                        {t('desk.browser.retry')}
-                      </Button>
-                      <Button
-                        variant="outline"
-                        className="h-9 rounded-full px-4 text-[12px]"
-                        onClick={() => {
-                          const targetUrl = activeBrowserTab.error?.url || activeBrowserTab.url;
-                          void handleOpenExternalUrl(targetUrl);
-                        }}
-                      >
-                        <ExternalLink className="mr-2 h-3.5 w-3.5" />
-                        {t('desk.browser.openExternal')}
-                      </Button>
-                    </div>
                   </div>
                 </div>
-              )}
-            </div>
-          </section>
+              </div>
+
+              <div className="shrink-0 border-b border-black/10 px-3 py-2 dark:border-white/10">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => browserWebviewsRef.current[activeBrowserTab?.id || '']?.goBack()}
+                    disabled={!activeBrowserState.canGoBack}
+                    className="h-8 rounded-full border-black/10 bg-white/80 px-3 text-[12px] dark:border-white/10 dark:bg-white/5"
+                  >
+                    {t('desk.browser.back')}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => browserWebviewsRef.current[activeBrowserTab?.id || '']?.goForward()}
+                    disabled={!activeBrowserState.canGoForward}
+                    className="h-8 rounded-full border-black/10 bg-white/80 px-3 text-[12px] dark:border-white/10 dark:bg-white/5"
+                  >
+                    {t('desk.browser.forward')}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => browserWebviewsRef.current[activeBrowserTab?.id || '']?.reload()}
+                    className="h-8 rounded-full border-black/10 bg-white/80 px-3 text-[12px] dark:border-white/10 dark:bg-white/5"
+                  >
+                    <RefreshCw className={cn('mr-2 h-3.5 w-3.5', activeBrowserState.loading && 'animate-spin')} />
+                    {t('desk.browser.reload')}
+                  </Button>
+
+                  <div className="flex min-w-[240px] flex-1 items-center gap-2 rounded-2xl border border-black/10 bg-white/80 p-2 dark:border-white/10 dark:bg-black/10">
+                    <Globe className="ml-1 h-4 w-4 shrink-0 text-foreground/55" />
+                    <Input
+                      data-testid="chat-desk-browser-url"
+                      value={browserInput}
+                      onChange={(event) => setBrowserInput(event.target.value)}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter') {
+                          handleBrowserNavigate();
+                        }
+                      }}
+                      className="h-9 border-0 bg-transparent text-[13px] shadow-none focus-visible:ring-0"
+                    />
+                    <Button onClick={handleBrowserNavigate} className="h-9 rounded-full px-4 text-[12px]">
+                      <Search className="mr-2 h-3.5 w-3.5" />
+                      {t('desk.browser.go')}
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  {QUICK_BROWSER_LINKS.map((link) => (
+                    <button
+                      key={link.id}
+                      type="button"
+                      data-testid={`chat-desk-browser-link-${link.id}`}
+                      onClick={() => navigateBrowserTo(link.url, link.label)}
+                      className="rounded-full border border-black/10 bg-white/80 px-3 py-1.5 text-[12px] font-medium text-foreground/75 transition-colors hover:bg-black/5 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10"
+                    >
+                      {link.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div
+                ref={browserSurfaceRef}
+                data-testid="chat-desk-browser-surface"
+                className="relative min-h-0 flex-1 overflow-hidden bg-white/80 dark:bg-black/10"
+              >
+                {activeBrowserTab && (
+                  <BrowserWebviewPane
+                    key={activeBrowserTab.id}
+                    tab={activeBrowserTab}
+                    active
+                    interactive={browserInteractive}
+                    fallbackTitle={t('desk.browser.title')}
+                    onStateChange={updateBrowserTab}
+                    onRegisterWebview={registerBrowserWebview}
+                  />
+                )}
+                {!activeBrowserTab?.error && !browserInteractive && (
+                  <div className="absolute inset-0 z-10 flex items-center justify-center bg-gradient-to-b from-[#f9f6ec]/12 via-transparent to-[#f9f6ec]/26 p-5 dark:from-black/5 dark:to-black/30">
+                    <button
+                      type="button"
+                      data-testid="chat-desk-browser-activate"
+                      onClick={() => setBrowserInteractive(true)}
+                      className="max-w-sm rounded-[22px] border border-black/10 bg-white/92 px-5 py-4 text-center shadow-lg transition-transform hover:-translate-y-0.5 dark:border-white/10 dark:bg-card/92"
+                    >
+                      <p className="text-[14px] font-semibold text-foreground">
+                        {t('desk.browser.activate')}
+                      </p>
+                      <p className="mt-2 text-[12px] leading-6 text-foreground/65">
+                        {t('desk.browser.activateBody')}
+                      </p>
+                    </button>
+                  </div>
+                )}
+                {activeBrowserTab?.error && (
+                  <div
+                    data-testid="chat-desk-browser-error"
+                    className="absolute inset-0 z-10 flex items-center justify-center bg-[#f9f6ec]/96 p-5 dark:bg-black/90"
+                  >
+                    <div className="w-full max-w-md rounded-[24px] border border-black/10 bg-white/90 p-5 shadow-xl dark:border-white/10 dark:bg-card">
+                      <div className="flex items-start gap-3">
+                        <div className="mt-0.5 rounded-full bg-destructive/10 p-2 text-destructive">
+                          <AlertCircle className="h-4 w-4" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[15px] font-semibold text-foreground">
+                            {t('desk.browser.loadFailedTitle')}
+                          </p>
+                          <p className="mt-1 text-[13px] leading-6 text-foreground/70">
+                            {t('desk.browser.loadFailedBody')}
+                          </p>
+                          <p className="mt-3 break-all rounded-2xl border border-black/10 bg-black/[0.03] px-3 py-2 font-mono text-[12px] text-foreground/70 dark:border-white/10 dark:bg-white/[0.04]">
+                            {activeBrowserTab.error.url}
+                          </p>
+                          <p className="mt-2 text-[12px] text-foreground/55">
+                            {activeBrowserTab.error.description}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="mt-4 flex flex-wrap items-center gap-2">
+                        <Button
+                          className="h-9 rounded-full px-4 text-[12px]"
+                          onClick={() => {
+                            if (!activeBrowserTab) return;
+                            updateBrowserTab(activeBrowserTab.id, { loading: true, error: null });
+                            const webview = browserWebviewsRef.current[activeBrowserTab.id];
+                            if (webview) {
+                              webview.reload();
+                            }
+                          }}
+                        >
+                          <RefreshCw className="mr-2 h-3.5 w-3.5" />
+                          {t('desk.browser.retry')}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          className="h-9 rounded-full px-4 text-[12px]"
+                          onClick={() => {
+                            const targetUrl = activeBrowserTab.error?.url || activeBrowserTab.url;
+                            void handleOpenExternalUrl(targetUrl);
+                          }}
+                        >
+                          <ExternalLink className="mr-2 h-3.5 w-3.5" />
+                          {t('desk.browser.openExternal')}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </section>
+          )}
         </div>
       </CardContent>
     </Card>
