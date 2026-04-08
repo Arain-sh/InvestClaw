@@ -76,6 +76,7 @@
             "save": "Save path",
             "clear": "Clear",
             "detectedCount": "{{count}} native terminals detected",
+            "pinnedCount": "{{count}} pinned",
             "nativeShell": "Native terminal shell",
             "webEntry": "Web entry",
             "readOnly": "Read-only preview",
