@@ -77,6 +77,8 @@
             "clear": "クリア",
             "detectedCount": "検出済みネイティブ端末: {{count}}",
             "pinnedCount": "ピン留め: {{count}}",
+            "quickRail": "切替",
+            "quickDeck": "デスクジャンプ",
             "nativeShell": "ネイティブ端末シェル",
             "webEntry": "Web 入口",
             "readOnly": "読み取り専用",

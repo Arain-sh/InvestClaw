@@ -77,6 +77,8 @@
             "clear": "清空",
             "detectedCount": "已发现 {{count}} 个原生终端",
             "pinnedCount": "已置顶 {{count}} 个",
+            "quickRail": "切换",
+            "quickDeck": "终端跳转",
             "nativeShell": "原生终端外观",
             "webEntry": "Web 入口",
             "readOnly": "只读预览",

@@ -77,6 +77,8 @@
             "clear": "Clear",
             "detectedCount": "{{count}} native terminals detected",
             "pinnedCount": "{{count}} pinned",
+            "quickRail": "Switch",
+            "quickDeck": "Desk jump",
             "nativeShell": "Native terminal shell",
             "webEntry": "Web entry",
             "readOnly": "Read-only preview",

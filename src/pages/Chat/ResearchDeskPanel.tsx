@@ -384,6 +384,22 @@ function getMarketAppIcon(app: MarketAppDescriptor) {
   }
 }
 
+function buildMarketDeskLinks(app: MarketAppDescriptor) {
+  const seen = new Set<string>();
+  const links = [
+    { id: `${app.id}-home`, label: app.name, url: app.browserUrl },
+    ...QUICK_BROWSER_LINKS.map((link) => ({ id: link.id, label: link.label, url: link.url })),
+  ];
+
+  return links.filter((link) => {
+    if (!link.url || seen.has(link.url)) {
+      return false;
+    }
+    seen.add(link.url);
+    return true;
+  });
+}
+
 function buildAdaptiveHtmlPreviewDocument(source: string): string {
   const injection = `
     <meta charset="utf-8" />
@@ -1072,220 +1088,276 @@ function NativeAppsDock({
         )}
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto bg-[#0b1116] p-2.5">
+      <div className="min-h-0 flex-1 bg-[#0b1116] p-2.5">
         {loading ? (
           <div className="flex h-full min-h-0 items-center justify-center">
             <LoadingSpinner size="md" />
           </div>
         ) : (
-          <div className="space-y-2.5">
-            {apps.map((app) => {
-              const draftValue = drafts[app.id] ?? app.customPath;
-              const isSaving = !!savingAppIds[app.id];
-              const isLaunching = !!launchingAppIds[app.id];
-              const hasRevealTarget = Boolean(app.installedPath);
-              const isFocused = app.id === focusedAppId;
-              const isEmbedded = app.id === activeEmbeddedAppId;
-              const browserHost = getBrowserHostname(app.browserUrl || app.websiteUrl);
-
-              return (
-                <article
-                  key={app.id}
-                  data-testid={`chat-market-app-card-${app.id}`}
-                  className={cn(
-                    'rounded-[18px] border px-3 py-3 shadow-sm transition-colors',
-                    isEmbedded
-                      ? 'border-emerald-400/50 bg-emerald-400/10 ring-1 ring-emerald-300/20'
-                      : isFocused
-                        ? 'border-white/16 bg-white/[0.08]'
-                        : app.installed
-                          ? 'border-white/10 bg-white/[0.045] hover:bg-white/[0.06]'
-                          : 'border-white/8 bg-white/[0.03] hover:bg-white/[0.05]',
-                  )}
-                >
-                  <div className="flex items-start justify-between gap-3">
+          <div className="flex min-h-full gap-2">
+            <aside
+              data-testid="chat-market-app-quick-rail"
+              className="flex w-14 shrink-0 flex-col items-center rounded-[18px] border border-white/10 bg-white/[0.045] px-1.5 py-2"
+            >
+              <div className="mb-2 rounded-full border border-white/10 bg-white/6 px-2 py-0.5 text-[9px] font-medium uppercase tracking-[0.12em] text-white/45">
+                {t('desk.apps.quickRail')}
+              </div>
+              <div className="flex min-h-0 flex-1 flex-col items-center gap-1.5 overflow-y-auto">
+                {apps.map((app) => {
+                  const isFocused = app.id === focusedAppId;
+                  const isEmbedded = app.id === activeEmbeddedAppId;
+                  return (
                     <button
+                      key={`rail-${app.id}`}
                       type="button"
-                      onClick={() => setFocusedAppId(app.id)}
-                      className="min-w-0 flex-1 text-left"
-                    >
-                      <div className="flex items-center gap-2">
-                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-2xl bg-white/8 text-white/78">
-                          {getMarketAppIcon(app)}
-                        </span>
-                        <div className="min-w-0">
-                          <p className="truncate text-[13px] font-semibold text-white">{app.name}</p>
-                          <p className="truncate text-[11px] text-white/45">{app.vendor}</p>
-                        </div>
-                      </div>
-                      <p className="mt-2 text-[11px] leading-5 text-white/62">{app.description}</p>
-                      <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                        <span className="rounded-full border border-white/10 bg-white/6 px-2 py-0.5 text-[10px] text-white/58">
-                          {browserHost}
-                        </span>
-                        {(app.launchCount > 0 || app.lastLaunchedAt) && (
-                          <span className="rounded-full border border-white/10 bg-white/6 px-2 py-0.5 text-[10px] text-white/52">
-                            {t('desk.apps.launchMeta', {
-                              count: app.launchCount,
-                              time: app.lastLaunchedAt ? formatTimestamp(app.lastLaunchedAt) : '-',
-                            })}
-                          </span>
-                        )}
-                      </div>
-                    </button>
-
-                    <div className="flex shrink-0 items-center gap-1.5">
-                      <span
-                        className={cn(
-                          'rounded-full px-2 py-0.5 text-[10px] font-medium',
-                          app.installed
-                            ? 'bg-emerald-500/10 text-emerald-200'
-                            : 'bg-amber-500/10 text-amber-200',
-                        )}
-                      >
-                        {app.installed ? t('desk.apps.installed') : t('desk.apps.missing')}
-                      </span>
-                      <Button
-                        type="button"
-                        size="icon"
-                        variant="ghost"
-                        data-testid={`chat-market-app-pin-${app.id}`}
-                        className="h-7 w-7 rounded-full text-white/65 hover:bg-white/8 hover:text-white"
-                        onClick={() => onTogglePinned(app)}
-                      >
-                        {app.pinned ? <Pin className="h-3.5 w-3.5" /> : <PinOff className="h-3.5 w-3.5" />}
-                      </Button>
-                    </div>
-                  </div>
-
-                  <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
-                    <Button
-                      type="button"
-                      size="sm"
-                      data-testid={`chat-market-app-browser-${app.id}`}
-                      onMouseDown={(event) => {
-                        if (event.button !== 0) return;
-                        event.preventDefault();
-                        setFocusedAppId(app.id);
-                        onOpenBrowser(app);
-                      }}
+                      data-testid={`chat-market-app-quick-switch-${app.id}`}
                       onClick={() => {
                         setFocusedAppId(app.id);
                         onOpenBrowser(app);
                       }}
-                      className="h-8 rounded-[12px] bg-emerald-500/90 px-2.5 text-[11px] text-[#071016] hover:bg-emerald-400"
+                      className={cn(
+                        'group relative flex h-10 w-10 shrink-0 items-center justify-center rounded-[14px] border transition-colors',
+                        isEmbedded
+                          ? 'border-emerald-400/50 bg-emerald-400/12 text-emerald-200'
+                          : isFocused
+                            ? 'border-white/18 bg-white/[0.09] text-white'
+                            : 'border-white/10 bg-white/[0.04] text-white/68 hover:bg-white/[0.08] hover:text-white',
+                      )}
+                      title={app.name}
                     >
-                      <Globe className="mr-1.5 h-3 w-3" />
-                      {t('desk.apps.openInBrowser')}
-                    </Button>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="outline"
-                      data-testid={`chat-market-app-launch-${app.id}`}
-                      disabled={!app.platformSupported || !app.installed || isLaunching}
-                      onClick={() => onLaunch(app)}
-                      className="h-8 rounded-[12px] border-white/12 bg-white/6 px-2.5 text-[11px] text-white/78 hover:bg-white/10 hover:text-white disabled:bg-white/4 disabled:text-white/25"
-                    >
-                      {isLaunching ? <LoadingSpinner size="sm" /> : <Play className="mr-1.5 h-3 w-3" />}
-                      {t('desk.apps.launch')}
-                    </Button>
-                  </div>
+                      {getMarketAppIcon(app)}
+                      <span
+                        className={cn(
+                          'absolute bottom-1 right-1 h-1.5 w-1.5 rounded-full',
+                          app.installed ? 'bg-emerald-300' : 'bg-amber-300',
+                        )}
+                      />
+                    </button>
+                  );
+                })}
+              </div>
+              <Button
+                type="button"
+                size="icon"
+                variant="ghost"
+                onClick={onRefresh}
+                className="mt-2 h-9 w-9 shrink-0 rounded-[14px] text-white/64 hover:bg-white/[0.08] hover:text-white"
+              >
+                <RefreshCw className="h-3.5 w-3.5" />
+              </Button>
+            </aside>
 
-                  {isFocused && (
-                    <div
-                      data-testid={`chat-market-app-inspector-${app.id}`}
-                      className="mt-2.5 rounded-[16px] border border-white/10 bg-black/[0.18] p-2.5"
+            <div className="min-w-0 flex-1 overflow-y-auto">
+              <div className="space-y-2.5">
+                {apps.map((app) => {
+                  const draftValue = drafts[app.id] ?? app.customPath;
+                  const isSaving = !!savingAppIds[app.id];
+                  const isLaunching = !!launchingAppIds[app.id];
+                  const hasRevealTarget = Boolean(app.installedPath);
+                  const isFocused = app.id === focusedAppId;
+                  const isEmbedded = app.id === activeEmbeddedAppId;
+                  const browserHost = getBrowserHostname(app.browserUrl || app.websiteUrl);
+
+                  return (
+                    <article
+                      key={app.id}
+                      data-testid={`chat-market-app-card-${app.id}`}
+                      className={cn(
+                        'rounded-[18px] border px-3 py-3 shadow-sm transition-colors',
+                        isEmbedded
+                          ? 'border-emerald-400/50 bg-emerald-400/10 ring-1 ring-emerald-300/20'
+                          : isFocused
+                            ? 'border-white/16 bg-white/[0.08]'
+                            : app.installed
+                              ? 'border-white/10 bg-white/[0.045] hover:bg-white/[0.06]'
+                              : 'border-white/8 bg-white/[0.03] hover:bg-white/[0.05]',
+                      )}
                     >
-                      <div className="flex flex-wrap items-center gap-1.5">
+                      <div className="flex items-start justify-between gap-3">
+                        <button
+                          type="button"
+                          onClick={() => setFocusedAppId(app.id)}
+                          className="min-w-0 flex-1 text-left"
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-2xl bg-white/8 text-white/78">
+                              {getMarketAppIcon(app)}
+                            </span>
+                            <div className="min-w-0">
+                              <p className="truncate text-[13px] font-semibold text-white">{app.name}</p>
+                              <p className="truncate text-[11px] text-white/45">{app.vendor}</p>
+                            </div>
+                          </div>
+                          <p className="mt-2 text-[11px] leading-5 text-white/62">{app.description}</p>
+                          <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                            <span className="rounded-full border border-white/10 bg-white/6 px-2 py-0.5 text-[10px] text-white/58">
+                              {browserHost}
+                            </span>
+                            {(app.launchCount > 0 || app.lastLaunchedAt) && (
+                              <span className="rounded-full border border-white/10 bg-white/6 px-2 py-0.5 text-[10px] text-white/52">
+                                {t('desk.apps.launchMeta', {
+                                  count: app.launchCount,
+                                  time: app.lastLaunchedAt ? formatTimestamp(app.lastLaunchedAt) : '-',
+                                })}
+                              </span>
+                            )}
+                          </div>
+                        </button>
+
+                        <div className="flex shrink-0 items-center gap-1.5">
+                          <span
+                            className={cn(
+                              'rounded-full px-2 py-0.5 text-[10px] font-medium',
+                              app.installed
+                                ? 'bg-emerald-500/10 text-emerald-200'
+                                : 'bg-amber-500/10 text-amber-200',
+                            )}
+                          >
+                            {app.installed ? t('desk.apps.installed') : t('desk.apps.missing')}
+                          </span>
+                          <Button
+                            type="button"
+                            size="icon"
+                            variant="ghost"
+                            data-testid={`chat-market-app-pin-${app.id}`}
+                            className="h-7 w-7 rounded-full text-white/65 hover:bg-white/8 hover:text-white"
+                            onClick={() => onTogglePinned(app)}
+                          >
+                            {app.pinned ? <Pin className="h-3.5 w-3.5" /> : <PinOff className="h-3.5 w-3.5" />}
+                          </Button>
+                        </div>
+                      </div>
+
+                      <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
                         <Button
                           type="button"
                           size="sm"
-                          variant="outline"
-                          data-testid={`chat-market-app-website-${app.id}`}
-                          onClick={() => onOpenExternal(app.websiteUrl)}
-                          className="h-7 rounded-[11px] border-white/12 bg-white/6 px-2.5 text-[10px] text-white/72 hover:bg-white/10 hover:text-white"
+                          data-testid={`chat-market-app-browser-${app.id}`}
+                          onMouseDown={(event) => {
+                            if (event.button !== 0) return;
+                            event.preventDefault();
+                            setFocusedAppId(app.id);
+                            onOpenBrowser(app);
+                          }}
+                          onClick={() => {
+                            setFocusedAppId(app.id);
+                            onOpenBrowser(app);
+                          }}
+                          className="h-8 rounded-[12px] bg-emerald-500/90 px-2.5 text-[11px] text-[#071016] hover:bg-emerald-400"
                         >
-                          <ExternalLink className="mr-1.5 h-3 w-3" />
-                          {t('desk.apps.website')}
+                          <Globe className="mr-1.5 h-3 w-3" />
+                          {t('desk.apps.openInBrowser')}
                         </Button>
                         <Button
                           type="button"
                           size="sm"
                           variant="outline"
-                          data-testid={`chat-market-app-download-${app.id}`}
-                          onClick={() => onOpenExternal(app.downloadUrl)}
-                          className="h-7 rounded-[11px] border-white/12 bg-white/6 px-2.5 text-[10px] text-white/72 hover:bg-white/10 hover:text-white"
+                          data-testid={`chat-market-app-launch-${app.id}`}
+                          disabled={!app.platformSupported || !app.installed || isLaunching}
+                          onClick={() => onLaunch(app)}
+                          className="h-8 rounded-[12px] border-white/12 bg-white/6 px-2.5 text-[11px] text-white/78 hover:bg-white/10 hover:text-white disabled:bg-white/4 disabled:text-white/25"
                         >
-                          <Download className="mr-1.5 h-3 w-3" />
-                          {t('desk.apps.download')}
-                        </Button>
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="outline"
-                          data-testid={`chat-market-app-reveal-${app.id}`}
-                          disabled={!hasRevealTarget}
-                          onClick={() => onReveal(app)}
-                          className="h-7 rounded-[11px] border-white/12 bg-white/6 px-2.5 text-[10px] text-white/72 hover:bg-white/10 hover:text-white disabled:bg-white/4 disabled:text-white/25"
-                        >
-                          <FolderOpen className="mr-1.5 h-3 w-3" />
-                          {t('desk.apps.reveal')}
+                          {isLaunching ? <LoadingSpinner size="sm" /> : <Play className="mr-1.5 h-3 w-3" />}
+                          {t('desk.apps.launch')}
                         </Button>
                       </div>
 
-                      <div className="mt-2 rounded-[14px] border border-white/10 bg-white/[0.05] px-3 py-2">
-                        <p className="text-[10px] uppercase tracking-[0.08em] text-white/42">
-                          {app.installed ? t('desk.apps.detectedPath') : t('desk.apps.pathHint')}
-                        </p>
-                        <p className="mt-1 break-all font-mono text-[11px] text-white/72">
-                          {app.installedPath || app.candidatePaths[0] || t('desk.apps.noHint')}
-                        </p>
-                      </div>
-
-                      <div className="mt-2">
-                        <label className="mb-1.5 block text-[10px] uppercase tracking-[0.08em] text-white/42">
-                          {t('desk.apps.customPath')}
-                        </label>
-                        <div className="flex flex-col gap-2">
-                          <Input
-                            value={draftValue}
-                            onChange={(event) => onDraftChange(app.id, event.target.value)}
-                            placeholder={app.candidatePaths[0] || t('desk.apps.customPathPlaceholder')}
-                            className="h-8 border-white/10 bg-white/[0.03] text-[11px] text-white shadow-none placeholder:text-white/25"
-                          />
-                          <div className="flex items-center gap-1.5">
+                      {isFocused && (
+                        <div
+                          data-testid={`chat-market-app-inspector-${app.id}`}
+                          className="mt-2.5 rounded-[16px] border border-white/10 bg-black/[0.18] p-2.5"
+                        >
+                          <div className="flex flex-wrap items-center gap-1.5">
                             <Button
                               type="button"
                               size="sm"
                               variant="outline"
-                              data-testid={`chat-market-app-save-${app.id}`}
-                              disabled={isSaving}
-                              onClick={() => onSavePath(app.id)}
-                              className="h-8 rounded-[12px] border-white/12 bg-white/6 px-2.5 text-[11px] text-white/78 hover:bg-white/10 hover:text-white"
+                              data-testid={`chat-market-app-website-${app.id}`}
+                              onClick={() => onOpenExternal(app.websiteUrl)}
+                              className="h-7 rounded-[11px] border-white/12 bg-white/6 px-2.5 text-[10px] text-white/72 hover:bg-white/10 hover:text-white"
                             >
-                              {isSaving ? <LoadingSpinner size="sm" /> : null}
-                              {t('desk.apps.save')}
+                              <ExternalLink className="mr-1.5 h-3 w-3" />
+                              {t('desk.apps.website')}
                             </Button>
                             <Button
                               type="button"
                               size="sm"
-                              variant="ghost"
-                              data-testid={`chat-market-app-clear-${app.id}`}
-                              disabled={isSaving || !draftValue}
-                              onClick={() => onClearPath(app.id)}
-                              className="h-8 rounded-[12px] px-2.5 text-[11px] text-white/62 hover:bg-white/8 hover:text-white"
+                              variant="outline"
+                              data-testid={`chat-market-app-download-${app.id}`}
+                              onClick={() => onOpenExternal(app.downloadUrl)}
+                              className="h-7 rounded-[11px] border-white/12 bg-white/6 px-2.5 text-[10px] text-white/72 hover:bg-white/10 hover:text-white"
                             >
-                              {t('desk.apps.clear')}
+                              <Download className="mr-1.5 h-3 w-3" />
+                              {t('desk.apps.download')}
+                            </Button>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              data-testid={`chat-market-app-reveal-${app.id}`}
+                              disabled={!hasRevealTarget}
+                              onClick={() => onReveal(app)}
+                              className="h-7 rounded-[11px] border-white/12 bg-white/6 px-2.5 text-[10px] text-white/72 hover:bg-white/10 hover:text-white disabled:bg-white/4 disabled:text-white/25"
+                            >
+                              <FolderOpen className="mr-1.5 h-3 w-3" />
+                              {t('desk.apps.reveal')}
                             </Button>
                           </div>
+
+                          <div className="mt-2 rounded-[14px] border border-white/10 bg-white/[0.05] px-3 py-2">
+                            <p className="text-[10px] uppercase tracking-[0.08em] text-white/42">
+                              {app.installed ? t('desk.apps.detectedPath') : t('desk.apps.pathHint')}
+                            </p>
+                            <p className="mt-1 break-all font-mono text-[11px] text-white/72">
+                              {app.installedPath || app.candidatePaths[0] || t('desk.apps.noHint')}
+                            </p>
+                          </div>
+
+                          <div className="mt-2">
+                            <label className="mb-1.5 block text-[10px] uppercase tracking-[0.08em] text-white/42">
+                              {t('desk.apps.customPath')}
+                            </label>
+                            <div className="flex flex-col gap-2">
+                              <Input
+                                value={draftValue}
+                                onChange={(event) => onDraftChange(app.id, event.target.value)}
+                                placeholder={app.candidatePaths[0] || t('desk.apps.customPathPlaceholder')}
+                                className="h-8 border-white/10 bg-white/[0.03] text-[11px] text-white shadow-none placeholder:text-white/25"
+                              />
+                              <div className="flex items-center gap-1.5">
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="outline"
+                                  data-testid={`chat-market-app-save-${app.id}`}
+                                  disabled={isSaving}
+                                  onClick={() => onSavePath(app.id)}
+                                  className="h-8 rounded-[12px] border-white/12 bg-white/6 px-2.5 text-[11px] text-white/78 hover:bg-white/10 hover:text-white"
+                                >
+                                  {isSaving ? <LoadingSpinner size="sm" /> : null}
+                                  {t('desk.apps.save')}
+                                </Button>
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="ghost"
+                                  data-testid={`chat-market-app-clear-${app.id}`}
+                                  disabled={isSaving || !draftValue}
+                                  onClick={() => onClearPath(app.id)}
+                                  className="h-8 rounded-[12px] px-2.5 text-[11px] text-white/62 hover:bg-white/8 hover:text-white"
+                                >
+                                  {t('desk.apps.clear')}
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    </div>
-                  )}
-                </article>
-              );
-            })}
+                      )}
+                    </article>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         )}
       </div>
@@ -1306,6 +1378,7 @@ function EmbeddedMarketAppPane({
   onRegisterWebview,
   onOpenExternal,
   onLaunch,
+  onNavigate,
 }: {
   app: MarketAppDescriptor | null;
   state: BrowserTabState | null;
@@ -1319,10 +1392,12 @@ function EmbeddedMarketAppPane({
   onRegisterWebview: (tabId: string, webview: BrowserWebview | null) => void;
   onOpenExternal: (url: string) => void;
   onLaunch: (app: MarketAppDescriptor) => void;
+  onNavigate: (url: string, fallbackTitle: string) => void;
 }) {
   const { t } = useTranslation('chat');
   const hostname = state ? getBrowserHostname(state.url) : '';
   const interactionLabel = interactive ? t('desk.apps.interactiveOn') : t('desk.apps.readOnly');
+  const quickLinks = useMemo(() => (app ? buildMarketDeskLinks(app) : []), [app]);
 
   if (!app || !state) {
     return (
@@ -1366,7 +1441,7 @@ function EmbeddedMarketAppPane({
     >
       <div
         data-testid="chat-market-app-native-shell"
-        className="shrink-0 border-b border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] px-3 py-2"
+        className="shrink-0 border-b border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] px-3 py-1.5"
       >
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex min-w-0 items-center gap-2">
@@ -1438,7 +1513,7 @@ function EmbeddedMarketAppPane({
           </div>
         </div>
 
-        <div className="mt-2 flex flex-wrap items-center gap-1.5">
+        <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
           <div className="rounded-full border border-white/10 bg-white/6 px-2.5 py-1 text-[10px] font-medium text-white/72">
             {t('desk.apps.nativeShell')}
           </div>
@@ -1449,6 +1524,33 @@ function EmbeddedMarketAppPane({
             {interactionLabel}
           </div>
         </div>
+
+        {quickLinks.length > 0 && (
+          <div
+            data-testid="chat-market-app-command-strip"
+            className="mt-2 flex items-center gap-1.5 overflow-x-auto pb-0.5"
+          >
+            <div className="shrink-0 rounded-full border border-white/10 bg-white/6 px-2.5 py-1 text-[10px] font-medium text-white/55">
+              {t('desk.apps.quickDeck')}
+            </div>
+            {quickLinks.map((link) => (
+              <button
+                key={link.id}
+                type="button"
+                data-testid={`chat-market-app-command-${link.id}`}
+                onClick={() => onNavigate(link.url, link.label)}
+                className={cn(
+                  'shrink-0 rounded-full border px-2.5 py-1 text-[10px] transition-colors',
+                  state.url === normalizeBrowserUrl(link.url)
+                    ? 'border-emerald-400/35 bg-emerald-400/10 text-emerald-200'
+                    : 'border-white/10 bg-white/6 text-white/64 hover:bg-white/10 hover:text-white',
+                )}
+              >
+                {link.label}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       <div
@@ -2412,6 +2514,17 @@ export function ResearchDeskPanel({
                 }}
                 onLaunch={(app) => {
                   void handleLaunchApp(app);
+                }}
+                onNavigate={(url, fallbackTitle) => {
+                  const nextUrl = normalizeBrowserUrl(url);
+                  if (!embeddedMarketState) return;
+                  setEmbeddedMarketInteractive(false);
+                  updateEmbeddedMarketState(embeddedMarketState.id, {
+                    url: nextUrl,
+                    title: getBrowserTitleFallback(nextUrl, fallbackTitle),
+                    loading: true,
+                    error: null,
+                  });
                 }}
               />
             </section>
