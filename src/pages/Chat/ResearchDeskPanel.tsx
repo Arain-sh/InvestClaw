@@ -1379,6 +1379,8 @@ function EmbeddedMarketAppPane({
   onOpenExternal,
   onLaunch,
   onNavigate,
+  onSuggestPrompt,
+  currentAgentName,
 }: {
   app: MarketAppDescriptor | null;
   state: BrowserTabState | null;
@@ -1393,11 +1395,40 @@ function EmbeddedMarketAppPane({
   onOpenExternal: (url: string) => void;
   onLaunch: (app: MarketAppDescriptor) => void;
   onNavigate: (url: string, fallbackTitle: string) => void;
+  onSuggestPrompt?: (prompt: string) => void;
+  currentAgentName?: string | null;
 }) {
   const { t } = useTranslation('chat');
   const hostname = state ? getBrowserHostname(state.url) : '';
   const interactionLabel = interactive ? t('desk.apps.interactiveOn') : t('desk.apps.readOnly');
   const quickLinks = useMemo(() => (app ? buildMarketDeskLinks(app) : []), [app]);
+  const aiActions = useMemo(() => {
+    if (!app || !state) return [];
+    const promptHeader = `请基于当前终端 ${app.name}（来源：${hostname}，URL：${state.url}）辅助我完成分析。`;
+    const agentContext = currentAgentName ? `当前对话对象是 ${currentAgentName}。` : '';
+    return [
+      {
+        id: 'pulse',
+        label: t('desk.apps.aiPulse'),
+        prompt: `${promptHeader}${agentContext} 请先给我一份市场脉冲简报，包含当前关注点、关键催化剂、需要盯住的风险，以及接下来最值得继续追踪的三个方向。`,
+      },
+      {
+        id: 'earnings',
+        label: t('desk.apps.aiEarnings'),
+        prompt: `${promptHeader}${agentContext} 请从财报交易角度拆解这个标的/终端信息，输出核心基本面变化、指引、市场预期差，以及多空双方最关键的判断依据。`,
+      },
+      {
+        id: 'trade',
+        label: t('desk.apps.aiTrade'),
+        prompt: `${promptHeader}${agentContext} 请把当前信息整理成一份交易计划，包含方向假设、触发条件、仓位与风控、失效条件，以及还缺哪些确认信号。`,
+      },
+      {
+        id: 'risk',
+        label: t('desk.apps.aiRisk'),
+        prompt: `${promptHeader}${agentContext} 请做一份风险雷达，列出宏观、流动性、监管、情绪和个股层面的潜在风险，并按优先级排序。`,
+      },
+    ];
+  }, [app, state, hostname, currentAgentName, t]);
 
   if (!app || !state) {
     return (
@@ -1547,6 +1578,28 @@ function EmbeddedMarketAppPane({
                 )}
               >
                 {link.label}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {aiActions.length > 0 && (
+          <div
+            data-testid="chat-market-app-ai-deck"
+            className="mt-2 flex items-center gap-1.5 overflow-x-auto pb-0.5"
+          >
+            <div className="shrink-0 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-2.5 py-1 text-[10px] font-medium text-emerald-200">
+              {t('desk.apps.aiDeck')}
+            </div>
+            {aiActions.map((action) => (
+              <button
+                key={action.id}
+                type="button"
+                data-testid={`chat-market-app-ai-action-${action.id}`}
+                onClick={() => onSuggestPrompt?.(action.prompt)}
+                className="shrink-0 rounded-full border border-white/10 bg-white/6 px-2.5 py-1 text-[10px] text-white/68 transition-colors hover:bg-white/10 hover:text-white"
+              >
+                {action.label}
               </button>
             ))}
           </div>
@@ -1775,8 +1828,10 @@ function BrowserWebviewPane({
 
 export function ResearchDeskPanel({
   currentAgent,
+  onSuggestPrompt,
 }: {
   currentAgent: AgentSummary | null;
+  onSuggestPrompt?: (prompt: string) => void;
 }) {
   const { t } = useTranslation('chat');
   const browserWebviewsRef = useRef<Record<string, BrowserWebview | null>>({});
@@ -2526,6 +2581,8 @@ export function ResearchDeskPanel({
                     error: null,
                   });
                 }}
+                onSuggestPrompt={onSuggestPrompt}
+                currentAgentName={currentAgent?.name || 'Main Agent'}
               />
             </section>
           )}

@@ -395,6 +395,10 @@ export function Chat() {
               <div className="flex h-full min-h-0 w-full flex-col lg:w-[var(--chat-desk-width)]">
                 <ResearchDeskPanel
                   currentAgent={currentAgent}
+                  onSuggestPrompt={(prompt) => {
+                    setSuggestedPrompt(prompt);
+                    setSuggestedPromptNonce((value) => value + 1);
+                  }}
                 />
               </div>
             </div>

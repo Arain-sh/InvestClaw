@@ -133,9 +133,12 @@ test.describe('InvestClaw Electron smoke flows', () => {
     await expect(page.getByTestId('chat-market-app-embed-surface')).toBeVisible();
     await expect(page.getByTestId('chat-market-app-native-shell')).toBeVisible();
     await expect(page.getByTestId('chat-market-app-command-strip')).toBeVisible();
+    await expect(page.getByTestId('chat-market-app-ai-deck')).toBeVisible();
     await expect(page.getByTestId('chat-market-app-native-canvas')).toBeVisible();
     await expect(page.getByTestId('chat-market-app-embed-title')).toContainText('TradingView');
     await expect(page.getByTestId('chat-market-app-embedded-webview')).toHaveCount(1);
+    await page.getByTestId('chat-market-app-ai-action-pulse').click();
+    await expect(page.locator('textarea')).toHaveValue(/TradingView|市场脉冲|market pulse/i);
     await expect
       .poll(async () => {
         const [dockWidth, embedWidth] = await Promise.all([
@@ -153,7 +156,7 @@ test.describe('InvestClaw Electron smoke flows', () => {
         ]);
         return Math.round((canvasHeight / surfaceHeight) * 100);
       })
-      .toBeGreaterThan(67);
+      .toBeGreaterThan(63);
 
     await page.getByTestId('chat-desk-view-browser').click();
     await expect(page.getByTestId('chat-desk-browser-surface')).toBeVisible();
