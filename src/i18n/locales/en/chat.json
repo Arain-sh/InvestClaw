@@ -57,7 +57,7 @@
         },
         "apps": {
             "title": "Native Investment Apps",
-            "subtitle": "Detect, configure, and launch desktop market terminals from the middle column",
+            "subtitle": "Detect, configure, and embed market terminals directly inside the workspace, with desktop launch still available when needed",
             "refresh": "Refresh status",
             "launchPinned": "Launch pinned apps",
             "installed": "Detected",
@@ -67,7 +67,7 @@
             "noHint": "No built-in path hint for this platform",
             "launchMeta": "Launched {{count}} times · Last: {{time}}",
             "launch": "Launch",
-            "openInBrowser": "Open web view",
+            "openInBrowser": "Embed in desk",
             "website": "Website",
             "download": "Download",
             "reveal": "Reveal location",
@@ -75,7 +75,11 @@
             "customPathPlaceholder": "/Applications/YourMarketApp.app",
             "save": "Save path",
             "clear": "Clear",
-            "detectedCount": "{{count}} native terminals detected"
+            "detectedCount": "{{count}} native terminals detected",
+            "embedEmptyTitle": "Select an app to embed it directly in this workspace",
+            "embedEmptyBody": "Market apps with web entry points open inside the right-side canvas instead of jumping to another surface. You can still launch the desktop app from the card when you need the native terminal.",
+            "activate": "Click to interact with this app",
+            "activateBody": "The embedded app stays read-only by default so it does not steal clicks from the app list and the rest of the workspace. Activate it when you want to interact."
         },
         "browser": {
             "title": "Market browser",

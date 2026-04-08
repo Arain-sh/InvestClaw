@@ -57,7 +57,7 @@
         },
         "apps": {
             "title": "原生投资 App",
-            "subtitle": "发现、配置并启动你的桌面行情终端，把中间屏留给盯盘软件",
+            "subtitle": "发现、配置并在工作台里直接嵌入常用市场终端，需要时再启动桌面版",
             "refresh": "刷新状态",
             "launchPinned": "启动置顶终端",
             "installed": "已发现",
@@ -67,7 +67,7 @@
             "noHint": "当前平台没有预置路径提示",
             "launchMeta": "已启动 {{count}} 次 · 最近：{{time}}",
             "launch": "启动",
-            "openInBrowser": "打开网页端",
+            "openInBrowser": "嵌入工作台",
             "website": "官网",
             "download": "下载",
             "reveal": "显示位置",
@@ -75,7 +75,11 @@
             "customPathPlaceholder": "/Applications/YourMarketApp.app",
             "save": "保存路径",
             "clear": "清空",
-            "detectedCount": "已发现 {{count}} 个原生终端"
+            "detectedCount": "已发现 {{count}} 个原生终端",
+            "embedEmptyTitle": "选择一个 App，直接嵌入当前工作台",
+            "embedEmptyBody": "支持网页入口的市场终端会直接显示在右侧画布里，不再额外跳转。需要原生桌面版时，仍可从卡片中直接启动。",
+            "activate": "点击开始操作这个 App",
+            "activateBody": "为避免内嵌画布抢占左侧 App 列表和其他区域的点击，默认先以只读画布显示。需要交互时，再点这里进入操作模式。"
         },
         "browser": {
             "title": "市场浏览器",

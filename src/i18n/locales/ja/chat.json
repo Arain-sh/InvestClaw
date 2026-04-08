@@ -57,7 +57,7 @@
         },
         "apps": {
             "title": "ネイティブ投資 App",
-            "subtitle": "中央カラムからデスクトップの相場端末を検出・設定・起動します",
+            "subtitle": "相場端末を検出・設定し、必要に応じてデスクトップ版を起動しつつ、普段はワークスペース内に直接埋め込みます",
             "refresh": "状態を更新",
             "launchPinned": "ピン留め App を起動",
             "installed": "検出済み",
@@ -67,7 +67,7 @@
             "noHint": "このプラットフォーム向けの候補パスはありません",
             "launchMeta": "{{count}} 回起動 · 最終: {{time}}",
             "launch": "起動",
-            "openInBrowser": "Web を開く",
+            "openInBrowser": "ワークスペースに埋め込む",
             "website": "サイト",
             "download": "ダウンロード",
             "reveal": "場所を表示",
@@ -75,7 +75,11 @@
             "customPathPlaceholder": "/Applications/YourMarketApp.app",
             "save": "パスを保存",
             "clear": "クリア",
-            "detectedCount": "検出済みネイティブ端末: {{count}}"
+            "detectedCount": "検出済みネイティブ端末: {{count}}",
+            "embedEmptyTitle": "App を選ぶと、このワークスペースに直接埋め込めます",
+            "embedEmptyBody": "Web 入口を持つ相場 App は、別画面へ移動せず右側キャンバス内でそのまま表示されます。ネイティブ版が必要な場合は、カードからデスクトップ App を起動できます。",
+            "activate": "この App の操作を開始",
+            "activateBody": "埋め込み画面が App リストや他の領域のクリックを奪わないよう、既定では読み取り専用で表示します。操作したいときに有効化してください。"
         },
         "browser": {
             "title": "マーケットブラウザ",

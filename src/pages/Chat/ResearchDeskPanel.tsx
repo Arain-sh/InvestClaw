@@ -946,6 +946,7 @@ function NativeAppsDock({
   onOpenExternal,
   onReveal,
   onLaunchPinned,
+  activeEmbeddedAppId,
   embedded = false,
 }: {
   apps: MarketAppDescriptor[];
@@ -964,6 +965,7 @@ function NativeAppsDock({
   onOpenExternal: (url: string) => void;
   onReveal: (app: MarketAppDescriptor) => void;
   onLaunchPinned: () => void;
+  activeEmbeddedAppId: string | null;
   embedded?: boolean;
 }) {
   const { t } = useTranslation('chat');
@@ -1032,9 +1034,11 @@ function NativeAppsDock({
                   data-testid={`chat-market-app-card-${app.id}`}
                   className={cn(
                     'rounded-[22px] border px-4 py-4 shadow-sm transition-colors',
-                    app.installed
-                      ? 'border-emerald-200/70 bg-white/90 dark:border-emerald-500/20 dark:bg-black/15'
-                      : 'border-black/10 bg-white/75 dark:border-white/10 dark:bg-black/10',
+                    app.id === activeEmbeddedAppId
+                      ? 'border-emerald-400/70 bg-emerald-50/80 ring-1 ring-emerald-300/60 dark:border-emerald-400/30 dark:bg-emerald-500/10 dark:ring-emerald-500/20'
+                      : app.installed
+                        ? 'border-emerald-200/70 bg-white/90 dark:border-emerald-500/20 dark:bg-black/15'
+                        : 'border-black/10 bg-white/75 dark:border-white/10 dark:bg-black/10',
                   )}
                 >
                   <div className="flex items-start justify-between gap-3">
@@ -1096,18 +1100,6 @@ function NativeAppsDock({
                     <Button
                       type="button"
                       size="sm"
-                      data-testid={`chat-market-app-launch-${app.id}`}
-                      disabled={!app.platformSupported || !app.installed || isLaunching}
-                      onClick={() => onLaunch(app)}
-                      className="h-9 rounded-full px-3 text-[12px]"
-                    >
-                      {isLaunching ? <LoadingSpinner size="sm" /> : <Play className="mr-2 h-3.5 w-3.5" />}
-                      {t('desk.apps.launch')}
-                    </Button>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="outline"
                       data-testid={`chat-market-app-browser-${app.id}`}
                       onMouseDown={(event) => {
                         if (event.button !== 0) return;
@@ -1119,6 +1111,18 @@ function NativeAppsDock({
                     >
                       <Globe className="mr-2 h-3.5 w-3.5" />
                       {t('desk.apps.openInBrowser')}
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      data-testid={`chat-market-app-launch-${app.id}`}
+                      disabled={!app.platformSupported || !app.installed || isLaunching}
+                      onClick={() => onLaunch(app)}
+                      className="h-9 rounded-full px-3 text-[12px]"
+                    >
+                      {isLaunching ? <LoadingSpinner size="sm" /> : <Play className="mr-2 h-3.5 w-3.5" />}
+                      {t('desk.apps.launch')}
                     </Button>
                     <Button
                       type="button"
@@ -1204,11 +1208,217 @@ function NativeAppsDock({
   );
 }
 
+function EmbeddedMarketAppPane({
+  app,
+  state,
+  interactive,
+  surfaceRef,
+  onSetInteractive,
+  onGoBack,
+  onGoForward,
+  onReload,
+  onStateChange,
+  onRegisterWebview,
+  onOpenExternal,
+  onLaunch,
+}: {
+  app: MarketAppDescriptor | null;
+  state: BrowserTabState | null;
+  interactive: boolean;
+  surfaceRef: React.RefObject<HTMLDivElement | null>;
+  onSetInteractive: (nextValue: boolean) => void;
+  onGoBack: () => void;
+  onGoForward: () => void;
+  onReload: () => void;
+  onStateChange: (tabId: string, patch: Partial<BrowserTabState>) => void;
+  onRegisterWebview: (tabId: string, webview: BrowserWebview | null) => void;
+  onOpenExternal: (url: string) => void;
+  onLaunch: (app: MarketAppDescriptor) => void;
+}) {
+  const { t } = useTranslation('chat');
+
+  if (!app || !state) {
+    return (
+      <section
+        data-testid="chat-market-app-embed-surface"
+        className="flex min-h-0 flex-col overflow-hidden rounded-[24px] border border-black/10 bg-[#f9f6ec] dark:border-white/10 dark:bg-white/5"
+      >
+        <div className="flex min-h-0 flex-1 items-center justify-center p-5">
+          <div
+            data-testid="chat-market-app-embed-empty"
+            className="max-w-md rounded-[24px] border border-dashed border-black/10 bg-white/70 px-6 py-7 text-center dark:border-white/10 dark:bg-black/10"
+          >
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-black/5 text-foreground/55 dark:bg-white/10">
+              <Monitor className="h-6 w-6" />
+            </div>
+            <p className="mt-4 text-[15px] font-semibold text-foreground">{t('desk.apps.embedEmptyTitle')}</p>
+            <p className="mt-2 text-[13px] leading-6 text-foreground/65">{t('desk.apps.embedEmptyBody')}</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section
+      data-testid="chat-market-app-embed-surface"
+      className="flex min-h-0 flex-col overflow-hidden rounded-[24px] border border-black/10 bg-[#f9f6ec] dark:border-white/10 dark:bg-white/5"
+    >
+      <div className="shrink-0 border-b border-black/10 px-3 py-3 dark:border-white/10">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-2xl bg-black/5 text-foreground/70 dark:bg-white/10">
+                {getMarketAppIcon(app)}
+              </span>
+              <div className="min-w-0">
+                <p data-testid="chat-market-app-embed-title" className="truncate text-[15px] font-semibold text-foreground">
+                  {app.name}
+                </p>
+                <p className="truncate text-[12px] text-foreground/55">{app.vendor}</p>
+              </div>
+            </div>
+            <p className="mt-3 text-[12px] leading-5 text-foreground/65">{app.description}</p>
+          </div>
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            {app.installed && (
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                className="h-9 rounded-full px-3 text-[12px]"
+                onClick={() => onLaunch(app)}
+              >
+                <Play className="mr-2 h-3.5 w-3.5" />
+                {t('desk.apps.launch')}
+              </Button>
+            )}
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              className="h-9 rounded-full px-3 text-[12px]"
+              onClick={() => onOpenExternal(app.websiteUrl)}
+            >
+              <ExternalLink className="mr-2 h-3.5 w-3.5" />
+              {t('desk.browser.openExternal')}
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      <div className="shrink-0 border-b border-black/10 px-3 py-2 dark:border-white/10">
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={onGoBack}
+            disabled={!state.canGoBack}
+            className="h-8 rounded-full border-black/10 bg-white/80 px-3 text-[12px] dark:border-white/10 dark:bg-white/5"
+          >
+            {t('desk.browser.back')}
+          </Button>
+          <Button
+            variant="outline"
+            onClick={onGoForward}
+            disabled={!state.canGoForward}
+            className="h-8 rounded-full border-black/10 bg-white/80 px-3 text-[12px] dark:border-white/10 dark:bg-white/5"
+          >
+            {t('desk.browser.forward')}
+          </Button>
+          <Button
+            variant="outline"
+            onClick={onReload}
+            className="h-8 rounded-full border-black/10 bg-white/80 px-3 text-[12px] dark:border-white/10 dark:bg-white/5"
+          >
+            <RefreshCw className={cn('mr-2 h-3.5 w-3.5', state.loading && 'animate-spin')} />
+            {t('desk.browser.reload')}
+          </Button>
+          <div className="min-w-[240px] flex-1 rounded-2xl border border-black/10 bg-white/80 px-4 py-2 font-mono text-[12px] text-foreground/65 dark:border-white/10 dark:bg-black/10">
+            <span className="block truncate">{state.url}</span>
+          </div>
+        </div>
+      </div>
+
+      <div
+        ref={surfaceRef}
+        className="relative min-h-0 flex-1 overflow-hidden bg-white/80 dark:bg-black/10"
+      >
+        <BrowserWebviewPane
+          tab={state}
+          active
+          interactive={interactive}
+          fallbackTitle={app.name}
+          testId="chat-market-app-embedded-webview"
+          partition="persist:investclaw-market-apps"
+          onStateChange={onStateChange}
+          onRegisterWebview={onRegisterWebview}
+        />
+
+        {!state.error && !interactive && (
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-gradient-to-b from-[#f9f6ec]/12 via-transparent to-[#f9f6ec]/26 p-5 dark:from-black/5 dark:to-black/30">
+            <button
+              type="button"
+              data-testid="chat-market-app-activate"
+              onClick={() => onSetInteractive(true)}
+              className="max-w-sm rounded-[22px] border border-black/10 bg-white/92 px-5 py-4 text-center shadow-lg transition-transform hover:-translate-y-0.5 dark:border-white/10 dark:bg-card/92"
+            >
+              <p className="text-[14px] font-semibold text-foreground">{t('desk.apps.activate')}</p>
+              <p className="mt-2 text-[12px] leading-6 text-foreground/65">{t('desk.apps.activateBody')}</p>
+            </button>
+          </div>
+        )}
+
+        {state.error && (
+          <div
+            data-testid="chat-market-app-embed-error"
+            className="absolute inset-0 z-10 flex items-center justify-center bg-[#f9f6ec]/96 p-5 dark:bg-black/90"
+          >
+            <div className="w-full max-w-md rounded-[24px] border border-black/10 bg-white/90 p-5 shadow-xl dark:border-white/10 dark:bg-card">
+              <div className="flex items-start gap-3">
+                <div className="mt-0.5 rounded-full bg-destructive/10 p-2 text-destructive">
+                  <AlertCircle className="h-4 w-4" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[15px] font-semibold text-foreground">{t('desk.browser.loadFailedTitle')}</p>
+                  <p className="mt-1 text-[13px] leading-6 text-foreground/70">{t('desk.browser.loadFailedBody')}</p>
+                  <p className="mt-3 break-all rounded-2xl border border-black/10 bg-black/[0.03] px-3 py-2 font-mono text-[12px] text-foreground/70 dark:border-white/10 dark:bg-white/[0.04]">
+                    {state.error.url}
+                  </p>
+                  <p className="mt-2 text-[12px] text-foreground/55">{state.error.description}</p>
+                </div>
+              </div>
+              <div className="mt-4 flex flex-wrap items-center gap-2">
+                <Button
+                  className="h-9 rounded-full px-4 text-[12px]"
+                  onClick={onReload}
+                >
+                  <RefreshCw className="mr-2 h-3.5 w-3.5" />
+                  {t('desk.browser.retry')}
+                </Button>
+                <Button
+                  variant="outline"
+                  className="h-9 rounded-full px-4 text-[12px]"
+                  onClick={() => onOpenExternal(state.error?.url || state.url)}
+                >
+                  <ExternalLink className="mr-2 h-3.5 w-3.5" />
+                  {t('desk.browser.openExternal')}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
 function BrowserWebviewPane({
   tab,
   active,
   interactive,
   fallbackTitle,
+  testId = 'chat-desk-browser-webview',
+  partition = 'persist:investclaw-browser',
   onStateChange,
   onRegisterWebview,
 }: {
@@ -1216,6 +1426,8 @@ function BrowserWebviewPane({
   active: boolean;
   interactive: boolean;
   fallbackTitle: string;
+  testId?: string;
+  partition?: string;
   onStateChange: (tabId: string, patch: Partial<BrowserTabState>) => void;
   onRegisterWebview: (tabId: string, webview: BrowserWebview | null) => void;
 }) {
@@ -1318,10 +1530,10 @@ function BrowserWebviewPane({
       ref={(node) => {
         webviewRef.current = node as BrowserWebview | null;
       }}
-      data-testid={active ? 'chat-desk-browser-webview' : undefined}
+      data-testid={active ? testId : undefined}
       src={tab.url}
       allowpopups={true}
-      partition="persist:investclaw-browser"
+      partition={partition}
       className={cn(
         'absolute inset-0 h-full w-full',
         active && interactive ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-100',
@@ -1338,6 +1550,8 @@ export function ResearchDeskPanel({
   const { t } = useTranslation('chat');
   const browserWebviewsRef = useRef<Record<string, BrowserWebview | null>>({});
   const browserSurfaceRef = useRef<HTMLDivElement | null>(null);
+  const embeddedMarketWebviewRef = useRef<BrowserWebview | null>(null);
+  const embeddedMarketSurfaceRef = useRef<HTMLDivElement | null>(null);
   const [workspaceListings, setWorkspaceListings] = useState<WorkspaceListingMap>({});
   const [workspacePreview, setWorkspacePreview] = useState<AgentWorkspaceFilePreview | null>(null);
   const [workspaceLoading, setWorkspaceLoading] = useState(false);
@@ -1361,9 +1575,13 @@ export function ResearchDeskPanel({
   const [marketAppDrafts, setMarketAppDrafts] = useState<Record<string, string>>({});
   const [savingAppIds, setSavingAppIds] = useState<Record<string, boolean>>({});
   const [launchingAppIds, setLaunchingAppIds] = useState<Record<string, boolean>>({});
+  const [activeEmbeddedMarketAppId, setActiveEmbeddedMarketAppId] = useState<string | null>(null);
+  const [embeddedMarketState, setEmbeddedMarketState] = useState<BrowserTabState | null>(null);
+  const [embeddedMarketInteractive, setEmbeddedMarketInteractive] = useState(false);
 
   const rootListing = workspaceListings[ROOT_WORKSPACE_PATH] || null;
   const activeBrowserTab = browserTabs.find((tab) => tab.id === activeBrowserTabId) || browserTabs[0];
+  const activeEmbeddedMarketApp = marketApps.find((app) => app.id === activeEmbeddedMarketAppId) || null;
 
   const updateBrowserTab = useCallback((tabId: string, patch: Partial<BrowserTabState>) => {
     setBrowserTabs((current) => current.map((tab) => (tab.id === tabId ? { ...tab, ...patch } : tab)));
@@ -1371,6 +1589,28 @@ export function ResearchDeskPanel({
 
   const registerBrowserWebview = useCallback((tabId: string, webview: BrowserWebview | null) => {
     browserWebviewsRef.current[tabId] = webview;
+  }, []);
+
+  const updateEmbeddedMarketState = useCallback((tabId: string, patch: Partial<BrowserTabState>) => {
+    setEmbeddedMarketState((current) => {
+      if (!current || current.id !== tabId) return current;
+      const next = { ...current, ...patch };
+      const unchanged = (
+        next.url === current.url
+        && next.title === current.title
+        && next.loading === current.loading
+        && next.canGoBack === current.canGoBack
+        && next.canGoForward === current.canGoForward
+        && next.error?.code === current.error?.code
+        && next.error?.description === current.error?.description
+        && next.error?.url === current.error?.url
+      );
+      return unchanged ? current : next;
+    });
+  }, []);
+
+  const registerEmbeddedMarketWebview = useCallback((_tabId: string, webview: BrowserWebview | null) => {
+    embeddedMarketWebviewRef.current = webview;
   }, []);
 
   const replaceMarketApp = useCallback((nextApp: MarketAppDescriptor) => {
@@ -1508,6 +1748,30 @@ export function ResearchDeskPanel({
       document.removeEventListener('pointerdown', handlePointerDown, true);
     };
   }, [browserInteractive]);
+
+  useEffect(() => {
+    if (!embeddedMarketInteractive) return;
+
+    const handlePointerDown = (event: PointerEvent) => {
+      const marketSurface = embeddedMarketSurfaceRef.current;
+      if (!marketSurface) return;
+      if (marketSurface.contains(event.target as Node)) return;
+      setEmbeddedMarketInteractive(false);
+    };
+
+    document.addEventListener('pointerdown', handlePointerDown, true);
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown, true);
+    };
+  }, [embeddedMarketInteractive]);
+
+  useEffect(() => {
+    if (!activeEmbeddedMarketAppId) return;
+    if (marketApps.some((app) => app.id === activeEmbeddedMarketAppId)) return;
+    setActiveEmbeddedMarketAppId(null);
+    setEmbeddedMarketState(null);
+    setEmbeddedMarketInteractive(false);
+  }, [activeEmbeddedMarketAppId, marketApps]);
 
   const handleOpenWorkspaceFile = async (entry: AgentWorkspaceEntry) => {
     if (!currentAgent) return;
@@ -1720,6 +1984,58 @@ export function ResearchDeskPanel({
     }
   }, [replaceMarketApp]);
 
+  const handleEmbedMarketApp = useCallback((app: MarketAppDescriptor) => {
+    const nextUrl = normalizeBrowserUrl(app.browserUrl);
+    setActiveDeskView('apps');
+    setActiveEmbeddedMarketAppId(app.id);
+    setEmbeddedMarketState({
+      id: app.id,
+      url: nextUrl,
+      title: app.name,
+      loading: true,
+      canGoBack: false,
+      canGoForward: false,
+      error: null,
+    });
+    setEmbeddedMarketInteractive(false);
+  }, []);
+
+  const syncEmbeddedMarketNavigation = useCallback(() => {
+    const webview = embeddedMarketWebviewRef.current;
+    if (!webview || !embeddedMarketState) return;
+
+    updateEmbeddedMarketState(embeddedMarketState.id, {
+      canGoBack: safeCanGoBack(webview),
+      canGoForward: safeCanGoForward(webview),
+      url: safeGetBrowserUrl(webview) || embeddedMarketState.url,
+    });
+  }, [embeddedMarketState, updateEmbeddedMarketState]);
+
+  useEffect(() => {
+    syncEmbeddedMarketNavigation();
+  }, [syncEmbeddedMarketNavigation]);
+
+  const handleEmbeddedMarketGoBack = useCallback(() => {
+    const webview = embeddedMarketWebviewRef.current;
+    if (!webview || !embeddedMarketState) return;
+    webview.goBack();
+    syncEmbeddedMarketNavigation();
+  }, [embeddedMarketState, syncEmbeddedMarketNavigation]);
+
+  const handleEmbeddedMarketGoForward = useCallback(() => {
+    const webview = embeddedMarketWebviewRef.current;
+    if (!webview || !embeddedMarketState) return;
+    webview.goForward();
+    syncEmbeddedMarketNavigation();
+  }, [embeddedMarketState, syncEmbeddedMarketNavigation]);
+
+  const handleEmbeddedMarketReload = useCallback(() => {
+    const webview = embeddedMarketWebviewRef.current;
+    if (!webview || !embeddedMarketState) return;
+    updateEmbeddedMarketState(embeddedMarketState.id, { loading: true, error: null });
+    webview.reload();
+  }, [embeddedMarketState, updateEmbeddedMarketState]);
+
   const handleLaunchPinnedApps = useCallback(async () => {
     for (const app of marketApps.filter((item) => item.pinned && item.installed)) {
       // eslint-disable-next-line no-await-in-loop
@@ -1914,43 +2230,65 @@ export function ResearchDeskPanel({
           )}
 
           {activeDeskView === 'apps' && (
-            <NativeAppsDock
-              embedded
-              apps={marketApps}
-              loading={marketAppsLoading}
-              error={marketAppsError}
-              drafts={marketAppDrafts}
-              savingAppIds={savingAppIds}
-              launchingAppIds={launchingAppIds}
-              onRefresh={() => void loadMarketApps()}
-              onDraftChange={(appId, nextValue) => {
-                setMarketAppDrafts((current) => ({ ...current, [appId]: nextValue }));
-              }}
-              onSavePath={(appId) => {
-                void handleSaveAppPath(appId);
-              }}
-              onClearPath={(appId) => {
-                void handleClearAppPath(appId);
-              }}
-              onTogglePinned={(app) => {
-                void handleTogglePinned(app);
-              }}
-              onLaunch={(app) => {
-                void handleLaunchApp(app);
-              }}
-              onOpenBrowser={(app) => {
-                navigateBrowserTo(app.browserUrl, app.name);
-              }}
-              onOpenExternal={(url) => {
-                void handleOpenExternalUrl(url);
-              }}
-              onReveal={(app) => {
-                void handleRevealApp(app);
-              }}
-              onLaunchPinned={() => {
-                void handleLaunchPinnedApps();
-              }}
-            />
+            <section className="grid h-full min-h-0 gap-3 md:grid-cols-[minmax(280px,0.82fr)_minmax(0,1.18fr)]">
+              <NativeAppsDock
+                embedded
+                apps={marketApps}
+                loading={marketAppsLoading}
+                error={marketAppsError}
+                drafts={marketAppDrafts}
+                savingAppIds={savingAppIds}
+                launchingAppIds={launchingAppIds}
+                activeEmbeddedAppId={activeEmbeddedMarketAppId}
+                onRefresh={() => void loadMarketApps()}
+                onDraftChange={(appId, nextValue) => {
+                  setMarketAppDrafts((current) => ({ ...current, [appId]: nextValue }));
+                }}
+                onSavePath={(appId) => {
+                  void handleSaveAppPath(appId);
+                }}
+                onClearPath={(appId) => {
+                  void handleClearAppPath(appId);
+                }}
+                onTogglePinned={(app) => {
+                  void handleTogglePinned(app);
+                }}
+                onLaunch={(app) => {
+                  void handleLaunchApp(app);
+                }}
+                onOpenBrowser={(app) => {
+                  handleEmbedMarketApp(app);
+                }}
+                onOpenExternal={(url) => {
+                  void handleOpenExternalUrl(url);
+                }}
+                onReveal={(app) => {
+                  void handleRevealApp(app);
+                }}
+                onLaunchPinned={() => {
+                  void handleLaunchPinnedApps();
+                }}
+              />
+
+              <EmbeddedMarketAppPane
+                app={activeEmbeddedMarketApp}
+                state={embeddedMarketState}
+                interactive={embeddedMarketInteractive}
+                surfaceRef={embeddedMarketSurfaceRef}
+                onSetInteractive={setEmbeddedMarketInteractive}
+                onGoBack={handleEmbeddedMarketGoBack}
+                onGoForward={handleEmbeddedMarketGoForward}
+                onReload={handleEmbeddedMarketReload}
+                onStateChange={updateEmbeddedMarketState}
+                onRegisterWebview={registerEmbeddedMarketWebview}
+                onOpenExternal={(url) => {
+                  void handleOpenExternalUrl(url);
+                }}
+                onLaunch={(app) => {
+                  void handleLaunchApp(app);
+                }}
+              />
+            </section>
           )}
 
           {activeDeskView === 'browser' && (
