@@ -2,7 +2,10 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import * as ReactJsxRuntime from 'react/jsx-runtime';
 import {
   AlertCircle,
+  BarChart3,
+  Building2,
   ChevronRight,
+  Download,
   ExternalLink,
   FileCode2,
   FileImage,
@@ -10,19 +13,25 @@ import {
   Folder,
   FolderOpen,
   Globe,
+  Monitor,
+  Pin,
+  PinOff,
+  Play,
   Plus,
   RefreshCw,
+  Rocket,
   Search,
+  TrendingUp,
   X,
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { hostApiFetch } from '@/lib/host-api';
 import { invokeIpc } from '@/lib/api-client';
 import type { AgentSummary, AgentWorkspaceEntry, AgentWorkspaceFilePreview, AgentWorkspaceListing } from '@/types/agent';
+import type { MarketAppDescriptor, MarketAppsSnapshot } from '@/types/market-app';
 import { cn } from '@/lib/utils';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -275,6 +284,12 @@ function buildWorkspacePreviewPath(agentId: string, relativePath: string): strin
   return `/api/agents/${encodeURIComponent(agentId)}/workspace/file?${query.toString()}`;
 }
 
+function buildMarketAppsPath(appId?: string, action?: string): string {
+  if (!appId) return '/api/market-apps';
+  if (!action) return `/api/market-apps/${encodeURIComponent(appId)}`;
+  return `/api/market-apps/${encodeURIComponent(appId)}/${action}`;
+}
+
 function normalizeBrowserUrl(input: string): string {
   const trimmed = input.trim();
   if (!trimmed) return DEFAULT_BROWSER_URL;
@@ -342,6 +357,20 @@ function safeCanGoForward(webview: BrowserWebview): boolean {
     return webview.canGoForward();
   } catch {
     return false;
+  }
+}
+
+function getMarketAppIcon(app: MarketAppDescriptor) {
+  switch (app.category) {
+    case 'broker':
+      return <Building2 className="h-4 w-4" />;
+    case 'terminal':
+      return <Monitor className="h-4 w-4" />;
+    case 'charting':
+      return <TrendingUp className="h-4 w-4" />;
+    case 'research':
+    default:
+      return <BarChart3 className="h-4 w-4" />;
   }
 }
 
@@ -899,15 +928,285 @@ function WorkspaceTree({
   );
 }
 
+function NativeAppsDock({
+  apps,
+  loading,
+  error,
+  drafts,
+  savingAppIds,
+  launchingAppIds,
+  onRefresh,
+  onDraftChange,
+  onSavePath,
+  onClearPath,
+  onTogglePinned,
+  onLaunch,
+  onOpenBrowser,
+  onOpenExternal,
+  onReveal,
+  onLaunchPinned,
+}: {
+  apps: MarketAppDescriptor[];
+  loading: boolean;
+  error: string | null;
+  drafts: Record<string, string>;
+  savingAppIds: Record<string, boolean>;
+  launchingAppIds: Record<string, boolean>;
+  onRefresh: () => void;
+  onDraftChange: (appId: string, nextValue: string) => void;
+  onSavePath: (appId: string) => void;
+  onClearPath: (appId: string) => void;
+  onTogglePinned: (app: MarketAppDescriptor) => void;
+  onLaunch: (app: MarketAppDescriptor) => void;
+  onOpenBrowser: (app: MarketAppDescriptor) => void;
+  onOpenExternal: (url: string) => void;
+  onReveal: (app: MarketAppDescriptor) => void;
+  onLaunchPinned: () => void;
+}) {
+  const { t } = useTranslation('chat');
+  const pinnedApps = apps.filter((app) => app.pinned);
+
+  return (
+    <section
+      data-testid="chat-market-apps-surface"
+      className="flex min-h-0 flex-col overflow-hidden rounded-[26px] border border-black/10 bg-[#f9f6ec] dark:border-white/10 dark:bg-white/5"
+    >
+      <div className="shrink-0 border-b border-black/10 p-3 dark:border-white/10">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <p className="text-[15px] font-semibold text-foreground">{t('desk.apps.title')}</p>
+            <p className="text-[12px] text-foreground/60">{t('desk.apps.subtitle')}</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              onClick={onLaunchPinned}
+              disabled={loading || pinnedApps.length === 0}
+              className="h-8 rounded-full border-black/10 bg-white/80 px-3 text-[12px] dark:border-white/10 dark:bg-white/5"
+            >
+              <Rocket className="mr-2 h-3.5 w-3.5" />
+              {t('desk.apps.launchPinned')}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={onRefresh}
+              className="h-8 rounded-full border-black/10 bg-white/80 px-3 text-[12px] dark:border-white/10 dark:bg-white/5"
+            >
+              <RefreshCw className="mr-2 h-3.5 w-3.5" />
+              {t('desk.apps.refresh')}
+            </Button>
+          </div>
+        </div>
+
+        {error && (
+          <div className="mt-3 rounded-2xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-[12px] text-destructive">
+            {error}
+          </div>
+        )}
+      </div>
+
+      <div className="min-h-0 flex-1 overflow-y-auto p-3">
+        {loading ? (
+          <div className="flex h-full min-h-0 items-center justify-center">
+            <LoadingSpinner size="md" />
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {apps.map((app) => {
+              const draftValue = drafts[app.id] ?? app.customPath;
+              const isSaving = !!savingAppIds[app.id];
+              const isLaunching = !!launchingAppIds[app.id];
+              const hasRevealTarget = Boolean(app.installedPath);
+
+              return (
+                <article
+                  key={app.id}
+                  data-testid={`chat-market-app-card-${app.id}`}
+                  className={cn(
+                    'rounded-[22px] border px-4 py-4 shadow-sm transition-colors',
+                    app.installed
+                      ? 'border-emerald-200/70 bg-white/90 dark:border-emerald-500/20 dark:bg-black/15'
+                      : 'border-black/10 bg-white/75 dark:border-white/10 dark:bg-black/10',
+                  )}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-2xl bg-black/5 text-foreground/70 dark:bg-white/10">
+                          {getMarketAppIcon(app)}
+                        </span>
+                        <div className="min-w-0">
+                          <p className="truncate text-[14px] font-semibold text-foreground">{app.name}</p>
+                          <p className="truncate text-[12px] text-foreground/55">{app.vendor}</p>
+                        </div>
+                      </div>
+                      <p className="mt-3 text-[12px] leading-5 text-foreground/65">{app.description}</p>
+                    </div>
+
+                    <div className="flex shrink-0 items-center gap-2">
+                      <span
+                        className={cn(
+                          'rounded-full px-2.5 py-1 text-[11px] font-medium',
+                          app.installed
+                            ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
+                            : 'bg-amber-500/10 text-amber-700 dark:text-amber-300',
+                        )}
+                      >
+                        {app.installed ? t('desk.apps.installed') : t('desk.apps.missing')}
+                      </span>
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="ghost"
+                        data-testid={`chat-market-app-pin-${app.id}`}
+                        className="h-8 w-8 rounded-full"
+                        onClick={() => onTogglePinned(app)}
+                      >
+                        {app.pinned ? <Pin className="h-4 w-4" /> : <PinOff className="h-4 w-4" />}
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="mt-3 rounded-2xl border border-black/10 bg-black/[0.025] px-3 py-2.5 dark:border-white/10 dark:bg-white/[0.04]">
+                    <p className="text-[11px] uppercase tracking-[0.08em] text-foreground/45">
+                      {app.installed ? t('desk.apps.detectedPath') : t('desk.apps.pathHint')}
+                    </p>
+                    <p className="mt-1 break-all font-mono text-[12px] text-foreground/70">
+                      {app.installedPath || app.candidatePaths[0] || t('desk.apps.noHint')}
+                    </p>
+                    {(app.launchCount > 0 || app.lastLaunchedAt) && (
+                      <p className="mt-2 text-[11px] text-foreground/50">
+                        {t('desk.apps.launchMeta', {
+                          count: app.launchCount,
+                          time: app.lastLaunchedAt ? formatTimestamp(app.lastLaunchedAt) : '-',
+                        })}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      data-testid={`chat-market-app-launch-${app.id}`}
+                      disabled={!app.platformSupported || !app.installed || isLaunching}
+                      onClick={() => onLaunch(app)}
+                      className="h-9 rounded-full px-3 text-[12px]"
+                    >
+                      {isLaunching ? <LoadingSpinner size="sm" /> : <Play className="mr-2 h-3.5 w-3.5" />}
+                      {t('desk.apps.launch')}
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      data-testid={`chat-market-app-browser-${app.id}`}
+                      onMouseDown={(event) => {
+                        if (event.button !== 0) return;
+                        event.preventDefault();
+                        onOpenBrowser(app);
+                      }}
+                      onClick={() => onOpenBrowser(app)}
+                      className="h-9 rounded-full px-3 text-[12px]"
+                    >
+                      <Globe className="mr-2 h-3.5 w-3.5" />
+                      {t('desk.apps.openInBrowser')}
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      data-testid={`chat-market-app-website-${app.id}`}
+                      onClick={() => onOpenExternal(app.websiteUrl)}
+                      className="h-9 rounded-full px-3 text-[12px]"
+                    >
+                      <ExternalLink className="mr-2 h-3.5 w-3.5" />
+                      {t('desk.apps.website')}
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      data-testid={`chat-market-app-download-${app.id}`}
+                      onClick={() => onOpenExternal(app.downloadUrl)}
+                      className="h-9 rounded-full px-3 text-[12px]"
+                    >
+                      <Download className="mr-2 h-3.5 w-3.5" />
+                      {t('desk.apps.download')}
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      data-testid={`chat-market-app-reveal-${app.id}`}
+                      disabled={!hasRevealTarget}
+                      onClick={() => onReveal(app)}
+                      className="h-9 rounded-full px-3 text-[12px]"
+                    >
+                      <FolderOpen className="mr-2 h-3.5 w-3.5" />
+                      {t('desk.apps.reveal')}
+                    </Button>
+                  </div>
+
+                  <div className="mt-3 rounded-2xl border border-black/10 bg-white/80 p-2.5 dark:border-white/10 dark:bg-black/10">
+                    <label className="mb-2 block text-[11px] uppercase tracking-[0.08em] text-foreground/45">
+                      {t('desk.apps.customPath')}
+                    </label>
+                    <div className="flex flex-col gap-2 sm:flex-row">
+                      <Input
+                        value={draftValue}
+                        onChange={(event) => onDraftChange(app.id, event.target.value)}
+                        placeholder={app.candidatePaths[0] || t('desk.apps.customPathPlaceholder')}
+                        className="h-9 flex-1 border-black/10 bg-transparent text-[12px] shadow-none"
+                      />
+                      <div className="flex items-center gap-2">
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          data-testid={`chat-market-app-save-${app.id}`}
+                          disabled={isSaving}
+                          onClick={() => onSavePath(app.id)}
+                          className="h-9 rounded-full px-3 text-[12px]"
+                        >
+                          {isSaving ? <LoadingSpinner size="sm" /> : null}
+                          {t('desk.apps.save')}
+                        </Button>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="ghost"
+                          data-testid={`chat-market-app-clear-${app.id}`}
+                          disabled={isSaving || !draftValue}
+                          onClick={() => onClearPath(app.id)}
+                          className="h-9 rounded-full px-3 text-[12px]"
+                        >
+                          {t('desk.apps.clear')}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
 function BrowserWebviewPane({
   tab,
   active,
+  interactive,
   fallbackTitle,
   onStateChange,
   onRegisterWebview,
 }: {
   tab: BrowserTabState;
   active: boolean;
+  interactive: boolean;
   fallbackTitle: string;
   onStateChange: (tabId: string, patch: Partial<BrowserTabState>) => void;
   onRegisterWebview: (tabId: string, webview: BrowserWebview | null) => void;
@@ -940,7 +1239,6 @@ function BrowserWebviewPane({
 
     const handleDidStartLoading = () => {
       onStateChange(tab.id, { loading: true, error: null });
-      syncNavigationState();
     };
 
     const handleDidStopLoading = () => {
@@ -1018,7 +1316,7 @@ function BrowserWebviewPane({
       partition="persist:investclaw-browser"
       className={cn(
         'absolute inset-0 h-full w-full',
-        active ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0',
+        active && interactive ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-100',
       )}
     />
   );
@@ -1031,7 +1329,7 @@ export function ResearchDeskPanel({
 }) {
   const { t } = useTranslation('chat');
   const browserWebviewsRef = useRef<Record<string, BrowserWebview | null>>({});
-  const [activeTab, setActiveTab] = useState('files');
+  const browserSurfaceRef = useRef<HTMLDivElement | null>(null);
   const [workspaceListings, setWorkspaceListings] = useState<WorkspaceListingMap>({});
   const [workspacePreview, setWorkspacePreview] = useState<AgentWorkspaceFilePreview | null>(null);
   const [workspaceLoading, setWorkspaceLoading] = useState(false);
@@ -1047,6 +1345,13 @@ export function ResearchDeskPanel({
   ]);
   const [activeBrowserTabId, setActiveBrowserTabId] = useState<string>('');
   const [browserInput, setBrowserInput] = useState(DEFAULT_BROWSER_URL);
+  const [browserInteractive, setBrowserInteractive] = useState(false);
+  const [marketApps, setMarketApps] = useState<MarketAppDescriptor[]>([]);
+  const [marketAppsLoading, setMarketAppsLoading] = useState(false);
+  const [marketAppsError, setMarketAppsError] = useState<string | null>(null);
+  const [marketAppDrafts, setMarketAppDrafts] = useState<Record<string, string>>({});
+  const [savingAppIds, setSavingAppIds] = useState<Record<string, boolean>>({});
+  const [launchingAppIds, setLaunchingAppIds] = useState<Record<string, boolean>>({});
 
   const rootListing = workspaceListings[ROOT_WORKSPACE_PATH] || null;
   const activeBrowserTab = browserTabs.find((tab) => tab.id === activeBrowserTabId) || browserTabs[0];
@@ -1057,6 +1362,33 @@ export function ResearchDeskPanel({
 
   const registerBrowserWebview = useCallback((tabId: string, webview: BrowserWebview | null) => {
     browserWebviewsRef.current[tabId] = webview;
+  }, []);
+
+  const replaceMarketApp = useCallback((nextApp: MarketAppDescriptor) => {
+    setMarketApps((current) => {
+      const merged = current.map((item) => (item.id === nextApp.id ? nextApp : item));
+      return [...merged].sort((left, right) => {
+        if (left.pinned !== right.pinned) return left.pinned ? -1 : 1;
+        if (left.installed !== right.installed) return left.installed ? -1 : 1;
+        return left.name.localeCompare(right.name);
+      });
+    });
+    setMarketAppDrafts((current) => ({ ...current, [nextApp.id]: nextApp.customPath }));
+  }, []);
+
+  const loadMarketApps = useCallback(async () => {
+    setMarketAppsLoading(true);
+    try {
+      const response = await hostApiFetch<MarketAppsSnapshot>(buildMarketAppsPath());
+      setMarketApps(response.apps);
+      setMarketAppDrafts(Object.fromEntries(response.apps.map((app) => [app.id, app.customPath])));
+      setMarketAppsError(null);
+    } catch (error) {
+      setMarketAppsError(String(error));
+      setMarketApps([]);
+    } finally {
+      setMarketAppsLoading(false);
+    }
   }, []);
 
   const loadWorkspaceListing = useCallback(async (relativePath = ROOT_WORKSPACE_PATH) => {
@@ -1102,6 +1434,10 @@ export function ResearchDeskPanel({
   }, [loadWorkspaceListing]);
 
   useEffect(() => {
+    void loadMarketApps();
+  }, [loadMarketApps]);
+
+  useEffect(() => {
     try {
       const savedUrl = window.localStorage.getItem('investclaw:desk-browser-url');
       if (!savedUrl) {
@@ -1135,20 +1471,34 @@ export function ResearchDeskPanel({
 
   const syncActiveBrowserNavigation = useCallback((tabId: string) => {
     const webview = browserWebviewsRef.current[tabId];
-    const tab = browserTabs.find((candidate) => candidate.id === tabId);
-    if (!webview || !tab) return;
+    if (!webview) return;
 
     updateBrowserTab(tabId, {
-      url: safeGetBrowserUrl(webview) || tab.url,
       canGoBack: safeCanGoBack(webview),
       canGoForward: safeCanGoForward(webview),
     });
-  }, [browserTabs, updateBrowserTab]);
+  }, [updateBrowserTab]);
 
   useEffect(() => {
     if (!activeBrowserTab) return;
     syncActiveBrowserNavigation(activeBrowserTab.id);
   }, [activeBrowserTab, syncActiveBrowserNavigation]);
+
+  useEffect(() => {
+    if (!browserInteractive) return;
+
+    const handlePointerDown = (event: PointerEvent) => {
+      const browserSurface = browserSurfaceRef.current;
+      if (!browserSurface) return;
+      if (browserSurface.contains(event.target as Node)) return;
+      setBrowserInteractive(false);
+    };
+
+    document.addEventListener('pointerdown', handlePointerDown, true);
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown, true);
+    };
+  }, [browserInteractive]);
 
   const handleOpenWorkspaceFile = async (entry: AgentWorkspaceEntry) => {
     if (!currentAgent) return;
@@ -1212,6 +1562,7 @@ export function ResearchDeskPanel({
     if (!activeBrowserTab) return;
     const nextUrl = normalizeBrowserUrl(browserInput);
     setBrowserInput(nextUrl);
+    setBrowserInteractive(false);
     updateBrowserTab(activeBrowserTab.id, {
       url: nextUrl,
       title: getBrowserTitleFallback(nextUrl, t('desk.browser.title')),
@@ -1225,6 +1576,7 @@ export function ResearchDeskPanel({
     setBrowserTabs((current) => [...current, nextTab]);
     setActiveBrowserTabId(nextTab.id);
     setBrowserInput(nextTab.url);
+    setBrowserInteractive(false);
   };
 
   const handleCloseBrowserTab = (tabId: string) => {
@@ -1243,8 +1595,138 @@ export function ResearchDeskPanel({
     });
   };
 
+  const navigateBrowserTo = useCallback((targetUrl: string, fallbackTitle: string) => {
+    const nextUrl = normalizeBrowserUrl(targetUrl);
+    const nextTitle = getBrowserTitleFallback(nextUrl, fallbackTitle);
+    const targetTabId = activeBrowserTab?.id || activeBrowserTabId;
+
+    setBrowserInput(nextUrl);
+    setBrowserInteractive(false);
+
+    if (!targetTabId) {
+      const nextTab = createBrowserTab(nextUrl, fallbackTitle);
+      setBrowserTabs([nextTab]);
+      setActiveBrowserTabId(nextTab.id);
+      return;
+    }
+
+    setActiveBrowserTabId(targetTabId);
+    updateBrowserTab(targetTabId, {
+      url: nextUrl,
+      title: nextTitle,
+      loading: true,
+      error: null,
+    });
+  }, [activeBrowserTab, activeBrowserTabId, updateBrowserTab]);
+
+  const handleOpenExternalUrl = useCallback(async (url: string) => {
+    try {
+      await invokeIpc('shell:openExternal', url);
+    } catch (error) {
+      setMarketAppsError(String(error));
+    }
+  }, []);
+
+  const handleSaveAppPath = useCallback(async (appId: string) => {
+    const nextPath = marketAppDrafts[appId] ?? '';
+    setSavingAppIds((current) => ({ ...current, [appId]: true }));
+    try {
+      const response = await hostApiFetch<{ success?: boolean; app: MarketAppDescriptor }>(buildMarketAppsPath(appId), {
+        method: 'PUT',
+        body: JSON.stringify({ customPath: nextPath }),
+      });
+      replaceMarketApp(response.app);
+      setMarketAppsError(null);
+    } catch (error) {
+      setMarketAppsError(String(error));
+    } finally {
+      setSavingAppIds((current) => {
+        const next = { ...current };
+        delete next[appId];
+        return next;
+      });
+    }
+  }, [marketAppDrafts, replaceMarketApp]);
+
+  const handleClearAppPath = useCallback(async (appId: string) => {
+    setMarketAppDrafts((current) => ({ ...current, [appId]: '' }));
+    setSavingAppIds((current) => ({ ...current, [appId]: true }));
+    try {
+      const response = await hostApiFetch<{ success?: boolean; app: MarketAppDescriptor }>(buildMarketAppsPath(appId), {
+        method: 'PUT',
+        body: JSON.stringify({ customPath: '' }),
+      });
+      replaceMarketApp(response.app);
+      setMarketAppsError(null);
+    } catch (error) {
+      setMarketAppsError(String(error));
+    } finally {
+      setSavingAppIds((current) => {
+        const next = { ...current };
+        delete next[appId];
+        return next;
+      });
+    }
+  }, [replaceMarketApp]);
+
+  const handleTogglePinned = useCallback(async (app: MarketAppDescriptor) => {
+    setSavingAppIds((current) => ({ ...current, [app.id]: true }));
+    try {
+      const response = await hostApiFetch<{ success?: boolean; app: MarketAppDescriptor }>(buildMarketAppsPath(app.id), {
+        method: 'PUT',
+        body: JSON.stringify({ pinned: !app.pinned }),
+      });
+      replaceMarketApp(response.app);
+      setMarketAppsError(null);
+    } catch (error) {
+      setMarketAppsError(String(error));
+    } finally {
+      setSavingAppIds((current) => {
+        const next = { ...current };
+        delete next[app.id];
+        return next;
+      });
+    }
+  }, [replaceMarketApp]);
+
+  const handleLaunchApp = useCallback(async (app: MarketAppDescriptor) => {
+    setLaunchingAppIds((current) => ({ ...current, [app.id]: true }));
+    try {
+      const response = await hostApiFetch<{ success?: boolean; app: MarketAppDescriptor }>(buildMarketAppsPath(app.id, 'launch'), {
+        method: 'POST',
+      });
+      replaceMarketApp(response.app);
+      setMarketAppsError(null);
+    } catch (error) {
+      setMarketAppsError(String(error));
+    } finally {
+      setLaunchingAppIds((current) => {
+        const next = { ...current };
+        delete next[app.id];
+        return next;
+      });
+    }
+  }, [replaceMarketApp]);
+
+  const handleLaunchPinnedApps = useCallback(async () => {
+    for (const app of marketApps.filter((item) => item.pinned && item.installed)) {
+      // eslint-disable-next-line no-await-in-loop
+      await handleLaunchApp(app);
+    }
+  }, [handleLaunchApp, marketApps]);
+
+  const handleRevealApp = useCallback(async (app: MarketAppDescriptor) => {
+    if (!app.installedPath) return;
+    try {
+      await invokeIpc('shell:showItemInFolder', app.installedPath);
+    } catch (error) {
+      setMarketAppsError(String(error));
+    }
+  }, []);
+
   const workspaceFallbackPath = workspacePreview?.containerPath || rootListing?.currentContainerPath || '/workspace';
   const workspaceHostPath = rootListing?.hostPath || currentAgent?.workspace || '-';
+  const installedAppCount = marketApps.filter((app) => app.installed).length;
 
   const activeBrowserState = useMemo(() => ({
     title: activeBrowserTab?.title || t('desk.browser.title'),
@@ -1257,35 +1739,31 @@ export function ResearchDeskPanel({
     <Card data-testid="chat-research-desk" className="flex h-full min-h-[340px] flex-col rounded-[28px] border-0 bg-[#efe9db] shadow-[0_24px_80px_rgba(36,39,27,0.12)] dark:bg-card">
       <CardContent className="flex min-h-0 flex-1 flex-col p-3">
         <div className="mb-3 flex items-center justify-between gap-3">
-          <div className="flex min-w-0 items-center gap-2 rounded-full border border-black/10 bg-white/70 px-3 py-1.5 text-[12px] font-medium text-foreground/80 dark:border-white/10 dark:bg-white/5">
+          <div className="flex items-center gap-2 rounded-full border border-black/10 bg-white/70 px-3 py-1.5 text-[12px] font-medium text-foreground/80 dark:border-white/10 dark:bg-white/5">
             <span className="truncate">{currentAgent?.name || 'Main Agent'}</span>
           </div>
-          <div className="min-w-0 rounded-full border border-black/10 bg-white/50 px-3 py-1.5 font-mono text-[11px] text-foreground/60 dark:border-white/10 dark:bg-white/5">
-            <span className="block truncate">{workspaceHostPath}</span>
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <div className="rounded-full border border-black/10 bg-white/65 px-3 py-1.5 text-[11px] font-medium text-foreground/65 dark:border-white/10 dark:bg-white/5">
+              {t('desk.apps.detectedCount', { count: installedAppCount })}
+            </div>
+            <div className="min-w-0 rounded-full border border-black/10 bg-white/50 px-3 py-1.5 font-mono text-[11px] text-foreground/60 dark:border-white/10 dark:bg-white/5">
+              <span className="block truncate">{workspaceHostPath}</span>
+            </div>
           </div>
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex h-full min-h-0 flex-1 flex-col">
-          <TabsList className="grid w-full grid-cols-2 rounded-2xl bg-white/65 p-1 dark:bg-white/5">
-            <TabsTrigger data-testid="chat-desk-tab-files" value="files">{t('desk.tabs.files')}</TabsTrigger>
-            <TabsTrigger data-testid="chat-desk-tab-browser" value="browser">{t('desk.tabs.browser')}</TabsTrigger>
-          </TabsList>
-
-          <div className="relative mt-2 min-h-0 flex-1">
-            <TabsContent
-              forceMount
-              value="files"
-              className={cn(
-                'absolute inset-0 m-0 flex min-h-0 flex-col data-[state=inactive]:pointer-events-none data-[state=inactive]:hidden',
-                activeTab !== 'files' && 'hidden',
-              )}
-            >
-              <div
-                data-testid="chat-desk-files-surface"
-                className="flex h-full min-h-0 flex-1 flex-col overflow-hidden rounded-[26px] border border-black/10 bg-[#f9f6ec] dark:border-white/10 dark:bg-white/5"
-              >
-              <div className="shrink-0 border-b border-black/10 p-3 dark:border-white/10">
-                <div className="flex flex-wrap items-center gap-2">
+        <div className="grid min-h-0 flex-1 gap-3 xl:grid-cols-[minmax(0,0.95fr)_minmax(300px,0.82fr)_minmax(0,1.12fr)]">
+          <section
+            data-testid="chat-desk-files-surface"
+            className="flex min-h-0 flex-col overflow-hidden rounded-[26px] border border-black/10 bg-[#f9f6ec] dark:border-white/10 dark:bg-white/5"
+          >
+            <div className="shrink-0 border-b border-black/10 p-3 dark:border-white/10">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <p className="text-[15px] font-semibold text-foreground">{t('desk.files.title')}</p>
+                  <p className="text-[12px] text-foreground/60">{t('desk.files.subtitle')}</p>
+                </div>
+                <div className="flex items-center gap-2">
                   <Button
                     variant="outline"
                     onClick={() => void handleRefreshWorkspace()}
@@ -1304,82 +1782,119 @@ export function ResearchDeskPanel({
                     {t('desk.files.openFolder')}
                   </Button>
                 </div>
-                <div className="mt-3 rounded-2xl border border-black/10 bg-white/80 px-4 py-3 dark:border-white/10 dark:bg-black/10">
-                  <div className="flex items-center gap-2 text-[12px] uppercase tracking-[0.08em] text-foreground/55">
-                    <Folder className="h-3.5 w-3.5" />
-                    {t('desk.files.containerPath')}
-                  </div>
-                  <p className="mt-1 break-all font-mono text-[12px] text-foreground">
-                    {workspaceFallbackPath}
-                  </p>
+              </div>
+              <div className="mt-3 rounded-2xl border border-black/10 bg-white/80 px-4 py-3 dark:border-white/10 dark:bg-black/10">
+                <div className="flex items-center gap-2 text-[12px] uppercase tracking-[0.08em] text-foreground/55">
+                  <Folder className="h-3.5 w-3.5" />
+                  {t('desk.files.containerPath')}
                 </div>
-                {workspaceError && (
-                  <div className="mt-3 rounded-2xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-[12px] text-destructive">
-                    {workspaceError}
+                <p className="mt-1 break-all font-mono text-[12px] text-foreground">
+                  {workspaceFallbackPath}
+                </p>
+              </div>
+              {workspaceError && (
+                <div className="mt-3 rounded-2xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-[12px] text-destructive">
+                  {workspaceError}
+                </div>
+              )}
+            </div>
+
+            <div className="grid min-h-0 flex-1 gap-px bg-black/10 dark:bg-white/10 xl:grid-rows-[minmax(220px,0.92fr)_minmax(220px,1.08fr)]">
+              <div
+                data-testid="chat-desk-files"
+                className="flex min-h-0 flex-col overflow-hidden bg-[#f9f6ec] p-3 dark:bg-white/5"
+              >
+                {!currentAgent ? (
+                  <div className="rounded-2xl border border-dashed border-black/10 bg-white/70 p-4 text-[13px] text-foreground/65 dark:border-white/10 dark:bg-black/10">
+                    {t('desk.files.noAgent')}
+                  </div>
+                ) : workspaceLoading ? (
+                  <div className="flex min-h-0 flex-1 items-center justify-center">
+                    <LoadingSpinner size="md" />
+                  </div>
+                ) : !rootListing?.exists ? (
+                  <div className="rounded-2xl border border-dashed border-black/10 bg-white/70 p-4 text-[13px] text-foreground/65 dark:border-white/10 dark:bg-black/10">
+                    {t('desk.files.missing')}
+                  </div>
+                ) : rootListing.entries.length === 0 ? (
+                  <div className="rounded-2xl border border-dashed border-black/10 bg-white/70 p-4 text-[13px] text-foreground/65 dark:border-white/10 dark:bg-black/10">
+                    {t('desk.files.empty')}
+                  </div>
+                ) : (
+                  <div className="min-h-0 flex-1 overflow-y-auto pr-1">
+                    <div data-testid="chat-desk-tree-root" className="mb-2 flex items-center gap-2 rounded-xl border border-black/10 bg-white/70 px-3 py-2 text-[12px] font-medium text-foreground/75 dark:border-white/10 dark:bg-black/10">
+                      <FolderOpen className="h-4 w-4 text-foreground/55" />
+                      <span className="truncate">/workspace</span>
+                    </div>
+                    <WorkspaceTree
+                      entries={rootListing.entries}
+                      depth={0}
+                      listings={workspaceListings}
+                      expandedDirectories={expandedDirectories}
+                      loadingDirectories={loadingDirectories}
+                      selectedWorkspacePath={selectedWorkspacePath}
+                      onToggleDirectory={handleToggleWorkspaceDirectory}
+                      onOpenFile={handleOpenWorkspaceFile}
+                    />
                   </div>
                 )}
               </div>
 
-              <div className="grid h-full min-h-0 flex-1 grid-rows-[minmax(0,1fr)] items-stretch content-stretch gap-px bg-black/10 dark:bg-white/10 xl:grid-cols-[minmax(0,0.86fr)_minmax(0,1.14fr)]">
-                <div
-                  data-testid="chat-desk-files"
-                  className="flex h-full min-h-0 flex-col overflow-hidden bg-[#f9f6ec] p-3 dark:bg-white/5"
-                >
-                  {!currentAgent ? (
-                    <div className="rounded-2xl border border-dashed border-black/10 bg-white/70 p-4 text-[13px] text-foreground/65 dark:border-white/10 dark:bg-black/10">
-                      {t('desk.files.noAgent')}
-                    </div>
-                  ) : workspaceLoading ? (
-                    <div className="flex min-h-0 flex-1 items-center justify-center">
-                      <LoadingSpinner size="md" />
-                    </div>
-                  ) : !rootListing?.exists ? (
-                    <div className="rounded-2xl border border-dashed border-black/10 bg-white/70 p-4 text-[13px] text-foreground/65 dark:border-white/10 dark:bg-black/10">
-                      {t('desk.files.missing')}
-                    </div>
-                  ) : rootListing.entries.length === 0 ? (
-                    <div className="rounded-2xl border border-dashed border-black/10 bg-white/70 p-4 text-[13px] text-foreground/65 dark:border-white/10 dark:bg-black/10">
-                      {t('desk.files.empty')}
-                    </div>
-                  ) : (
-                    <div className="min-h-0 flex-1 overflow-y-auto pr-1">
-                      <div data-testid="chat-desk-tree-root" className="mb-2 flex items-center gap-2 rounded-xl border border-black/10 bg-white/70 px-3 py-2 text-[12px] font-medium text-foreground/75 dark:border-white/10 dark:bg-black/10">
-                        <FolderOpen className="h-4 w-4 text-foreground/55" />
-                        <span className="truncate">/workspace</span>
-                      </div>
-                      <WorkspaceTree
-                        entries={rootListing.entries}
-                        depth={0}
-                        listings={workspaceListings}
-                        expandedDirectories={expandedDirectories}
-                        loadingDirectories={loadingDirectories}
-                        selectedWorkspacePath={selectedWorkspacePath}
-                        onToggleDirectory={handleToggleWorkspaceDirectory}
-                        onOpenFile={handleOpenWorkspaceFile}
-                      />
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex h-full min-h-0 flex-col overflow-hidden bg-[#f9f6ec] p-3 dark:bg-white/5">
-                  <WorkspacePreviewPane
-                    preview={workspacePreview}
-                    loading={workspacePreviewLoading}
-                    fallbackPath={workspaceFallbackPath}
-                  />
-                </div>
+              <div className="flex min-h-0 flex-col overflow-hidden bg-[#f9f6ec] p-3 dark:bg-white/5">
+                <WorkspacePreviewPane
+                  preview={workspacePreview}
+                  loading={workspacePreviewLoading}
+                  fallbackPath={workspaceFallbackPath}
+                />
               </div>
-              </div>
-            </TabsContent>
+            </div>
+          </section>
 
-            <TabsContent
-              forceMount
-              value="browser"
-              className="absolute inset-0 m-0 flex min-h-0 flex-col data-[state=inactive]:pointer-events-none data-[state=inactive]:hidden"
-            >
-              <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden rounded-[26px] border border-black/10 bg-[#f9f6ec] dark:border-white/10 dark:bg-white/5">
-              <div data-testid="chat-desk-browser-tabs" className="shrink-0 border-b border-black/10 dark:border-white/10">
-                <div className="flex items-center gap-2 overflow-x-auto px-3 py-2">
+          <NativeAppsDock
+            apps={marketApps}
+            loading={marketAppsLoading}
+            error={marketAppsError}
+            drafts={marketAppDrafts}
+            savingAppIds={savingAppIds}
+            launchingAppIds={launchingAppIds}
+            onRefresh={() => void loadMarketApps()}
+            onDraftChange={(appId, nextValue) => {
+              setMarketAppDrafts((current) => ({ ...current, [appId]: nextValue }));
+            }}
+            onSavePath={(appId) => {
+              void handleSaveAppPath(appId);
+            }}
+            onClearPath={(appId) => {
+              void handleClearAppPath(appId);
+            }}
+            onTogglePinned={(app) => {
+              void handleTogglePinned(app);
+            }}
+            onLaunch={(app) => {
+              void handleLaunchApp(app);
+            }}
+            onOpenBrowser={(app) => {
+              navigateBrowserTo(app.browserUrl, app.name);
+            }}
+            onOpenExternal={(url) => {
+              void handleOpenExternalUrl(url);
+            }}
+            onReveal={(app) => {
+              void handleRevealApp(app);
+            }}
+            onLaunchPinned={() => {
+              void handleLaunchPinnedApps();
+            }}
+          />
+
+          <section className="flex min-h-0 flex-col overflow-hidden rounded-[26px] border border-black/10 bg-[#f9f6ec] dark:border-white/10 dark:bg-white/5">
+            <div className="shrink-0 border-b border-black/10 px-3 py-3 dark:border-white/10">
+              <div className="flex flex-col gap-2">
+                <div>
+                  <p className="text-[15px] font-semibold text-foreground">{t('desk.browser.title')}</p>
+                  <p className="text-[12px] text-foreground/60">{t('desk.browser.subtitle')}</p>
+                </div>
+                <div data-testid="chat-desk-browser-tabs" className="flex items-center gap-2 overflow-x-auto pb-1">
                   {browserTabs.map((tab) => (
                     <button
                       key={tab.id}
@@ -1387,7 +1902,7 @@ export function ResearchDeskPanel({
                       data-testid="chat-desk-browser-tab"
                       onClick={() => setActiveBrowserTabId(tab.id)}
                       className={cn(
-                        'group flex min-w-0 max-w-[220px] items-center gap-2 rounded-xl border px-3 py-2 text-left transition-colors',
+                        'group flex min-w-0 max-w-[180px] items-center gap-2 rounded-xl border px-3 py-2 text-left transition-colors',
                         tab.id === activeBrowserTabId
                           ? 'border-black/15 bg-white text-foreground shadow-sm dark:border-white/15 dark:bg-black/10'
                           : 'border-transparent bg-transparent text-foreground/65 hover:border-black/10 hover:bg-white/60 dark:hover:border-white/10 dark:hover:bg-black/10',
@@ -1436,151 +1951,161 @@ export function ResearchDeskPanel({
                   </button>
                 </div>
               </div>
+            </div>
 
-              <div className="shrink-0 border-b border-black/10 px-3 py-2 dark:border-white/10">
-                <div className="flex flex-wrap items-center gap-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => browserWebviewsRef.current[activeBrowserTab?.id || '']?.goBack()}
-                    disabled={!activeBrowserState.canGoBack}
-                    className="h-8 rounded-full border-black/10 bg-white/80 px-3 text-[12px] dark:border-white/10 dark:bg-white/5"
-                  >
-                    {t('desk.browser.back')}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => browserWebviewsRef.current[activeBrowserTab?.id || '']?.goForward()}
-                    disabled={!activeBrowserState.canGoForward}
-                    className="h-8 rounded-full border-black/10 bg-white/80 px-3 text-[12px] dark:border-white/10 dark:bg-white/5"
-                  >
-                    {t('desk.browser.forward')}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => browserWebviewsRef.current[activeBrowserTab?.id || '']?.reload()}
-                    className="h-8 rounded-full border-black/10 bg-white/80 px-3 text-[12px] dark:border-white/10 dark:bg-white/5"
-                  >
-                    <RefreshCw className={cn('mr-2 h-3.5 w-3.5', activeBrowserState.loading && 'animate-spin')} />
-                    {t('desk.browser.reload')}
-                  </Button>
+            <div className="shrink-0 border-b border-black/10 px-3 py-2 dark:border-white/10">
+              <div className="flex flex-wrap items-center gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => browserWebviewsRef.current[activeBrowserTab?.id || '']?.goBack()}
+                  disabled={!activeBrowserState.canGoBack}
+                  className="h-8 rounded-full border-black/10 bg-white/80 px-3 text-[12px] dark:border-white/10 dark:bg-white/5"
+                >
+                  {t('desk.browser.back')}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => browserWebviewsRef.current[activeBrowserTab?.id || '']?.goForward()}
+                  disabled={!activeBrowserState.canGoForward}
+                  className="h-8 rounded-full border-black/10 bg-white/80 px-3 text-[12px] dark:border-white/10 dark:bg-white/5"
+                >
+                  {t('desk.browser.forward')}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => browserWebviewsRef.current[activeBrowserTab?.id || '']?.reload()}
+                  className="h-8 rounded-full border-black/10 bg-white/80 px-3 text-[12px] dark:border-white/10 dark:bg-white/5"
+                >
+                  <RefreshCw className={cn('mr-2 h-3.5 w-3.5', activeBrowserState.loading && 'animate-spin')} />
+                  {t('desk.browser.reload')}
+                </Button>
 
-                  <div className="flex min-w-[240px] flex-1 items-center gap-2 rounded-2xl border border-black/10 bg-white/80 p-2 dark:border-white/10 dark:bg-black/10">
-                    <Globe className="ml-1 h-4 w-4 shrink-0 text-foreground/55" />
-                    <Input
-                      data-testid="chat-desk-browser-url"
-                      value={browserInput}
-                      onChange={(event) => setBrowserInput(event.target.value)}
-                      onKeyDown={(event) => {
-                        if (event.key === 'Enter') {
-                          handleBrowserNavigate();
-                        }
-                      }}
-                      className="h-9 border-0 bg-transparent text-[13px] shadow-none focus-visible:ring-0"
-                    />
-                    <Button onClick={handleBrowserNavigate} className="h-9 rounded-full px-4 text-[12px]">
-                      <Search className="mr-2 h-3.5 w-3.5" />
-                      {t('desk.browser.go')}
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="mt-2 flex flex-wrap items-center gap-2">
-                  {QUICK_BROWSER_LINKS.map((link) => (
-                    <button
-                      key={link.id}
-                      type="button"
-                      data-testid={`chat-desk-browser-link-${link.id}`}
-                      onClick={() => {
-                        if (!activeBrowserTab) return;
-                        setBrowserInput(link.url);
-                        updateBrowserTab(activeBrowserTab.id, {
-                          url: link.url,
-                          title: getBrowserTitleFallback(link.url, link.label),
-                          loading: true,
-                          error: null,
-                        });
-                      }}
-                      className="rounded-full border border-black/10 bg-white/80 px-3 py-1.5 text-[12px] font-medium text-foreground/75 transition-colors hover:bg-black/5 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10"
-                    >
-                      {link.label}
-                    </button>
-                  ))}
+                <div className="flex min-w-[240px] flex-1 items-center gap-2 rounded-2xl border border-black/10 bg-white/80 p-2 dark:border-white/10 dark:bg-black/10">
+                  <Globe className="ml-1 h-4 w-4 shrink-0 text-foreground/55" />
+                  <Input
+                    data-testid="chat-desk-browser-url"
+                    value={browserInput}
+                    onChange={(event) => setBrowserInput(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter') {
+                        handleBrowserNavigate();
+                      }
+                    }}
+                    className="h-9 border-0 bg-transparent text-[13px] shadow-none focus-visible:ring-0"
+                  />
+                  <Button onClick={handleBrowserNavigate} className="h-9 rounded-full px-4 text-[12px]">
+                    <Search className="mr-2 h-3.5 w-3.5" />
+                    {t('desk.browser.go')}
+                  </Button>
                 </div>
               </div>
 
-              <div data-testid="chat-desk-browser-surface" className="relative min-h-0 flex-1 overflow-hidden bg-white/80 dark:bg-black/10">
-                {/* Electron webviews can keep intercepting pointer events even when
-                    visually hidden, so only mount the currently visible browser tab. */}
-                {activeTab === 'browser' && activeBrowserTab && (
-                  <BrowserWebviewPane
-                    key={activeBrowserTab.id}
-                    tab={activeBrowserTab}
-                    active
-                    fallbackTitle={t('desk.browser.title')}
-                    onStateChange={updateBrowserTab}
-                    onRegisterWebview={registerBrowserWebview}
-                  />
-                )}
-                {activeBrowserTab?.error && (
-                  <div
-                    data-testid="chat-desk-browser-error"
-                    className="absolute inset-0 z-10 flex items-center justify-center bg-[#f9f6ec]/96 p-5 dark:bg-black/90"
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                {QUICK_BROWSER_LINKS.map((link) => (
+                  <button
+                    key={link.id}
+                    type="button"
+                    data-testid={`chat-desk-browser-link-${link.id}`}
+                    onClick={() => navigateBrowserTo(link.url, link.label)}
+                    className="rounded-full border border-black/10 bg-white/80 px-3 py-1.5 text-[12px] font-medium text-foreground/75 transition-colors hover:bg-black/5 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10"
                   >
-                    <div className="w-full max-w-md rounded-[24px] border border-black/10 bg-white/90 p-5 shadow-xl dark:border-white/10 dark:bg-card">
-                      <div className="flex items-start gap-3">
-                        <div className="mt-0.5 rounded-full bg-destructive/10 p-2 text-destructive">
-                          <AlertCircle className="h-4 w-4" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="text-[15px] font-semibold text-foreground">
-                            {t('desk.browser.loadFailedTitle')}
-                          </p>
-                          <p className="mt-1 text-[13px] leading-6 text-foreground/70">
-                            {t('desk.browser.loadFailedBody')}
-                          </p>
-                          <p className="mt-3 break-all rounded-2xl border border-black/10 bg-black/[0.03] px-3 py-2 font-mono text-[12px] text-foreground/70 dark:border-white/10 dark:bg-white/[0.04]">
-                            {activeBrowserTab.error.url}
-                          </p>
-                          <p className="mt-2 text-[12px] text-foreground/55">
-                            {activeBrowserTab.error.description}
-                          </p>
-                        </div>
+                    {link.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div
+              ref={browserSurfaceRef}
+              data-testid="chat-desk-browser-surface"
+              className="relative min-h-0 flex-1 overflow-hidden bg-white/80 dark:bg-black/10"
+            >
+              {activeBrowserTab && (
+                <BrowserWebviewPane
+                  key={activeBrowserTab.id}
+                  tab={activeBrowserTab}
+                  active
+                  interactive={browserInteractive}
+                  fallbackTitle={t('desk.browser.title')}
+                  onStateChange={updateBrowserTab}
+                  onRegisterWebview={registerBrowserWebview}
+                />
+              )}
+              {!activeBrowserTab?.error && !browserInteractive && (
+                <div className="absolute inset-0 z-10 flex items-center justify-center bg-gradient-to-b from-[#f9f6ec]/12 via-transparent to-[#f9f6ec]/26 p-5 dark:from-black/5 dark:to-black/30">
+                  <button
+                    type="button"
+                    data-testid="chat-desk-browser-activate"
+                    onClick={() => setBrowserInteractive(true)}
+                    className="max-w-sm rounded-[22px] border border-black/10 bg-white/92 px-5 py-4 text-center shadow-lg transition-transform hover:-translate-y-0.5 dark:border-white/10 dark:bg-card/92"
+                  >
+                    <p className="text-[14px] font-semibold text-foreground">
+                      {t('desk.browser.activate')}
+                    </p>
+                    <p className="mt-2 text-[12px] leading-6 text-foreground/65">
+                      {t('desk.browser.activateBody')}
+                    </p>
+                  </button>
+                </div>
+              )}
+              {activeBrowserTab?.error && (
+                <div
+                  data-testid="chat-desk-browser-error"
+                  className="absolute inset-0 z-10 flex items-center justify-center bg-[#f9f6ec]/96 p-5 dark:bg-black/90"
+                >
+                  <div className="w-full max-w-md rounded-[24px] border border-black/10 bg-white/90 p-5 shadow-xl dark:border-white/10 dark:bg-card">
+                    <div className="flex items-start gap-3">
+                      <div className="mt-0.5 rounded-full bg-destructive/10 p-2 text-destructive">
+                        <AlertCircle className="h-4 w-4" />
                       </div>
-                      <div className="mt-4 flex flex-wrap items-center gap-2">
-                        <Button
-                          className="h-9 rounded-full px-4 text-[12px]"
-                          onClick={() => {
-                            if (!activeBrowserTab) return;
-                            updateBrowserTab(activeBrowserTab.id, { loading: true, error: null });
-                            const webview = browserWebviewsRef.current[activeBrowserTab.id];
-                            if (webview) {
-                              webview.reload();
-                            }
-                          }}
-                        >
-                          <RefreshCw className="mr-2 h-3.5 w-3.5" />
-                          {t('desk.browser.retry')}
-                        </Button>
-                        <Button
-                          variant="outline"
-                          className="h-9 rounded-full px-4 text-[12px]"
-                          onClick={() => {
-                            const targetUrl = activeBrowserTab.error?.url || activeBrowserTab.url;
-                            window.electron?.openExternal?.(targetUrl);
-                          }}
-                        >
-                          <ExternalLink className="mr-2 h-3.5 w-3.5" />
-                          {t('desk.browser.openExternal')}
-                        </Button>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[15px] font-semibold text-foreground">
+                          {t('desk.browser.loadFailedTitle')}
+                        </p>
+                        <p className="mt-1 text-[13px] leading-6 text-foreground/70">
+                          {t('desk.browser.loadFailedBody')}
+                        </p>
+                        <p className="mt-3 break-all rounded-2xl border border-black/10 bg-black/[0.03] px-3 py-2 font-mono text-[12px] text-foreground/70 dark:border-white/10 dark:bg-white/[0.04]">
+                          {activeBrowserTab.error.url}
+                        </p>
+                        <p className="mt-2 text-[12px] text-foreground/55">
+                          {activeBrowserTab.error.description}
+                        </p>
                       </div>
                     </div>
+                    <div className="mt-4 flex flex-wrap items-center gap-2">
+                      <Button
+                        className="h-9 rounded-full px-4 text-[12px]"
+                        onClick={() => {
+                          if (!activeBrowserTab) return;
+                          updateBrowserTab(activeBrowserTab.id, { loading: true, error: null });
+                          const webview = browserWebviewsRef.current[activeBrowserTab.id];
+                          if (webview) {
+                            webview.reload();
+                          }
+                        }}
+                      >
+                        <RefreshCw className="mr-2 h-3.5 w-3.5" />
+                        {t('desk.browser.retry')}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="h-9 rounded-full px-4 text-[12px]"
+                        onClick={() => {
+                          const targetUrl = activeBrowserTab.error?.url || activeBrowserTab.url;
+                          void handleOpenExternalUrl(targetUrl);
+                        }}
+                      >
+                        <ExternalLink className="mr-2 h-3.5 w-3.5" />
+                        {t('desk.browser.openExternal')}
+                      </Button>
+                    </div>
                   </div>
-                )}
-              </div>
-              </div>
-            </TabsContent>
-          </div>
-        </Tabs>
+                </div>
+              )}
+            </div>
+          </section>
+        </div>
       </CardContent>
     </Card>
   );

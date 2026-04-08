@@ -26,12 +26,14 @@
         "cta": "Open models"
     },
     "desk": {
-        "inlineHint": "IDE-style desk: files, browser",
+        "inlineHint": "Investment terminal: filesystem, native apps, browser",
         "tabs": {
             "files": "Files",
             "browser": "Browser"
         },
         "files": {
+            "title": "Filesystem",
+            "subtitle": "Browse /workspace and preview research notes, scripts, and page prototypes",
             "refresh": "Refresh",
             "openFolder": "Open folder",
             "containerPath": "Container path",
@@ -53,8 +55,33 @@
             "componentMissingDefault": "No renderable default export component was found.",
             "symlinkUnsupported": "Workspace explorer does not follow symbolic links."
         },
+        "apps": {
+            "title": "Native Investment Apps",
+            "subtitle": "Detect, configure, and launch desktop market terminals from the middle column",
+            "refresh": "Refresh status",
+            "launchPinned": "Launch pinned apps",
+            "installed": "Detected",
+            "missing": "Missing",
+            "detectedPath": "Detected path",
+            "pathHint": "Suggested path",
+            "noHint": "No built-in path hint for this platform",
+            "launchMeta": "Launched {{count}} times · Last: {{time}}",
+            "launch": "Launch",
+            "openInBrowser": "Open web view",
+            "website": "Website",
+            "download": "Download",
+            "reveal": "Reveal location",
+            "customPath": "Custom native app path",
+            "customPathPlaceholder": "/Applications/YourMarketApp.app",
+            "save": "Save path",
+            "clear": "Clear",
+            "detectedCount": "{{count}} native terminals detected"
+        },
         "browser": {
             "title": "Market browser",
+            "subtitle": "Keep the web research flow on the right while native terminals run in the center",
+            "activate": "Click to enter browser mode",
+            "activateBody": "The embedded browser stays read-only by default so it does not steal clicks from files and native apps. Activate it when you want to interact with the page.",
             "back": "Back",
             "forward": "Forward",
             "reload": "Reload",

@@ -26,12 +26,14 @@
         "cta": "Models を開く"
     },
     "desk": {
-        "inlineHint": "IDE スタイルのデスク: ファイル、ブラウザ",
+        "inlineHint": "投資ターミナル: ファイルシステム、ネイティブ App、ブラウザ",
         "tabs": {
             "files": "Files",
             "browser": "Browser"
         },
         "files": {
+            "title": "ファイルシステム",
+            "subtitle": "/workspace を参照し、リサーチ資料・スクリプト・ページ試作をプレビューします",
             "refresh": "更新",
             "openFolder": "フォルダを開く",
             "containerPath": "コンテナパス",
@@ -53,8 +55,33 @@
             "componentMissingDefault": "レンダリング可能な default export コンポーネントが見つかりませんでした。",
             "symlinkUnsupported": "ファイルエクスプローラーはシンボリックリンクをたどりません。"
         },
+        "apps": {
+            "title": "ネイティブ投資 App",
+            "subtitle": "中央カラムからデスクトップの相場端末を検出・設定・起動します",
+            "refresh": "状態を更新",
+            "launchPinned": "ピン留め App を起動",
+            "installed": "検出済み",
+            "missing": "未検出",
+            "detectedPath": "検出パス",
+            "pathHint": "候補パス",
+            "noHint": "このプラットフォーム向けの候補パスはありません",
+            "launchMeta": "{{count}} 回起動 · 最終: {{time}}",
+            "launch": "起動",
+            "openInBrowser": "Web を開く",
+            "website": "サイト",
+            "download": "ダウンロード",
+            "reveal": "場所を表示",
+            "customPath": "ネイティブ App のカスタムパス",
+            "customPathPlaceholder": "/Applications/YourMarketApp.app",
+            "save": "パスを保存",
+            "clear": "クリア",
+            "detectedCount": "検出済みネイティブ端末: {{count}}"
+        },
         "browser": {
             "title": "マーケットブラウザ",
+            "subtitle": "右側では Web リサーチを続けつつ、中央ではネイティブ端末を動かします",
+            "activate": "クリックしてブラウザ操作を開始",
+            "activateBody": "埋め込みブラウザがファイルシステムやネイティブ App のクリックを奪わないよう、初期状態では読み取り専用表示にしています。ページを操作したいときだけブラウザを有効化してください。",
             "back": "戻る",
             "forward": "進む",
             "reload": "再読み込み",
