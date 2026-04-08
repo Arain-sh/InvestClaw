@@ -1249,18 +1249,18 @@ function EmbeddedMarketAppPane({
     return (
       <section
         data-testid="chat-market-app-embed-surface"
-        className="flex min-h-0 flex-col overflow-hidden rounded-[24px] border border-black/10 bg-[#f9f6ec] dark:border-white/10 dark:bg-white/5"
+        className="flex min-h-0 flex-col overflow-hidden rounded-[22px] border border-black/10 bg-[#f9f6ec] dark:border-white/10 dark:bg-white/5"
       >
-        <div className="flex min-h-0 flex-1 items-center justify-center p-5">
+        <div className="flex min-h-0 flex-1 items-center justify-center p-4">
           <div
             data-testid="chat-market-app-embed-empty"
-            className="max-w-md rounded-[20px] border border-dashed border-black/10 bg-white/70 px-5 py-6 text-center dark:border-white/10 dark:bg-black/10"
+            className="max-w-md rounded-[18px] border border-dashed border-black/10 bg-white/70 px-4 py-5 text-center dark:border-white/10 dark:bg-black/10"
           >
-            <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-2xl bg-black/5 text-foreground/55 dark:bg-white/10">
-              <Monitor className="h-5 w-5" />
+            <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-2xl bg-black/5 text-foreground/55 dark:bg-white/10">
+              <Monitor className="h-4.5 w-4.5" />
             </div>
-            <p className="mt-4 text-[14px] font-semibold text-foreground">{t('desk.apps.embedEmptyTitle')}</p>
-            <p className="mt-2 text-[12px] leading-6 text-foreground/65">{t('desk.apps.embedEmptyBody')}</p>
+            <p className="mt-3 text-[13px] font-semibold text-foreground">{t('desk.apps.embedEmptyTitle')}</p>
+            <p className="mt-1.5 text-[11px] leading-5 text-foreground/65">{t('desk.apps.embedEmptyBody')}</p>
           </div>
         </div>
       </section>
@@ -1270,23 +1270,22 @@ function EmbeddedMarketAppPane({
   return (
     <section
       data-testid="chat-market-app-embed-surface"
-      className="flex min-h-0 flex-col overflow-hidden rounded-[24px] border border-black/10 bg-[#f9f6ec] dark:border-white/10 dark:bg-white/5"
+      className="flex min-h-0 flex-col overflow-hidden rounded-[22px] border border-black/10 bg-[#f9f6ec] dark:border-white/10 dark:bg-white/5"
     >
-      <div className="shrink-0 border-b border-black/10 px-3 py-2.5 dark:border-white/10">
+      <div className="shrink-0 border-b border-black/10 px-2.5 py-2 dark:border-white/10">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-2xl bg-black/5 text-foreground/70 dark:bg-white/10">
+              <span className="flex h-6.5 w-6.5 shrink-0 items-center justify-center rounded-2xl bg-black/5 text-foreground/70 dark:bg-white/10">
                 {getMarketAppIcon(app)}
               </span>
               <div className="min-w-0">
-                <p data-testid="chat-market-app-embed-title" className="truncate text-[14px] font-semibold text-foreground">
+                <p data-testid="chat-market-app-embed-title" className="truncate text-[13px] font-semibold text-foreground">
                   {app.name}
                 </p>
-                <p className="truncate text-[11px] text-foreground/55">{app.vendor}</p>
+                <p className="truncate text-[10px] text-foreground/55">{app.vendor}</p>
               </div>
             </div>
-            <p className="mt-2 text-[11px] leading-5 text-foreground/60">{app.description}</p>
           </div>
           <div className="flex flex-wrap items-center justify-end gap-1.5">
             {app.installed && (
@@ -1294,7 +1293,7 @@ function EmbeddedMarketAppPane({
                 type="button"
                 size="sm"
                 variant="outline"
-                className="h-8 rounded-[12px] px-2.5 text-[11px]"
+                className="h-7 rounded-[11px] px-2.5 text-[10px]"
                 onClick={() => onLaunch(app)}
               >
                 <Play className="mr-1.5 h-3 w-3" />
@@ -1305,7 +1304,7 @@ function EmbeddedMarketAppPane({
               type="button"
               size="sm"
               variant="outline"
-              className="h-8 rounded-[12px] px-2.5 text-[11px]"
+              className="h-7 rounded-[11px] px-2.5 text-[10px]"
               onClick={() => onOpenExternal(app.websiteUrl)}
             >
               <ExternalLink className="mr-1.5 h-3 w-3" />
@@ -1315,13 +1314,13 @@ function EmbeddedMarketAppPane({
         </div>
       </div>
 
-      <div className="shrink-0 border-b border-black/10 px-3 py-2 dark:border-white/10">
+      <div className="shrink-0 border-b border-black/10 px-2.5 py-1.5 dark:border-white/10">
         <div className="flex flex-wrap items-center gap-1.5">
           <Button
             variant="outline"
             onClick={onGoBack}
             disabled={!state.canGoBack}
-            className="h-7 rounded-[12px] border-black/10 bg-white/80 px-2.5 text-[11px] dark:border-white/10 dark:bg-white/5"
+            className="h-6.5 rounded-[11px] border-black/10 bg-white/80 px-2.5 text-[10px] dark:border-white/10 dark:bg-white/5"
           >
             {t('desk.browser.back')}
           </Button>
@@ -1329,19 +1328,19 @@ function EmbeddedMarketAppPane({
             variant="outline"
             onClick={onGoForward}
             disabled={!state.canGoForward}
-            className="h-7 rounded-[12px] border-black/10 bg-white/80 px-2.5 text-[11px] dark:border-white/10 dark:bg-white/5"
+            className="h-6.5 rounded-[11px] border-black/10 bg-white/80 px-2.5 text-[10px] dark:border-white/10 dark:bg-white/5"
           >
             {t('desk.browser.forward')}
           </Button>
           <Button
             variant="outline"
             onClick={onReload}
-            className="h-7 rounded-[12px] border-black/10 bg-white/80 px-2.5 text-[11px] dark:border-white/10 dark:bg-white/5"
+            className="h-6.5 rounded-[11px] border-black/10 bg-white/80 px-2.5 text-[10px] dark:border-white/10 dark:bg-white/5"
           >
             <RefreshCw className={cn('mr-1.5 h-3 w-3', state.loading && 'animate-spin')} />
             {t('desk.browser.reload')}
           </Button>
-          <div className="min-w-[220px] flex-1 rounded-[16px] border border-black/10 bg-white/80 px-3 py-1.5 font-mono text-[11px] text-foreground/65 dark:border-white/10 dark:bg-black/10">
+          <div className="min-w-[220px] flex-1 rounded-[14px] border border-black/10 bg-white/80 px-2.5 py-1 font-mono text-[10px] text-foreground/65 dark:border-white/10 dark:bg-black/10">
             <span className="block truncate">{state.url}</span>
           </div>
         </div>
@@ -1368,7 +1367,7 @@ function EmbeddedMarketAppPane({
               type="button"
               data-testid="chat-market-app-activate"
               onClick={() => onSetInteractive(true)}
-              className="max-w-sm rounded-[20px] border border-black/10 bg-white/92 px-4 py-3.5 text-center shadow-lg transition-transform hover:-translate-y-0.5 dark:border-white/10 dark:bg-card/92"
+              className="max-w-sm rounded-[18px] border border-black/10 bg-white/92 px-4 py-3 text-center shadow-lg transition-transform hover:-translate-y-0.5 dark:border-white/10 dark:bg-card/92"
             >
               <p className="text-[13px] font-semibold text-foreground">{t('desk.apps.activate')}</p>
               <p className="mt-2 text-[11px] leading-6 text-foreground/65">{t('desk.apps.activateBody')}</p>
@@ -1381,7 +1380,7 @@ function EmbeddedMarketAppPane({
             data-testid="chat-market-app-embed-error"
             className="absolute inset-0 z-10 flex items-center justify-center bg-[#f9f6ec]/96 p-5 dark:bg-black/90"
           >
-            <div className="w-full max-w-md rounded-[20px] border border-black/10 bg-white/90 p-[18px] shadow-xl dark:border-white/10 dark:bg-card">
+            <div className="w-full max-w-md rounded-[18px] border border-black/10 bg-white/90 p-4 shadow-xl dark:border-white/10 dark:bg-card">
               <div className="flex items-start gap-3">
                 <div className="mt-0.5 rounded-full bg-destructive/10 p-2 text-destructive">
                   <AlertCircle className="h-4 w-4" />
@@ -1389,7 +1388,7 @@ function EmbeddedMarketAppPane({
                 <div className="min-w-0 flex-1">
                   <p className="text-[14px] font-semibold text-foreground">{t('desk.browser.loadFailedTitle')}</p>
                   <p className="mt-1 text-[12px] leading-6 text-foreground/70">{t('desk.browser.loadFailedBody')}</p>
-                  <p className="mt-3 break-all rounded-[16px] border border-black/10 bg-black/[0.03] px-3 py-2 font-mono text-[11px] text-foreground/70 dark:border-white/10 dark:bg-white/[0.04]">
+                  <p className="mt-3 break-all rounded-[14px] border border-black/10 bg-black/[0.03] px-3 py-2 font-mono text-[11px] text-foreground/70 dark:border-white/10 dark:bg-white/[0.04]">
                     {state.error.url}
                   </p>
                   <p className="mt-2 text-[11px] text-foreground/55">{state.error.description}</p>
@@ -2063,11 +2062,6 @@ export function ResearchDeskPanel({
   const workspaceFallbackPath = workspacePreview?.containerPath || rootListing?.currentContainerPath || '/workspace';
   const workspaceHostPath = rootListing?.hostPath || currentAgent?.workspace || '-';
   const installedAppCount = marketApps.filter((app) => app.installed).length;
-  const activeViewLabel = activeDeskView === 'files'
-    ? t('desk.files.title')
-    : activeDeskView === 'apps'
-      ? t('desk.apps.title')
-      : t('desk.browser.title');
 
   const activeBrowserState = useMemo(() => ({
     title: activeBrowserTab?.title || t('desk.browser.title'),
@@ -2085,28 +2079,11 @@ export function ResearchDeskPanel({
 
   return (
     <Card data-testid="chat-research-desk" className="flex h-full min-h-[340px] flex-col rounded-[26px] border-0 bg-[#efe9db] shadow-[0_24px_80px_rgba(36,39,27,0.12)] dark:bg-card">
-      <CardContent className="flex min-h-0 flex-1 flex-col p-2.5">
-        <div className="mb-2 flex flex-col gap-1.5">
-          <div className="flex flex-wrap items-center justify-between gap-2 rounded-[18px] border border-black/10 bg-white/55 px-2.5 py-1.5 dark:border-white/10 dark:bg-white/[0.04]">
-            <div className="flex min-w-0 flex-wrap items-center gap-1.5">
-              <div className="flex items-center gap-2 rounded-full border border-black/10 bg-white/75 px-2.5 py-1 text-[10px] font-medium text-foreground/80 dark:border-white/10 dark:bg-white/[0.08]">
-                <span className="truncate">{currentAgent?.name || 'Main Agent'}</span>
-              </div>
-              <div className="rounded-full border border-black/10 bg-white/70 px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.08em] text-foreground/55 dark:border-white/10 dark:bg-white/[0.06]">
-                {activeViewLabel}
-              </div>
-              <div className="hidden rounded-full border border-black/10 bg-white/70 px-2.5 py-1 text-[10px] font-medium text-foreground/55 dark:border-white/10 dark:bg-white/[0.06] sm:block">
-                {t('desk.apps.detectedCount', { count: installedAppCount })}
-              </div>
-            </div>
-            <div className="min-w-0 flex-1 rounded-full border border-black/10 bg-white/55 px-3 py-1 font-mono text-[10px] text-foreground/55 dark:border-white/10 dark:bg-white/[0.05] md:max-w-[420px] md:flex-none">
-              <span className="block truncate">{workspaceHostPath}</span>
-            </div>
-          </div>
-
+      <CardContent className="flex min-h-0 flex-1 flex-col p-2">
+        <div className="mb-1.5 flex flex-wrap items-center gap-1.5 rounded-[16px] border border-black/10 bg-white/55 px-2 py-1.5 dark:border-white/10 dark:bg-white/[0.04]">
           <div
             data-testid="chat-desk-view-switcher"
-            className="inline-flex max-w-full flex-wrap items-center gap-0.5 self-start rounded-[16px] border border-black/10 bg-white/65 p-0.5 dark:border-white/10 dark:bg-white/[0.05]"
+            className="inline-flex max-w-full flex-wrap items-center gap-0.5 rounded-[14px] border border-black/10 bg-white/65 p-0.5 dark:border-white/10 dark:bg-white/[0.05]"
           >
             <Button
               type="button"
@@ -2141,6 +2118,18 @@ export function ResearchDeskPanel({
               <Globe className="mr-1.5 h-3 w-3" />
               {t('desk.browser.title')}
             </Button>
+          </div>
+
+          <div className="ml-auto flex min-w-0 flex-wrap items-center justify-end gap-1.5">
+            <div className="flex max-w-[140px] items-center gap-1.5 rounded-full border border-black/10 bg-white/75 px-2 py-1 text-[10px] font-medium text-foreground/80 dark:border-white/10 dark:bg-white/[0.08]">
+              <span className="truncate">{currentAgent?.name || 'Main Agent'}</span>
+            </div>
+            <div className="hidden rounded-full border border-black/10 bg-white/70 px-2 py-1 text-[10px] font-medium text-foreground/55 dark:border-white/10 dark:bg-white/[0.06] xl:block">
+              {t('desk.apps.detectedCount', { count: installedAppCount })}
+            </div>
+            <div className="hidden min-w-0 max-w-[260px] rounded-full border border-black/10 bg-white/55 px-2.5 py-1 font-mono text-[10px] text-foreground/55 dark:border-white/10 dark:bg-white/[0.05] 2xl:block">
+              <span className="block truncate">{workspaceHostPath}</span>
+            </div>
           </div>
         </div>
 
@@ -2245,7 +2234,7 @@ export function ResearchDeskPanel({
           )}
 
           {activeDeskView === 'apps' && (
-            <section className="grid h-full min-h-0 gap-2.5 md:grid-cols-[minmax(272px,0.8fr)_minmax(0,1.2fr)]">
+            <section className="grid h-full min-h-0 gap-2 md:grid-cols-[minmax(208px,0.56fr)_minmax(0,1.44fr)]">
               <NativeAppsDock
                 embedded
                 apps={marketApps}

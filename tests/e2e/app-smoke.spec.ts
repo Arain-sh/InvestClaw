@@ -130,6 +130,15 @@ test.describe('InvestClaw Electron smoke flows', () => {
     await expect(page.getByTestId('chat-market-app-embed-surface')).toBeVisible();
     await expect(page.getByTestId('chat-market-app-embed-title')).toContainText('TradingView');
     await expect(page.getByTestId('chat-market-app-embedded-webview')).toHaveCount(1);
+    await expect
+      .poll(async () => {
+        const [dockWidth, embedWidth] = await Promise.all([
+          page.getByTestId('chat-market-apps-surface').evaluate((element) => Math.round(element.getBoundingClientRect().width)),
+          page.getByTestId('chat-market-app-embed-surface').evaluate((element) => Math.round(element.getBoundingClientRect().width)),
+        ]);
+        return embedWidth - dockWidth;
+      })
+      .toBeGreaterThan(55);
 
     await page.getByTestId('chat-desk-view-browser').click();
     await expect(page.getByTestId('chat-desk-browser-surface')).toBeVisible();

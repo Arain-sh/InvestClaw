@@ -233,8 +233,8 @@ export function Chat() {
   return (
     <div data-testid="chat-page" className={cn("relative flex min-w-0 flex-col -m-6 transition-colors duration-500 dark:bg-background")} style={{ height: 'calc(100vh - 2.5rem)' }}>
       {/* Toolbar */}
-      <div className="flex shrink-0 items-center justify-between gap-3 px-4 py-2">
-        <div className="hidden lg:flex items-center gap-2 rounded-full border border-black/10 bg-white/65 px-3 py-1.5 text-[12px] font-medium text-foreground/75 dark:border-white/10 dark:bg-white/5">
+      <div className="flex shrink-0 items-center justify-between gap-2 px-4 py-1.5">
+        <div className="hidden xl:flex items-center gap-2 rounded-full border border-black/10 bg-white/65 px-2.5 py-1 text-[11px] font-medium text-foreground/75 dark:border-white/10 dark:bg-white/5">
           <span>{t('desk.inlineHint')}</span>
         </div>
         <div className="ml-auto flex items-center gap-2">
@@ -252,7 +252,7 @@ export function Chat() {
         </div>
       </div>
 
-      <div ref={layoutRef} data-testid="chat-layout" className="flex min-h-0 min-w-0 flex-1 flex-col gap-4 px-4 pb-4 lg:flex-row">
+      <div ref={layoutRef} data-testid="chat-layout" className="flex min-h-0 min-w-0 flex-1 flex-col gap-3 px-4 pb-3 lg:flex-row">
         <div className="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-[30px] border border-black/5 bg-[#f7f4ea] shadow-[0_24px_80px_rgba(36,39,27,0.08)] dark:border-white/5 dark:bg-background">
           {/* Messages Area */}
           <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4">
