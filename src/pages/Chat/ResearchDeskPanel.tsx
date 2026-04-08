@@ -712,7 +712,7 @@ function WorkspacePreviewPane({
 
   if (loading) {
     return (
-      <div className="flex h-full min-h-0 items-center justify-center rounded-[20px] border border-black/10 bg-white/75 dark:border-white/10 dark:bg-black/10">
+      <div className="flex h-full min-h-0 items-center justify-center rounded-[18px] border border-black/10 bg-white/80 dark:border-white/10 dark:bg-black/10">
         <LoadingSpinner size="md" />
       </div>
     );
@@ -722,12 +722,12 @@ function WorkspacePreviewPane({
     return (
       <div
         data-testid="chat-desk-preview"
-        className="flex h-full min-h-0 flex-col rounded-[20px] border border-dashed border-black/10 bg-white/70 px-6 pt-10 text-center dark:border-white/10 dark:bg-black/10"
+        className="flex h-full min-h-0 flex-col rounded-[18px] border border-dashed border-black/10 bg-white/80 px-5 pt-8 text-center dark:border-white/10 dark:bg-black/10"
       >
         <div data-testid="chat-desk-preview-empty-state" className="flex flex-col items-center">
-          <FileText className="mb-3 h-6 w-6 text-foreground/45" />
-          <p className="text-[14px] font-medium text-foreground/80">{t('desk.files.selectFile')}</p>
-          <p className="mt-1 font-mono text-[12px] text-foreground/55">
+          <FileText className="mb-3 h-5 w-5 text-foreground/45" />
+          <p className="text-[13px] font-medium text-foreground/80">{t('desk.files.selectFile')}</p>
+          <p className="mt-1 font-mono text-[11px] text-foreground/55">
             {fallbackPath}
           </p>
         </div>
@@ -736,22 +736,33 @@ function WorkspacePreviewPane({
   }
 
   return (
-    <div data-testid="chat-desk-preview" className="flex h-full min-h-0 flex-col overflow-hidden rounded-[20px] border border-black/10 bg-white/75 dark:border-white/10 dark:bg-black/10">
-      <div className="shrink-0 border-b border-black/10 px-4 py-3 dark:border-white/10">
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex min-w-0 items-center gap-2 text-[15px] font-semibold text-foreground">
-            <FileText className="h-4 w-4 text-foreground/55" />
-            <span className="truncate">{preview.name}</span>
+    <div data-testid="chat-desk-preview" className="flex h-full min-h-0 flex-col overflow-hidden rounded-[18px] border border-black/10 bg-white/80 dark:border-white/10 dark:bg-black/10">
+      <div className="shrink-0 border-b border-black/10 px-3.5 py-2.5 dark:border-white/10">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <div className="flex min-w-0 items-center gap-2 text-[14px] font-semibold text-foreground">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-2xl bg-black/[0.04] text-foreground/55 dark:bg-white/[0.06]">
+                <FileText className="h-3.5 w-3.5 text-foreground/55" />
+              </span>
+              <span className="truncate">{preview.name}</span>
+            </div>
+            <p className="mt-1 break-all font-mono text-[11px] text-foreground/65">{preview.containerPath}</p>
+            <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-foreground/50">
+              <span className="break-all font-mono">{preview.hostPath}</span>
+              <span>{preview.mimeType}</span>
+              <span>{formatByteSize(preview.size)}</span>
+              <span>{formatTimestamp(preview.modifiedAt)}</span>
+            </div>
           </div>
           {canRenderPreview && (
-            <div className="flex shrink-0 items-center gap-1 rounded-full border border-black/10 bg-white/80 p-1 dark:border-white/10 dark:bg-black/10">
+            <div className="flex shrink-0 items-center gap-1 rounded-[14px] border border-black/10 bg-black/[0.03] p-1 dark:border-white/10 dark:bg-white/[0.04]">
               <Button
                 type="button"
                 size="sm"
                 variant={previewMode === 'render' ? 'secondary' : 'ghost'}
                 data-testid="chat-desk-preview-mode-render"
                 onClick={() => setPreviewMode('render')}
-                className="h-7 rounded-full px-3 text-[11px]"
+                className="h-6 rounded-[10px] px-2.5 text-[10px]"
               >
                 {t('desk.files.render')}
               </Button>
@@ -761,18 +772,13 @@ function WorkspacePreviewPane({
                 variant={previewMode === 'source' ? 'secondary' : 'ghost'}
                 data-testid="chat-desk-preview-mode-source"
                 onClick={() => setPreviewMode('source')}
-                className="h-7 rounded-full px-3 text-[11px]"
+                className="h-6 rounded-[10px] px-2.5 text-[10px]"
               >
                 {t('desk.files.source')}
               </Button>
             </div>
           )}
         </div>
-        <p className="mt-1 break-all font-mono text-[12px] text-foreground/70">{preview.containerPath}</p>
-        <p className="break-all font-mono text-[11px] text-foreground/50">{preview.hostPath}</p>
-        <p className="mt-1 text-[12px] text-foreground/55">
-          {preview.mimeType} · {formatByteSize(preview.size)} · {formatTimestamp(preview.modifiedAt)}
-        </p>
       </div>
 
       {previewMode === 'render' && isHtmlWorkspacePreview(preview) && (
@@ -784,15 +790,15 @@ function WorkspacePreviewPane({
       )}
 
       {preview.kind === 'image' && preview.dataUrl && (
-        <div className="min-h-0 flex-1 overflow-auto p-3">
-          <div className="overflow-hidden rounded-2xl border border-black/10 bg-white p-3 dark:border-white/10 dark:bg-black/20">
+        <div className="min-h-0 flex-1 overflow-auto p-2.5">
+          <div className="overflow-hidden rounded-2xl border border-black/10 bg-white p-2.5 dark:border-white/10 dark:bg-black/20">
             <img src={preview.dataUrl} alt={preview.name} className="max-h-[520px] w-full rounded-xl object-contain" />
           </div>
         </div>
       )}
 
       {preview.kind === 'image' && !preview.dataUrl && (
-        <div className="min-h-0 flex-1 p-3">
+        <div className="min-h-0 flex-1 p-2.5">
           <div className="rounded-2xl border border-dashed border-black/10 bg-white/70 p-4 text-[13px] text-foreground/65 dark:border-white/10 dark:bg-black/10">
             {t('desk.files.imageTooLarge')}
           </div>
@@ -826,7 +832,7 @@ function WorkspacePreviewPane({
       )}
 
       {preview.kind === 'binary' && (
-        <div className="min-h-0 flex-1 p-3">
+        <div className="min-h-0 flex-1 p-2.5">
           <div className="rounded-2xl border border-dashed border-black/10 bg-white/70 p-4 text-[13px] text-foreground/65 dark:border-white/10 dark:bg-black/10">
             {t('desk.files.unsupportedPreview')}
           </div>
@@ -872,22 +878,22 @@ function WorkspaceTree({
               data-testid={isDirectory ? `chat-desk-folder-${entry.name}` : `chat-desk-file-${entry.name}`}
               onClick={() => (isDirectory ? onToggleDirectory(entry) : onOpenFile(entry))}
               className={cn(
-                'flex w-full min-w-0 items-center gap-3 overflow-hidden rounded-xl px-3 py-2 text-left transition-colors hover:bg-black/5 dark:hover:bg-white/10',
-                selectedWorkspacePath === entry.relativePath && 'bg-black/10 dark:bg-white/10',
+                'flex w-full min-w-0 items-center gap-2.5 overflow-hidden rounded-[14px] px-2.5 py-2 text-left transition-colors hover:bg-black/5 dark:hover:bg-white/10',
+                selectedWorkspacePath === entry.relativePath && 'bg-black/[0.07] dark:bg-white/[0.09]',
               )}
-              style={{ paddingLeft: `${12 + depth * 18}px` }}
+              style={{ paddingLeft: `${10 + depth * 16}px` }}
             >
-              <span className="flex h-4 w-4 shrink-0 items-center justify-center text-foreground/50">
+              <span className="flex h-4 w-4 shrink-0 items-center justify-center text-foreground/45">
                 {isDirectory ? (
-                  <ChevronRight className={cn('h-4 w-4 transition-transform', isExpanded && 'rotate-90')} />
+                  <ChevronRight className={cn('h-3.5 w-3.5 transition-transform', isExpanded && 'rotate-90')} />
                 ) : (
-                  <span className="h-2 w-2 rounded-full bg-black/10 dark:bg-white/15" />
+                  <span className="h-1.5 w-1.5 rounded-full bg-black/15 dark:bg-white/20" />
                 )}
               </span>
-              <span className="shrink-0 text-foreground/55">{getWorkspaceEntryIcon(entry)}</span>
+              <span className="shrink-0 text-foreground/50">{getWorkspaceEntryIcon(entry)}</span>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-[13px] font-medium text-foreground">{entry.name}</p>
-                <p className="truncate font-mono text-[11px] text-foreground/55">
+                <p className="truncate text-[12px] font-medium text-foreground">{entry.name}</p>
+                <p className="truncate font-mono text-[10px] text-foreground/50">
                   {entry.containerPath} · {isDirectory ? t('desk.files.directory') : formatByteSize(entry.size)}
                 </p>
               </div>
@@ -896,14 +902,14 @@ function WorkspaceTree({
             {isDirectory && isExpanded && (
               <div className="pt-1">
                 {isLoadingDirectory && (
-                  <div className="flex items-center gap-2 px-3 py-2 text-[12px] text-foreground/55" style={{ paddingLeft: `${30 + depth * 18}px` }}>
+                  <div className="flex items-center gap-2 px-3 py-2 text-[11px] text-foreground/55" style={{ paddingLeft: `${26 + depth * 16}px` }}>
                     <LoadingSpinner size="sm" />
                     {t('desk.files.loadingDirectory')}
                   </div>
                 )}
 
                 {!isLoadingDirectory && childListing && childListing.entries.length === 0 && (
-                  <div className="px-3 py-2 text-[12px] text-foreground/55" style={{ paddingLeft: `${30 + depth * 18}px` }}>
+                  <div className="px-3 py-2 text-[11px] text-foreground/55" style={{ paddingLeft: `${26 + depth * 16}px` }}>
                     {t('desk.files.empty')}
                   </div>
                 )}
@@ -977,51 +983,51 @@ function NativeAppsDock({
       className={cn(
         'flex min-h-0 flex-col overflow-hidden bg-[#f9f6ec] dark:bg-white/5',
         embedded
-          ? 'h-full rounded-[24px]'
-          : 'rounded-[26px] border border-black/10 dark:border-white/10',
+          ? 'h-full rounded-[22px] border border-black/10 dark:border-white/10'
+          : 'rounded-[24px] border border-black/10 dark:border-white/10',
       )}
     >
-      <div className="shrink-0 border-b border-black/10 p-3 dark:border-white/10">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div>
-            <p className="text-[15px] font-semibold text-foreground">{t('desk.apps.title')}</p>
-            <p className="text-[12px] text-foreground/60">{t('desk.apps.subtitle')}</p>
+      <div className="shrink-0 border-b border-black/10 px-3 py-2.5 dark:border-white/10">
+        <div className="flex flex-wrap items-start justify-between gap-2">
+          <div className="max-w-sm">
+            <p className="text-[14px] font-semibold text-foreground">{t('desk.apps.title')}</p>
+            <p className="mt-0.5 text-[11px] leading-5 text-foreground/55">{t('desk.apps.subtitle')}</p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             <Button
               variant="outline"
               onClick={onLaunchPinned}
               disabled={loading || pinnedApps.length === 0}
-              className="h-8 rounded-full border-black/10 bg-white/80 px-3 text-[12px] dark:border-white/10 dark:bg-white/5"
+              className="h-7 rounded-[12px] border-black/10 bg-white/80 px-2.5 text-[11px] dark:border-white/10 dark:bg-white/5"
             >
-              <Rocket className="mr-2 h-3.5 w-3.5" />
+              <Rocket className="mr-1.5 h-3 w-3" />
               {t('desk.apps.launchPinned')}
             </Button>
             <Button
               variant="outline"
               onClick={onRefresh}
-              className="h-8 rounded-full border-black/10 bg-white/80 px-3 text-[12px] dark:border-white/10 dark:bg-white/5"
+              className="h-7 rounded-[12px] border-black/10 bg-white/80 px-2.5 text-[11px] dark:border-white/10 dark:bg-white/5"
             >
-              <RefreshCw className="mr-2 h-3.5 w-3.5" />
+              <RefreshCw className="mr-1.5 h-3 w-3" />
               {t('desk.apps.refresh')}
             </Button>
           </div>
         </div>
 
         {error && (
-          <div className="mt-3 rounded-2xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-[12px] text-destructive">
+          <div className="mt-2 rounded-2xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-[12px] text-destructive">
             {error}
           </div>
         )}
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto p-3">
+      <div className="min-h-0 flex-1 overflow-y-auto p-2.5">
         {loading ? (
           <div className="flex h-full min-h-0 items-center justify-center">
             <LoadingSpinner size="md" />
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-2.5">
             {apps.map((app) => {
               const draftValue = drafts[app.id] ?? app.customPath;
               const isSaving = !!savingAppIds[app.id];
@@ -1033,32 +1039,32 @@ function NativeAppsDock({
                   key={app.id}
                   data-testid={`chat-market-app-card-${app.id}`}
                   className={cn(
-                    'rounded-[22px] border px-4 py-4 shadow-sm transition-colors',
+                    'rounded-[18px] border px-3.5 py-3 shadow-sm transition-colors',
                     app.id === activeEmbeddedAppId
                       ? 'border-emerald-400/70 bg-emerald-50/80 ring-1 ring-emerald-300/60 dark:border-emerald-400/30 dark:bg-emerald-500/10 dark:ring-emerald-500/20'
                       : app.installed
-                        ? 'border-emerald-200/70 bg-white/90 dark:border-emerald-500/20 dark:bg-black/15'
-                        : 'border-black/10 bg-white/75 dark:border-white/10 dark:bg-black/10',
+                        ? 'border-emerald-200/70 bg-white/92 dark:border-emerald-500/20 dark:bg-black/15'
+                        : 'border-black/10 bg-white/78 dark:border-white/10 dark:bg-black/10',
                   )}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-2xl bg-black/5 text-foreground/70 dark:bg-white/10">
+                        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-2xl bg-black/5 text-foreground/70 dark:bg-white/10">
                           {getMarketAppIcon(app)}
                         </span>
                         <div className="min-w-0">
-                          <p className="truncate text-[14px] font-semibold text-foreground">{app.name}</p>
-                          <p className="truncate text-[12px] text-foreground/55">{app.vendor}</p>
+                          <p className="truncate text-[13px] font-semibold text-foreground">{app.name}</p>
+                          <p className="truncate text-[11px] text-foreground/55">{app.vendor}</p>
                         </div>
                       </div>
-                      <p className="mt-3 text-[12px] leading-5 text-foreground/65">{app.description}</p>
+                      <p className="mt-2 text-[11px] leading-5 text-foreground/60">{app.description}</p>
                     </div>
 
-                    <div className="flex shrink-0 items-center gap-2">
+                    <div className="flex shrink-0 items-center gap-1.5">
                       <span
                         className={cn(
-                          'rounded-full px-2.5 py-1 text-[11px] font-medium',
+                          'rounded-full px-2 py-0.5 text-[10px] font-medium',
                           app.installed
                             ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
                             : 'bg-amber-500/10 text-amber-700 dark:text-amber-300',
@@ -1071,32 +1077,34 @@ function NativeAppsDock({
                         size="icon"
                         variant="ghost"
                         data-testid={`chat-market-app-pin-${app.id}`}
-                        className="h-8 w-8 rounded-full"
+                        className="h-7 w-7 rounded-full"
                         onClick={() => onTogglePinned(app)}
                       >
-                        {app.pinned ? <Pin className="h-4 w-4" /> : <PinOff className="h-4 w-4" />}
+                        {app.pinned ? <Pin className="h-3.5 w-3.5" /> : <PinOff className="h-3.5 w-3.5" />}
                       </Button>
                     </div>
                   </div>
 
-                  <div className="mt-3 rounded-2xl border border-black/10 bg-black/[0.025] px-3 py-2.5 dark:border-white/10 dark:bg-white/[0.04]">
-                    <p className="text-[11px] uppercase tracking-[0.08em] text-foreground/45">
-                      {app.installed ? t('desk.apps.detectedPath') : t('desk.apps.pathHint')}
-                    </p>
-                    <p className="mt-1 break-all font-mono text-[12px] text-foreground/70">
+                  <div className="mt-2.5 rounded-2xl border border-black/10 bg-black/[0.025] px-3 py-2 dark:border-white/10 dark:bg-white/[0.04]">
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                      <p className="text-[10px] uppercase tracking-[0.08em] text-foreground/45">
+                        {app.installed ? t('desk.apps.detectedPath') : t('desk.apps.pathHint')}
+                      </p>
+                      {(app.launchCount > 0 || app.lastLaunchedAt) && (
+                        <p className="text-[10px] text-foreground/45">
+                          {t('desk.apps.launchMeta', {
+                            count: app.launchCount,
+                            time: app.lastLaunchedAt ? formatTimestamp(app.lastLaunchedAt) : '-',
+                          })}
+                        </p>
+                      )}
+                    </div>
+                    <p className="mt-1 break-all font-mono text-[11px] text-foreground/68">
                       {app.installedPath || app.candidatePaths[0] || t('desk.apps.noHint')}
                     </p>
-                    {(app.launchCount > 0 || app.lastLaunchedAt) && (
-                      <p className="mt-2 text-[11px] text-foreground/50">
-                        {t('desk.apps.launchMeta', {
-                          count: app.launchCount,
-                          time: app.lastLaunchedAt ? formatTimestamp(app.lastLaunchedAt) : '-',
-                        })}
-                      </p>
-                    )}
                   </div>
 
-                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
                     <Button
                       type="button"
                       size="sm"
@@ -1107,9 +1115,9 @@ function NativeAppsDock({
                         onOpenBrowser(app);
                       }}
                       onClick={() => onOpenBrowser(app)}
-                      className="h-9 rounded-full px-3 text-[12px]"
+                      className="h-8 rounded-[12px] px-2.5 text-[11px]"
                     >
-                      <Globe className="mr-2 h-3.5 w-3.5" />
+                      <Globe className="mr-1.5 h-3 w-3" />
                       {t('desk.apps.openInBrowser')}
                     </Button>
                     <Button
@@ -1119,9 +1127,9 @@ function NativeAppsDock({
                       data-testid={`chat-market-app-launch-${app.id}`}
                       disabled={!app.platformSupported || !app.installed || isLaunching}
                       onClick={() => onLaunch(app)}
-                      className="h-9 rounded-full px-3 text-[12px]"
+                      className="h-8 rounded-[12px] px-2.5 text-[11px]"
                     >
-                      {isLaunching ? <LoadingSpinner size="sm" /> : <Play className="mr-2 h-3.5 w-3.5" />}
+                      {isLaunching ? <LoadingSpinner size="sm" /> : <Play className="mr-1.5 h-3 w-3" />}
                       {t('desk.apps.launch')}
                     </Button>
                     <Button
@@ -1130,9 +1138,9 @@ function NativeAppsDock({
                       variant="outline"
                       data-testid={`chat-market-app-website-${app.id}`}
                       onClick={() => onOpenExternal(app.websiteUrl)}
-                      className="h-9 rounded-full px-3 text-[12px]"
+                      className="h-8 rounded-[12px] px-2.5 text-[11px]"
                     >
-                      <ExternalLink className="mr-2 h-3.5 w-3.5" />
+                      <ExternalLink className="mr-1.5 h-3 w-3" />
                       {t('desk.apps.website')}
                     </Button>
                     <Button
@@ -1141,9 +1149,9 @@ function NativeAppsDock({
                       variant="outline"
                       data-testid={`chat-market-app-download-${app.id}`}
                       onClick={() => onOpenExternal(app.downloadUrl)}
-                      className="h-9 rounded-full px-3 text-[12px]"
+                      className="h-8 rounded-[12px] px-2.5 text-[11px]"
                     >
-                      <Download className="mr-2 h-3.5 w-3.5" />
+                      <Download className="mr-1.5 h-3 w-3" />
                       {t('desk.apps.download')}
                     </Button>
                     <Button
@@ -1153,15 +1161,15 @@ function NativeAppsDock({
                       data-testid={`chat-market-app-reveal-${app.id}`}
                       disabled={!hasRevealTarget}
                       onClick={() => onReveal(app)}
-                      className="h-9 rounded-full px-3 text-[12px]"
+                      className="h-8 rounded-[12px] px-2.5 text-[11px]"
                     >
-                      <FolderOpen className="mr-2 h-3.5 w-3.5" />
+                      <FolderOpen className="mr-1.5 h-3 w-3" />
                       {t('desk.apps.reveal')}
                     </Button>
                   </div>
 
-                  <div className="mt-3 rounded-2xl border border-black/10 bg-white/80 p-2.5 dark:border-white/10 dark:bg-black/10">
-                    <label className="mb-2 block text-[11px] uppercase tracking-[0.08em] text-foreground/45">
+                  <div className="mt-2.5 rounded-2xl border border-black/10 bg-white/82 p-2 dark:border-white/10 dark:bg-black/10">
+                    <label className="mb-1.5 block text-[10px] uppercase tracking-[0.08em] text-foreground/45">
                       {t('desk.apps.customPath')}
                     </label>
                     <div className="flex flex-col gap-2 sm:flex-row">
@@ -1169,9 +1177,9 @@ function NativeAppsDock({
                         value={draftValue}
                         onChange={(event) => onDraftChange(app.id, event.target.value)}
                         placeholder={app.candidatePaths[0] || t('desk.apps.customPathPlaceholder')}
-                        className="h-9 flex-1 border-black/10 bg-transparent text-[12px] shadow-none"
+                        className="h-8 flex-1 border-black/10 bg-transparent text-[11px] shadow-none"
                       />
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1.5">
                         <Button
                           type="button"
                           size="sm"
@@ -1179,7 +1187,7 @@ function NativeAppsDock({
                           data-testid={`chat-market-app-save-${app.id}`}
                           disabled={isSaving}
                           onClick={() => onSavePath(app.id)}
-                          className="h-9 rounded-full px-3 text-[12px]"
+                          className="h-8 rounded-[12px] px-2.5 text-[11px]"
                         >
                           {isSaving ? <LoadingSpinner size="sm" /> : null}
                           {t('desk.apps.save')}
@@ -1191,7 +1199,7 @@ function NativeAppsDock({
                           data-testid={`chat-market-app-clear-${app.id}`}
                           disabled={isSaving || !draftValue}
                           onClick={() => onClearPath(app.id)}
-                          className="h-9 rounded-full px-3 text-[12px]"
+                          className="h-8 rounded-[12px] px-2.5 text-[11px]"
                         >
                           {t('desk.apps.clear')}
                         </Button>
@@ -1246,13 +1254,13 @@ function EmbeddedMarketAppPane({
         <div className="flex min-h-0 flex-1 items-center justify-center p-5">
           <div
             data-testid="chat-market-app-embed-empty"
-            className="max-w-md rounded-[24px] border border-dashed border-black/10 bg-white/70 px-6 py-7 text-center dark:border-white/10 dark:bg-black/10"
+            className="max-w-md rounded-[20px] border border-dashed border-black/10 bg-white/70 px-5 py-6 text-center dark:border-white/10 dark:bg-black/10"
           >
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-black/5 text-foreground/55 dark:bg-white/10">
-              <Monitor className="h-6 w-6" />
+            <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-2xl bg-black/5 text-foreground/55 dark:bg-white/10">
+              <Monitor className="h-5 w-5" />
             </div>
-            <p className="mt-4 text-[15px] font-semibold text-foreground">{t('desk.apps.embedEmptyTitle')}</p>
-            <p className="mt-2 text-[13px] leading-6 text-foreground/65">{t('desk.apps.embedEmptyBody')}</p>
+            <p className="mt-4 text-[14px] font-semibold text-foreground">{t('desk.apps.embedEmptyTitle')}</p>
+            <p className="mt-2 text-[12px] leading-6 text-foreground/65">{t('desk.apps.embedEmptyBody')}</p>
           </div>
         </div>
       </section>
@@ -1264,32 +1272,32 @@ function EmbeddedMarketAppPane({
       data-testid="chat-market-app-embed-surface"
       className="flex min-h-0 flex-col overflow-hidden rounded-[24px] border border-black/10 bg-[#f9f6ec] dark:border-white/10 dark:bg-white/5"
     >
-      <div className="shrink-0 border-b border-black/10 px-3 py-3 dark:border-white/10">
+      <div className="shrink-0 border-b border-black/10 px-3 py-2.5 dark:border-white/10">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-2xl bg-black/5 text-foreground/70 dark:bg-white/10">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-2xl bg-black/5 text-foreground/70 dark:bg-white/10">
                 {getMarketAppIcon(app)}
               </span>
               <div className="min-w-0">
-                <p data-testid="chat-market-app-embed-title" className="truncate text-[15px] font-semibold text-foreground">
+                <p data-testid="chat-market-app-embed-title" className="truncate text-[14px] font-semibold text-foreground">
                   {app.name}
                 </p>
-                <p className="truncate text-[12px] text-foreground/55">{app.vendor}</p>
+                <p className="truncate text-[11px] text-foreground/55">{app.vendor}</p>
               </div>
             </div>
-            <p className="mt-3 text-[12px] leading-5 text-foreground/65">{app.description}</p>
+            <p className="mt-2 text-[11px] leading-5 text-foreground/60">{app.description}</p>
           </div>
-          <div className="flex flex-wrap items-center justify-end gap-2">
+          <div className="flex flex-wrap items-center justify-end gap-1.5">
             {app.installed && (
               <Button
                 type="button"
                 size="sm"
                 variant="outline"
-                className="h-9 rounded-full px-3 text-[12px]"
+                className="h-8 rounded-[12px] px-2.5 text-[11px]"
                 onClick={() => onLaunch(app)}
               >
-                <Play className="mr-2 h-3.5 w-3.5" />
+                <Play className="mr-1.5 h-3 w-3" />
                 {t('desk.apps.launch')}
               </Button>
             )}
@@ -1297,10 +1305,10 @@ function EmbeddedMarketAppPane({
               type="button"
               size="sm"
               variant="outline"
-              className="h-9 rounded-full px-3 text-[12px]"
+              className="h-8 rounded-[12px] px-2.5 text-[11px]"
               onClick={() => onOpenExternal(app.websiteUrl)}
             >
-              <ExternalLink className="mr-2 h-3.5 w-3.5" />
+              <ExternalLink className="mr-1.5 h-3 w-3" />
               {t('desk.browser.openExternal')}
             </Button>
           </div>
@@ -1308,12 +1316,12 @@ function EmbeddedMarketAppPane({
       </div>
 
       <div className="shrink-0 border-b border-black/10 px-3 py-2 dark:border-white/10">
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-1.5">
           <Button
             variant="outline"
             onClick={onGoBack}
             disabled={!state.canGoBack}
-            className="h-8 rounded-full border-black/10 bg-white/80 px-3 text-[12px] dark:border-white/10 dark:bg-white/5"
+            className="h-7 rounded-[12px] border-black/10 bg-white/80 px-2.5 text-[11px] dark:border-white/10 dark:bg-white/5"
           >
             {t('desk.browser.back')}
           </Button>
@@ -1321,19 +1329,19 @@ function EmbeddedMarketAppPane({
             variant="outline"
             onClick={onGoForward}
             disabled={!state.canGoForward}
-            className="h-8 rounded-full border-black/10 bg-white/80 px-3 text-[12px] dark:border-white/10 dark:bg-white/5"
+            className="h-7 rounded-[12px] border-black/10 bg-white/80 px-2.5 text-[11px] dark:border-white/10 dark:bg-white/5"
           >
             {t('desk.browser.forward')}
           </Button>
           <Button
             variant="outline"
             onClick={onReload}
-            className="h-8 rounded-full border-black/10 bg-white/80 px-3 text-[12px] dark:border-white/10 dark:bg-white/5"
+            className="h-7 rounded-[12px] border-black/10 bg-white/80 px-2.5 text-[11px] dark:border-white/10 dark:bg-white/5"
           >
-            <RefreshCw className={cn('mr-2 h-3.5 w-3.5', state.loading && 'animate-spin')} />
+            <RefreshCw className={cn('mr-1.5 h-3 w-3', state.loading && 'animate-spin')} />
             {t('desk.browser.reload')}
           </Button>
-          <div className="min-w-[240px] flex-1 rounded-2xl border border-black/10 bg-white/80 px-4 py-2 font-mono text-[12px] text-foreground/65 dark:border-white/10 dark:bg-black/10">
+          <div className="min-w-[220px] flex-1 rounded-[16px] border border-black/10 bg-white/80 px-3 py-1.5 font-mono text-[11px] text-foreground/65 dark:border-white/10 dark:bg-black/10">
             <span className="block truncate">{state.url}</span>
           </div>
         </div>
@@ -1360,10 +1368,10 @@ function EmbeddedMarketAppPane({
               type="button"
               data-testid="chat-market-app-activate"
               onClick={() => onSetInteractive(true)}
-              className="max-w-sm rounded-[22px] border border-black/10 bg-white/92 px-5 py-4 text-center shadow-lg transition-transform hover:-translate-y-0.5 dark:border-white/10 dark:bg-card/92"
+              className="max-w-sm rounded-[20px] border border-black/10 bg-white/92 px-4 py-3.5 text-center shadow-lg transition-transform hover:-translate-y-0.5 dark:border-white/10 dark:bg-card/92"
             >
-              <p className="text-[14px] font-semibold text-foreground">{t('desk.apps.activate')}</p>
-              <p className="mt-2 text-[12px] leading-6 text-foreground/65">{t('desk.apps.activateBody')}</p>
+              <p className="text-[13px] font-semibold text-foreground">{t('desk.apps.activate')}</p>
+              <p className="mt-2 text-[11px] leading-6 text-foreground/65">{t('desk.apps.activateBody')}</p>
             </button>
           </div>
         )}
@@ -1373,34 +1381,34 @@ function EmbeddedMarketAppPane({
             data-testid="chat-market-app-embed-error"
             className="absolute inset-0 z-10 flex items-center justify-center bg-[#f9f6ec]/96 p-5 dark:bg-black/90"
           >
-            <div className="w-full max-w-md rounded-[24px] border border-black/10 bg-white/90 p-5 shadow-xl dark:border-white/10 dark:bg-card">
+            <div className="w-full max-w-md rounded-[20px] border border-black/10 bg-white/90 p-[18px] shadow-xl dark:border-white/10 dark:bg-card">
               <div className="flex items-start gap-3">
                 <div className="mt-0.5 rounded-full bg-destructive/10 p-2 text-destructive">
                   <AlertCircle className="h-4 w-4" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-[15px] font-semibold text-foreground">{t('desk.browser.loadFailedTitle')}</p>
-                  <p className="mt-1 text-[13px] leading-6 text-foreground/70">{t('desk.browser.loadFailedBody')}</p>
-                  <p className="mt-3 break-all rounded-2xl border border-black/10 bg-black/[0.03] px-3 py-2 font-mono text-[12px] text-foreground/70 dark:border-white/10 dark:bg-white/[0.04]">
+                  <p className="text-[14px] font-semibold text-foreground">{t('desk.browser.loadFailedTitle')}</p>
+                  <p className="mt-1 text-[12px] leading-6 text-foreground/70">{t('desk.browser.loadFailedBody')}</p>
+                  <p className="mt-3 break-all rounded-[16px] border border-black/10 bg-black/[0.03] px-3 py-2 font-mono text-[11px] text-foreground/70 dark:border-white/10 dark:bg-white/[0.04]">
                     {state.error.url}
                   </p>
-                  <p className="mt-2 text-[12px] text-foreground/55">{state.error.description}</p>
+                  <p className="mt-2 text-[11px] text-foreground/55">{state.error.description}</p>
                 </div>
               </div>
               <div className="mt-4 flex flex-wrap items-center gap-2">
                 <Button
-                  className="h-9 rounded-full px-4 text-[12px]"
+                  className="h-8 rounded-[12px] px-3 text-[11px]"
                   onClick={onReload}
                 >
-                  <RefreshCw className="mr-2 h-3.5 w-3.5" />
+                  <RefreshCw className="mr-1.5 h-3 w-3" />
                   {t('desk.browser.retry')}
                 </Button>
                 <Button
                   variant="outline"
-                  className="h-9 rounded-full px-4 text-[12px]"
+                  className="h-8 rounded-[12px] px-3 text-[11px]"
                   onClick={() => onOpenExternal(state.error?.url || state.url)}
                 >
-                  <ExternalLink className="mr-2 h-3.5 w-3.5" />
+                  <ExternalLink className="mr-1.5 h-3 w-3" />
                   {t('desk.browser.openExternal')}
                 </Button>
               </div>
@@ -2069,19 +2077,19 @@ export function ResearchDeskPanel({
   }), [activeBrowserTab, t]);
 
   const getDeskViewButtonClass = (view: DeskView) => cn(
-    'h-8 rounded-[14px] px-3 text-[11px] font-medium transition-colors',
+    'h-7 rounded-[12px] px-2.5 text-[10px] font-medium transition-colors',
     activeDeskView === view
       ? 'bg-white text-foreground shadow-sm dark:bg-black/20'
       : 'text-foreground/60 hover:bg-black/[0.04] hover:text-foreground dark:hover:bg-white/[0.06] dark:hover:text-foreground',
   );
 
   return (
-    <Card data-testid="chat-research-desk" className="flex h-full min-h-[340px] flex-col rounded-[28px] border-0 bg-[#efe9db] shadow-[0_24px_80px_rgba(36,39,27,0.12)] dark:bg-card">
-      <CardContent className="flex min-h-0 flex-1 flex-col p-3">
-        <div className="mb-2.5 flex flex-col gap-2">
-          <div className="flex flex-wrap items-center justify-between gap-2 rounded-[20px] border border-black/10 bg-white/55 px-2.5 py-2 dark:border-white/10 dark:bg-white/[0.04]">
+    <Card data-testid="chat-research-desk" className="flex h-full min-h-[340px] flex-col rounded-[26px] border-0 bg-[#efe9db] shadow-[0_24px_80px_rgba(36,39,27,0.12)] dark:bg-card">
+      <CardContent className="flex min-h-0 flex-1 flex-col p-2.5">
+        <div className="mb-2 flex flex-col gap-1.5">
+          <div className="flex flex-wrap items-center justify-between gap-2 rounded-[18px] border border-black/10 bg-white/55 px-2.5 py-1.5 dark:border-white/10 dark:bg-white/[0.04]">
             <div className="flex min-w-0 flex-wrap items-center gap-1.5">
-              <div className="flex items-center gap-2 rounded-full border border-black/10 bg-white/75 px-2.5 py-1 text-[11px] font-medium text-foreground/80 dark:border-white/10 dark:bg-white/[0.08]">
+              <div className="flex items-center gap-2 rounded-full border border-black/10 bg-white/75 px-2.5 py-1 text-[10px] font-medium text-foreground/80 dark:border-white/10 dark:bg-white/[0.08]">
                 <span className="truncate">{currentAgent?.name || 'Main Agent'}</span>
               </div>
               <div className="rounded-full border border-black/10 bg-white/70 px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.08em] text-foreground/55 dark:border-white/10 dark:bg-white/[0.06]">
@@ -2098,7 +2106,7 @@ export function ResearchDeskPanel({
 
           <div
             data-testid="chat-desk-view-switcher"
-            className="inline-flex max-w-full flex-wrap items-center gap-1 self-start rounded-[18px] border border-black/10 bg-white/65 p-1 dark:border-white/10 dark:bg-white/[0.05]"
+            className="inline-flex max-w-full flex-wrap items-center gap-0.5 self-start rounded-[16px] border border-black/10 bg-white/65 p-0.5 dark:border-white/10 dark:bg-white/[0.05]"
           >
             <Button
               type="button"
@@ -2108,7 +2116,7 @@ export function ResearchDeskPanel({
               onClick={() => setActiveDeskView('files')}
               className={getDeskViewButtonClass('files')}
             >
-              <FolderOpen className="mr-2 h-3.5 w-3.5" />
+              <FolderOpen className="mr-1.5 h-3 w-3" />
               {t('desk.files.title')}
             </Button>
             <Button
@@ -2119,7 +2127,7 @@ export function ResearchDeskPanel({
               onClick={() => setActiveDeskView('apps')}
               className={getDeskViewButtonClass('apps')}
             >
-              <Monitor className="mr-2 h-3.5 w-3.5" />
+              <Monitor className="mr-1.5 h-3 w-3" />
               {t('desk.apps.title')}
             </Button>
             <Button
@@ -2130,7 +2138,7 @@ export function ResearchDeskPanel({
               onClick={() => setActiveDeskView('browser')}
               className={getDeskViewButtonClass('browser')}
             >
-              <Globe className="mr-2 h-3.5 w-3.5" />
+              <Globe className="mr-1.5 h-3 w-3" />
               {t('desk.browser.title')}
             </Button>
           </div>
@@ -2140,57 +2148,57 @@ export function ResearchDeskPanel({
           {activeDeskView === 'files' && (
             <section
               data-testid="chat-desk-files-surface"
-              className="flex h-full min-h-0 flex-col overflow-hidden rounded-[26px] border border-black/10 bg-[#f9f6ec] dark:border-white/10 dark:bg-white/5"
+              className="flex h-full min-h-0 flex-col overflow-hidden rounded-[24px] border border-black/10 bg-[#f9f6ec] dark:border-white/10 dark:bg-white/5"
             >
-              <div className="shrink-0 border-b border-black/10 p-3 dark:border-white/10">
+              <div data-testid="chat-desk-files-header" className="shrink-0 border-b border-black/10 px-3 py-2.5 dark:border-white/10">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div>
-                    <p className="text-[15px] font-semibold text-foreground">{t('desk.files.title')}</p>
-                    <p className="text-[12px] text-foreground/60">{t('desk.files.subtitle')}</p>
+                    <p className="text-[14px] font-semibold text-foreground">{t('desk.files.title')}</p>
+                    <p className="text-[11px] text-foreground/58">{t('desk.files.subtitle')}</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <Button
                       variant="outline"
                       onClick={() => void handleRefreshWorkspace()}
-                      className="h-8 rounded-full border-black/10 bg-white/80 px-3 text-[12px] dark:border-white/10 dark:bg-white/5"
+                      className="h-7 rounded-[12px] border-black/10 bg-white/80 px-2.5 text-[11px] dark:border-white/10 dark:bg-white/5"
                     >
-                      <RefreshCw className="mr-2 h-3.5 w-3.5" />
+                      <RefreshCw className="mr-1.5 h-3 w-3" />
                       {t('desk.files.refresh')}
                     </Button>
                     <Button
                       variant="outline"
                       onClick={() => void handleOpenWorkspaceFolder()}
                       disabled={!rootListing?.exists}
-                      className="h-8 rounded-full border-black/10 bg-white/80 px-3 text-[12px] dark:border-white/10 dark:bg-white/5"
+                      className="h-7 rounded-[12px] border-black/10 bg-white/80 px-2.5 text-[11px] dark:border-white/10 dark:bg-white/5"
                     >
-                      <FolderOpen className="mr-2 h-3.5 w-3.5" />
+                      <FolderOpen className="mr-1.5 h-3 w-3" />
                       {t('desk.files.openFolder')}
                     </Button>
                   </div>
                 </div>
-                <div className="mt-3 rounded-2xl border border-black/10 bg-white/80 px-4 py-3 dark:border-white/10 dark:bg-black/10">
-                  <div className="flex items-center gap-2 text-[12px] uppercase tracking-[0.08em] text-foreground/55">
-                    <Folder className="h-3.5 w-3.5" />
+                <div className="mt-2.5 rounded-[18px] border border-black/10 bg-white/80 px-3 py-2.5 dark:border-white/10 dark:bg-black/10">
+                  <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.08em] text-foreground/55">
+                    <Folder className="h-3 w-3" />
                     {t('desk.files.containerPath')}
                   </div>
-                  <p className="mt-1 break-all font-mono text-[12px] text-foreground">
+                  <p className="mt-1 break-all font-mono text-[11px] text-foreground">
                     {workspaceFallbackPath}
                   </p>
                 </div>
                 {workspaceError && (
-                  <div className="mt-3 rounded-2xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-[12px] text-destructive">
+                  <div className="mt-2.5 rounded-[18px] border border-destructive/30 bg-destructive/10 px-4 py-3 text-[12px] text-destructive">
                     {workspaceError}
                   </div>
                 )}
               </div>
 
-              <div className="grid min-h-0 flex-1 gap-px bg-black/10 dark:bg-white/10 lg:grid-cols-[minmax(240px,0.78fr)_minmax(0,1.22fr)]">
+              <div className="grid min-h-0 flex-1 gap-px bg-black/10 dark:bg-white/10 lg:grid-cols-[minmax(228px,0.74fr)_minmax(0,1.26fr)]">
                 <div
                   data-testid="chat-desk-files"
-                  className="flex min-h-0 flex-col overflow-hidden bg-[#f9f6ec] p-3 dark:bg-white/5"
+                  className="flex min-h-0 flex-col overflow-hidden bg-[#f9f6ec] p-2.5 dark:bg-white/5"
                 >
                   {!currentAgent ? (
-                    <div className="rounded-2xl border border-dashed border-black/10 bg-white/70 p-4 text-[13px] text-foreground/65 dark:border-white/10 dark:bg-black/10">
+                    <div className="rounded-[18px] border border-dashed border-black/10 bg-white/70 p-3.5 text-[12px] text-foreground/65 dark:border-white/10 dark:bg-black/10">
                       {t('desk.files.noAgent')}
                     </div>
                   ) : workspaceLoading ? (
@@ -2198,17 +2206,17 @@ export function ResearchDeskPanel({
                       <LoadingSpinner size="md" />
                     </div>
                   ) : !rootListing?.exists ? (
-                    <div className="rounded-2xl border border-dashed border-black/10 bg-white/70 p-4 text-[13px] text-foreground/65 dark:border-white/10 dark:bg-black/10">
+                    <div className="rounded-[18px] border border-dashed border-black/10 bg-white/70 p-3.5 text-[12px] text-foreground/65 dark:border-white/10 dark:bg-black/10">
                       {t('desk.files.missing')}
                     </div>
                   ) : rootListing.entries.length === 0 ? (
-                    <div className="rounded-2xl border border-dashed border-black/10 bg-white/70 p-4 text-[13px] text-foreground/65 dark:border-white/10 dark:bg-black/10">
+                    <div className="rounded-[18px] border border-dashed border-black/10 bg-white/70 p-3.5 text-[12px] text-foreground/65 dark:border-white/10 dark:bg-black/10">
                       {t('desk.files.empty')}
                     </div>
                   ) : (
                     <div className="min-h-0 flex-1 overflow-y-auto pr-1">
-                      <div data-testid="chat-desk-tree-root" className="mb-2 flex items-center gap-2 rounded-xl border border-black/10 bg-white/70 px-3 py-2 text-[12px] font-medium text-foreground/75 dark:border-white/10 dark:bg-black/10">
-                        <FolderOpen className="h-4 w-4 text-foreground/55" />
+                      <div data-testid="chat-desk-tree-root" className="mb-2 flex items-center gap-2 rounded-[14px] border border-black/10 bg-white/70 px-2.5 py-2 text-[11px] font-medium text-foreground/75 dark:border-white/10 dark:bg-black/10">
+                        <FolderOpen className="h-3.5 w-3.5 text-foreground/55" />
                         <span className="truncate">/workspace</span>
                       </div>
                       <WorkspaceTree
@@ -2225,7 +2233,7 @@ export function ResearchDeskPanel({
                   )}
                 </div>
 
-                <div className="flex min-h-0 flex-col overflow-hidden bg-[#f9f6ec] p-3 dark:bg-white/5">
+                <div className="flex min-h-0 flex-col overflow-hidden bg-[#f9f6ec] p-2.5 dark:bg-white/5">
                   <WorkspacePreviewPane
                     preview={workspacePreview}
                     loading={workspacePreviewLoading}
@@ -2237,7 +2245,7 @@ export function ResearchDeskPanel({
           )}
 
           {activeDeskView === 'apps' && (
-            <section className="grid h-full min-h-0 gap-3 md:grid-cols-[minmax(280px,0.82fr)_minmax(0,1.18fr)]">
+            <section className="grid h-full min-h-0 gap-2.5 md:grid-cols-[minmax(272px,0.8fr)_minmax(0,1.2fr)]">
               <NativeAppsDock
                 embedded
                 apps={marketApps}
@@ -2299,14 +2307,14 @@ export function ResearchDeskPanel({
           )}
 
           {activeDeskView === 'browser' && (
-            <section className="flex h-full min-h-0 flex-col overflow-hidden rounded-[26px] border border-black/10 bg-[#f9f6ec] dark:border-white/10 dark:bg-white/5">
-              <div className="shrink-0 border-b border-black/10 px-3 py-3 dark:border-white/10">
+            <section className="flex h-full min-h-0 flex-col overflow-hidden rounded-[24px] border border-black/10 bg-[#f9f6ec] dark:border-white/10 dark:bg-white/5">
+              <div data-testid="chat-desk-browser-header" className="shrink-0 border-b border-black/10 px-3 py-2.5 dark:border-white/10">
                 <div className="flex flex-col gap-2">
                   <div>
-                    <p className="text-[15px] font-semibold text-foreground">{t('desk.browser.title')}</p>
-                    <p className="text-[12px] text-foreground/60">{t('desk.browser.subtitle')}</p>
+                    <p className="text-[14px] font-semibold text-foreground">{t('desk.browser.title')}</p>
+                    <p className="text-[11px] text-foreground/58">{t('desk.browser.subtitle')}</p>
                   </div>
-                  <div data-testid="chat-desk-browser-tabs" className="flex items-center gap-2 overflow-x-auto pb-1">
+                  <div data-testid="chat-desk-browser-tabs" className="flex items-center gap-1.5 overflow-x-auto pb-1">
                     {browserTabs.map((tab) => (
                       <button
                         key={tab.id}
@@ -2314,7 +2322,7 @@ export function ResearchDeskPanel({
                         data-testid="chat-desk-browser-tab"
                         onClick={() => setActiveBrowserTabId(tab.id)}
                         className={cn(
-                          'group flex min-w-0 max-w-[180px] items-center gap-2 rounded-xl border px-3 py-2 text-left transition-colors',
+                          'group flex min-w-0 max-w-[168px] items-center gap-2 rounded-[14px] border px-2.5 py-1.5 text-left transition-colors',
                           tab.id === activeBrowserTabId
                             ? 'border-black/15 bg-white text-foreground shadow-sm dark:border-white/15 dark:bg-black/10'
                             : 'border-transparent bg-transparent text-foreground/65 hover:border-black/10 hover:bg-white/60 dark:hover:border-white/10 dark:hover:bg-black/10',
@@ -2323,9 +2331,9 @@ export function ResearchDeskPanel({
                         {tab.loading ? (
                           <LoadingSpinner size="sm" />
                         ) : (
-                          <Globe className="h-3.5 w-3.5 shrink-0 text-foreground/50" />
+                          <Globe className="h-3 w-3 shrink-0 text-foreground/50" />
                         )}
-                        <span className="truncate text-[12px] font-medium">
+                        <span className="truncate text-[11px] font-medium">
                           {tab.title || getBrowserTitleFallback(tab.url, t('desk.browser.title'))}
                         </span>
                         {browserTabs.length > 1 && (
@@ -2346,7 +2354,7 @@ export function ResearchDeskPanel({
                             }}
                             className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md text-foreground/45 transition-colors hover:bg-black/5 hover:text-foreground dark:hover:bg-white/10"
                           >
-                            <X className="h-3.5 w-3.5" />
+                            <X className="h-3 w-3" />
                           </span>
                         )}
                       </button>
@@ -2356,10 +2364,10 @@ export function ResearchDeskPanel({
                       type="button"
                       data-testid="chat-desk-browser-new-tab"
                       onClick={handleCreateBrowserTab}
-                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-black/10 bg-white/70 text-foreground/65 transition-colors hover:bg-white dark:border-white/10 dark:bg-black/10 dark:hover:bg-black/20"
+                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[12px] border border-black/10 bg-white/70 text-foreground/65 transition-colors hover:bg-white dark:border-white/10 dark:bg-black/10 dark:hover:bg-black/20"
                       aria-label={t('desk.browser.newTab')}
                     >
-                      <Plus className="h-4 w-4" />
+                      <Plus className="h-3.5 w-3.5" />
                     </button>
                   </div>
                 </div>
@@ -2371,7 +2379,7 @@ export function ResearchDeskPanel({
                     variant="outline"
                     onClick={() => browserWebviewsRef.current[activeBrowserTab?.id || '']?.goBack()}
                     disabled={!activeBrowserState.canGoBack}
-                    className="h-8 rounded-full border-black/10 bg-white/80 px-3 text-[12px] dark:border-white/10 dark:bg-white/5"
+                    className="h-7 rounded-[12px] border-black/10 bg-white/80 px-2.5 text-[11px] dark:border-white/10 dark:bg-white/5"
                   >
                     {t('desk.browser.back')}
                   </Button>
@@ -2379,21 +2387,21 @@ export function ResearchDeskPanel({
                     variant="outline"
                     onClick={() => browserWebviewsRef.current[activeBrowserTab?.id || '']?.goForward()}
                     disabled={!activeBrowserState.canGoForward}
-                    className="h-8 rounded-full border-black/10 bg-white/80 px-3 text-[12px] dark:border-white/10 dark:bg-white/5"
+                    className="h-7 rounded-[12px] border-black/10 bg-white/80 px-2.5 text-[11px] dark:border-white/10 dark:bg-white/5"
                   >
                     {t('desk.browser.forward')}
                   </Button>
                   <Button
                     variant="outline"
                     onClick={() => browserWebviewsRef.current[activeBrowserTab?.id || '']?.reload()}
-                    className="h-8 rounded-full border-black/10 bg-white/80 px-3 text-[12px] dark:border-white/10 dark:bg-white/5"
+                    className="h-7 rounded-[12px] border-black/10 bg-white/80 px-2.5 text-[11px] dark:border-white/10 dark:bg-white/5"
                   >
-                    <RefreshCw className={cn('mr-2 h-3.5 w-3.5', activeBrowserState.loading && 'animate-spin')} />
+                    <RefreshCw className={cn('mr-1.5 h-3 w-3', activeBrowserState.loading && 'animate-spin')} />
                     {t('desk.browser.reload')}
                   </Button>
 
-                  <div className="flex min-w-[240px] flex-1 items-center gap-2 rounded-2xl border border-black/10 bg-white/80 p-2 dark:border-white/10 dark:bg-black/10">
-                    <Globe className="ml-1 h-4 w-4 shrink-0 text-foreground/55" />
+                  <div className="flex min-w-[240px] flex-1 items-center gap-2 rounded-[18px] border border-black/10 bg-white/80 p-1.5 dark:border-white/10 dark:bg-black/10">
+                    <Globe className="ml-1 h-3.5 w-3.5 shrink-0 text-foreground/55" />
                     <Input
                       data-testid="chat-desk-browser-url"
                       value={browserInput}
@@ -2403,23 +2411,23 @@ export function ResearchDeskPanel({
                           handleBrowserNavigate();
                         }
                       }}
-                      className="h-9 border-0 bg-transparent text-[13px] shadow-none focus-visible:ring-0"
+                      className="h-8 border-0 bg-transparent text-[12px] shadow-none focus-visible:ring-0"
                     />
-                    <Button onClick={handleBrowserNavigate} className="h-9 rounded-full px-4 text-[12px]">
-                      <Search className="mr-2 h-3.5 w-3.5" />
+                    <Button onClick={handleBrowserNavigate} className="h-8 rounded-[12px] px-3 text-[11px]">
+                      <Search className="mr-1.5 h-3 w-3" />
                       {t('desk.browser.go')}
                     </Button>
                   </div>
                 </div>
 
-                <div className="mt-2 flex flex-wrap items-center gap-2">
+                <div className="mt-2 flex flex-wrap items-center gap-1.5">
                   {QUICK_BROWSER_LINKS.map((link) => (
                     <button
                       key={link.id}
                       type="button"
                       data-testid={`chat-desk-browser-link-${link.id}`}
                       onClick={() => navigateBrowserTo(link.url, link.label)}
-                      className="rounded-full border border-black/10 bg-white/80 px-3 py-1.5 text-[12px] font-medium text-foreground/75 transition-colors hover:bg-black/5 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10"
+                      className="rounded-[12px] border border-black/10 bg-white/80 px-2.5 py-1.5 text-[11px] font-medium text-foreground/75 transition-colors hover:bg-black/5 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10"
                     >
                       {link.label}
                     </button>
@@ -2449,12 +2457,12 @@ export function ResearchDeskPanel({
                       type="button"
                       data-testid="chat-desk-browser-activate"
                       onClick={() => setBrowserInteractive(true)}
-                      className="max-w-sm rounded-[22px] border border-black/10 bg-white/92 px-5 py-4 text-center shadow-lg transition-transform hover:-translate-y-0.5 dark:border-white/10 dark:bg-card/92"
+                      className="max-w-sm rounded-[20px] border border-black/10 bg-white/92 px-4 py-3.5 text-center shadow-lg transition-transform hover:-translate-y-0.5 dark:border-white/10 dark:bg-card/92"
                     >
-                      <p className="text-[14px] font-semibold text-foreground">
+                      <p className="text-[13px] font-semibold text-foreground">
                         {t('desk.browser.activate')}
                       </p>
-                      <p className="mt-2 text-[12px] leading-6 text-foreground/65">
+                      <p className="mt-2 text-[11px] leading-6 text-foreground/65">
                         {t('desk.browser.activateBody')}
                       </p>
                     </button>
@@ -2465,29 +2473,29 @@ export function ResearchDeskPanel({
                     data-testid="chat-desk-browser-error"
                     className="absolute inset-0 z-10 flex items-center justify-center bg-[#f9f6ec]/96 p-5 dark:bg-black/90"
                   >
-                    <div className="w-full max-w-md rounded-[24px] border border-black/10 bg-white/90 p-5 shadow-xl dark:border-white/10 dark:bg-card">
+                    <div className="w-full max-w-md rounded-[20px] border border-black/10 bg-white/90 p-[18px] shadow-xl dark:border-white/10 dark:bg-card">
                       <div className="flex items-start gap-3">
                         <div className="mt-0.5 rounded-full bg-destructive/10 p-2 text-destructive">
                           <AlertCircle className="h-4 w-4" />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="text-[15px] font-semibold text-foreground">
+                          <p className="text-[14px] font-semibold text-foreground">
                             {t('desk.browser.loadFailedTitle')}
                           </p>
-                          <p className="mt-1 text-[13px] leading-6 text-foreground/70">
+                          <p className="mt-1 text-[12px] leading-6 text-foreground/70">
                             {t('desk.browser.loadFailedBody')}
                           </p>
-                          <p className="mt-3 break-all rounded-2xl border border-black/10 bg-black/[0.03] px-3 py-2 font-mono text-[12px] text-foreground/70 dark:border-white/10 dark:bg-white/[0.04]">
+                          <p className="mt-3 break-all rounded-[16px] border border-black/10 bg-black/[0.03] px-3 py-2 font-mono text-[11px] text-foreground/70 dark:border-white/10 dark:bg-white/[0.04]">
                             {activeBrowserTab.error.url}
                           </p>
-                          <p className="mt-2 text-[12px] text-foreground/55">
+                          <p className="mt-2 text-[11px] text-foreground/55">
                             {activeBrowserTab.error.description}
                           </p>
                         </div>
                       </div>
                       <div className="mt-4 flex flex-wrap items-center gap-2">
                         <Button
-                          className="h-9 rounded-full px-4 text-[12px]"
+                          className="h-8 rounded-[12px] px-3 text-[11px]"
                           onClick={() => {
                             if (!activeBrowserTab) return;
                             updateBrowserTab(activeBrowserTab.id, { loading: true, error: null });
@@ -2497,18 +2505,18 @@ export function ResearchDeskPanel({
                             }
                           }}
                         >
-                          <RefreshCw className="mr-2 h-3.5 w-3.5" />
+                          <RefreshCw className="mr-1.5 h-3 w-3" />
                           {t('desk.browser.retry')}
                         </Button>
                         <Button
                           variant="outline"
-                          className="h-9 rounded-full px-4 text-[12px]"
+                          className="h-8 rounded-[12px] px-3 text-[11px]"
                           onClick={() => {
                             const targetUrl = activeBrowserTab.error?.url || activeBrowserTab.url;
                             void handleOpenExternalUrl(targetUrl);
                           }}
                         >
-                          <ExternalLink className="mr-2 h-3.5 w-3.5" />
+                          <ExternalLink className="mr-1.5 h-3 w-3" />
                           {t('desk.browser.openExternal')}
                         </Button>
                       </div>

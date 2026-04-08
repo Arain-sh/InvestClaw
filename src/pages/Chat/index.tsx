@@ -24,10 +24,10 @@ import { useStickToBottomInstant } from '@/hooks/use-stick-to-bottom-instant';
 import { useMinLoading } from '@/hooks/use-min-loading';
 import { hasAvailableProvider } from '@/lib/provider-readiness';
 
-const DEFAULT_DESK_WIDTH = 560;
+const DEFAULT_DESK_WIDTH = 620;
 const MIN_DESK_WIDTH = 320;
-const MAX_DESK_WIDTH = 920;
-const MIN_CHAT_COLUMN_WIDTH = 440;
+const MAX_DESK_WIDTH = 1480;
+const MIN_CHAT_COLUMN_WIDTH = 260;
 const DESKTOP_BREAKPOINT = 1024;
 
 function clampDeskWidth(width: number, layoutWidth?: number): number {
@@ -36,7 +36,7 @@ function clampDeskWidth(width: number, layoutWidth?: number): number {
   }
 
   const isDesktop = window.innerWidth >= DESKTOP_BREAKPOINT;
-  const fallbackMax = Math.max(MIN_DESK_WIDTH, window.innerWidth - 420);
+  const fallbackMax = Math.max(MIN_DESK_WIDTH, window.innerWidth - MIN_CHAT_COLUMN_WIDTH - 96);
   const layoutConstrainedMax = layoutWidth
     ? Math.max(MIN_DESK_WIDTH, layoutWidth - MIN_CHAT_COLUMN_WIDTH - 12)
     : fallbackMax;
@@ -252,7 +252,7 @@ export function Chat() {
         </div>
       </div>
 
-      <div ref={layoutRef} className="flex min-h-0 min-w-0 flex-1 flex-col gap-4 px-4 pb-4 lg:flex-row">
+      <div ref={layoutRef} data-testid="chat-layout" className="flex min-h-0 min-w-0 flex-1 flex-col gap-4 px-4 pb-4 lg:flex-row">
         <div className="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-[30px] border border-black/5 bg-[#f7f4ea] shadow-[0_24px_80px_rgba(36,39,27,0.08)] dark:border-white/5 dark:bg-background">
           {/* Messages Area */}
           <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4">
@@ -389,7 +389,7 @@ export function Chat() {
             </div>
             <div
               data-testid="chat-desk-container"
-              className="flex min-h-0 w-full shrink-0 flex-col self-stretch lg:w-auto lg:max-w-[80vw]"
+              className="flex min-h-0 w-full shrink-0 flex-col self-stretch lg:w-auto"
               style={{ '--chat-desk-width': `${effectiveDeskWidth}px` } as CSSProperties}
             >
               <div className="flex h-full min-h-0 w-full flex-col lg:w-[var(--chat-desk-width)]">

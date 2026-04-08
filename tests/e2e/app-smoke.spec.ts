@@ -74,7 +74,7 @@ test.describe('InvestClaw Electron smoke flows', () => {
           .getByTestId('chat-desk-view-switcher')
           .evaluate((element) => Math.round(element.getBoundingClientRect().height));
       })
-      .toBeLessThan(52);
+      .toBeLessThan(48);
 
     await expect
       .poll(async () => {
@@ -160,6 +160,25 @@ test.describe('InvestClaw Electron smoke flows', () => {
         return Math.abs(currentWidth - deskWidthBeforeResize);
       })
       .toBeGreaterThan(8);
+
+    const resizerBoxAfterShrink = await page.getByTestId('chat-desk-resizer').boundingBox();
+    if (!resizerBoxAfterShrink) {
+      throw new Error('Research desk resizer is not visible after shrink');
+    }
+    await page.mouse.move(resizerBoxAfterShrink.x + resizerBoxAfterShrink.width / 2, resizerBoxAfterShrink.y + resizerBoxAfterShrink.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(36, resizerBoxAfterShrink.y + resizerBoxAfterShrink.height / 2, { steps: 14 });
+    await page.mouse.up();
+
+    await expect
+      .poll(async () => {
+        const [layoutWidth, deskWidth] = await Promise.all([
+          page.getByTestId('chat-layout').evaluate((element) => Math.round(element.getBoundingClientRect().width)),
+          page.getByTestId('chat-desk-container').evaluate((element) => Math.round(element.getBoundingClientRect().width)),
+        ]);
+        return Math.round((deskWidth / layoutWidth) * 100);
+      })
+      .toBeGreaterThan(54);
 
     await page.getByTestId('chat-desk-view-files').click();
     await expect(page.getByTestId('chat-desk-files-surface')).toBeVisible();
