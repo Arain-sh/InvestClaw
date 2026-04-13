@@ -185,6 +185,8 @@ The wizard preselects your system language when it is supported, and falls back 
 
 > Note for Moonshot (Kimi): InvestClaw keeps Kimi web search enabled by default.  
 > When Moonshot is configured, InvestClaw also syncs Kimi web search to the China endpoint (`https://api.moonshot.cn/v1`) in runtime config.
+>
+> `Kimi Code` is available as a separate built-in provider. It uses the coding endpoint (`https://api.kimi.com/coding`) and the `anthropic-messages` protocol, while `Moonshot (CN)` keeps using the standard China endpoint.
 
 ### Proxy Settings
 

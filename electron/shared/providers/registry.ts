@@ -145,6 +145,32 @@ export const PROVIDER_DEFINITIONS: ProviderDefinition[] = [
     },
   },
   {
+    id: 'kimi-code',
+    name: 'Kimi Code',
+    icon: '🌙',
+    placeholder: 'sk-kimi-...',
+    model: 'Kimi',
+    requiresApiKey: true,
+    defaultBaseUrl: 'https://api.kimi.com/coding',
+    defaultModelId: 'kimi-k2.5',
+    category: 'official',
+    envVar: 'KIMI_CODE_API_KEY',
+    supportedAuthModes: ['api_key'],
+    defaultAuthMode: 'api_key',
+    supportsMultipleAccounts: true,
+    providerConfig: {
+      baseUrl: 'https://api.kimi.com/coding',
+      api: 'anthropic-messages',
+      apiKeyEnv: 'KIMI_CODE_API_KEY',
+      models: [
+        {
+          id: 'kimi-k2.5',
+          name: 'kimi-k2.5',
+        },
+      ],
+    },
+  },
+  {
     id: 'siliconflow',
     name: 'SiliconFlow (CN)',
     icon: '🌊',

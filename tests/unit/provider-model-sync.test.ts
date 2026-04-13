@@ -39,6 +39,24 @@ describe('provider-model-sync', () => {
     });
   });
 
+  it('builds models.json update payload for kimi-code default switch', () => {
+    const payload = buildNonOAuthAgentProviderUpdate(
+      providerConfig({ type: 'kimi-code', id: 'kimi-code' }),
+      'kimi-code',
+      'kimi-code/kimi-k2.5',
+    );
+
+    expect(payload).toEqual({
+      providerKey: 'kimi-code',
+      entry: {
+        baseUrl: 'https://api.kimi.com/coding',
+        api: 'anthropic-messages',
+        apiKey: 'KIMI_CODE_API_KEY',
+        models: [{ id: 'kimi-k2.5', name: 'kimi-k2.5' }],
+      },
+    });
+  });
+
   it('prefers provider custom baseUrl and omits models when modelRef is missing', () => {
     const payload = buildNonOAuthAgentProviderUpdate(
       providerConfig({

@@ -172,6 +172,11 @@ InvestClawを初めて起動すると、**セットアップウィザード**が
 
 サポート対象のシステム言語がある場合、ウィザードはその言語を初期選択し、未対応の場合は英語にフォールバックします。
 
+> Moonshot（Kimi）について: InvestClaw は Kimi の web search を既定で有効に保ちます。  
+> Moonshot を設定すると、ランタイム設定内の Kimi web search も中国リージョンのエンドポイント（`https://api.moonshot.cn/v1`）へ同期されます。
+>
+> `Kimi Code` は別個の組み込み Provider として利用でき、coding endpoint（`https://api.kimi.com/coding`）と `anthropic-messages` プロトコルを使用します。`Moonshot (CN)` は従来どおり通常の中国向けエンドポイントを使用します。
+
 ### プロキシ設定
 
 InvestClawには、Electron、InvestClaw ゲートウェイ、または Telegram などのチャネルがローカルプロキシクライアントを介してインターネットにアクセスする必要がある環境向けに、組み込みのプロキシ設定が含まれています。

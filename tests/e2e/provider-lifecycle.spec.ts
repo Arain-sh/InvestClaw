@@ -2,6 +2,8 @@ import { completeSetup, expect, navigateToHash, test } from './fixtures/electron
 
 const TEST_PROVIDER_ID = 'moonshot-e2e';
 const TEST_PROVIDER_LABEL = 'Moonshot E2E';
+const TEST_KIMI_CODE_PROVIDER_ID = 'kimi-code-e2e';
+const TEST_KIMI_CODE_PROVIDER_LABEL = 'Kimi Code E2E';
 
 async function seedTestProvider(page: Parameters<typeof completeSetup>[0]): Promise<void> {
   await page.evaluate(async ({ providerId, providerLabel }) => {
@@ -19,7 +21,36 @@ async function seedTestProvider(page: Parameters<typeof completeSetup>[0]): Prom
   }, { providerId: TEST_PROVIDER_ID, providerLabel: TEST_PROVIDER_LABEL });
 }
 
+async function seedKimiCodeProvider(page: Parameters<typeof completeSetup>[0]): Promise<void> {
+  await page.evaluate(async ({ providerId, providerLabel }) => {
+    const now = new Date().toISOString();
+    await window.electron.ipcRenderer.invoke('provider:save', {
+      id: providerId,
+      name: providerLabel,
+      type: 'kimi-code',
+      baseUrl: 'https://api.kimi.com/coding',
+      model: 'kimi-k2.5',
+      enabled: true,
+      createdAt: now,
+      updatedAt: now,
+    });
+  }, { providerId: TEST_KIMI_CODE_PROVIDER_ID, providerLabel: TEST_KIMI_CODE_PROVIDER_LABEL });
+}
+
 test.describe('InvestClaw provider lifecycle', () => {
+  test('shows kimi-code in add provider dialog and renders a saved kimi-code provider', async ({ page }) => {
+    await completeSetup(page);
+    await seedKimiCodeProvider(page);
+    await page.getByTestId('sidebar-nav-models').click();
+    await expect(page.getByTestId('providers-settings')).toBeVisible();
+    await expect(page.getByTestId(`provider-card-${TEST_KIMI_CODE_PROVIDER_ID}`)).toContainText(TEST_KIMI_CODE_PROVIDER_LABEL);
+
+    await page.getByTestId('providers-add-button').click();
+    await expect(page.getByTestId('add-provider-dialog')).toBeVisible();
+    await expect(page.getByTestId('add-provider-type-kimi-code')).toContainText('Kimi Code');
+    await page.getByTestId('add-provider-close-button').click();
+  });
+
   test('shows a saved provider and removes it cleanly after deletion', async ({ page }) => {
     await completeSetup(page);
     await seedTestProvider(page);

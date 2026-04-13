@@ -56,9 +56,37 @@ describe('provider metadata', () => {
     );
   });
 
+  it('registers kimi-code as a distinct built-in provider', () => {
+    expect(PROVIDER_TYPES).toContain('kimi-code');
+    expect(BUILTIN_PROVIDER_TYPES).toContain('kimi-code');
+    expect(getProviderEnvVar('kimi-code')).toBe('KIMI_CODE_API_KEY');
+    expect(getProviderEnvVars('kimi-code')).toEqual(['KIMI_CODE_API_KEY']);
+
+    expect(PROVIDER_TYPE_INFO).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'kimi-code',
+          name: 'Kimi Code',
+          placeholder: 'sk-kimi-...',
+          defaultBaseUrl: 'https://api.kimi.com/coding',
+          defaultModelId: 'kimi-k2.5',
+          docsUrl: 'https://www.kimi.com/code/docs/',
+        }),
+      ])
+    );
+
+    expect(getProviderConfig('kimi-code')).toEqual(
+      expect.objectContaining({
+        baseUrl: 'https://api.kimi.com/coding',
+        api: 'anthropic-messages',
+        apiKeyEnv: 'KIMI_CODE_API_KEY',
+      })
+    );
+  });
+
   it('keeps builtin provider sources in sync', () => {
     expect(BUILTIN_PROVIDER_TYPES).toEqual(
-      expect.arrayContaining(['anthropic', 'openai', 'google', 'openrouter', 'ark', 'moonshot', 'siliconflow', 'minimax-portal', 'minimax-portal-cn', 'modelstudio', 'ollama'])
+      expect.arrayContaining(['anthropic', 'openai', 'google', 'openrouter', 'ark', 'moonshot', 'kimi-code', 'siliconflow', 'minimax-portal', 'minimax-portal-cn', 'modelstudio', 'ollama'])
     );
   });
 
@@ -80,6 +108,7 @@ describe('provider metadata', () => {
     const anthropic = PROVIDER_TYPE_INFO.find((provider) => provider.id === 'anthropic');
     const openrouter = PROVIDER_TYPE_INFO.find((provider) => provider.id === 'openrouter');
     const moonshot = PROVIDER_TYPE_INFO.find((provider) => provider.id === 'moonshot');
+    const kimiCode = PROVIDER_TYPE_INFO.find((provider) => provider.id === 'kimi-code');
     const siliconflow = PROVIDER_TYPE_INFO.find((provider) => provider.id === 'siliconflow');
     const ark = PROVIDER_TYPE_INFO.find((provider) => provider.id === 'ark');
     const custom = PROVIDER_TYPE_INFO.find((provider) => provider.id === 'custom');
@@ -90,6 +119,7 @@ describe('provider metadata', () => {
     expect(getProviderDocsUrl(anthropic, 'en')).toBe('https://platform.claude.com/docs/en/api/overview');
     expect(getProviderDocsUrl(openrouter, 'en')).toBe('https://openrouter.ai/models');
     expect(getProviderDocsUrl(moonshot, 'en')).toBe('https://platform.moonshot.cn/');
+    expect(getProviderDocsUrl(kimiCode, 'en')).toBe('https://www.kimi.com/code/docs/');
     expect(getProviderDocsUrl(siliconflow, 'en')).toBe('https://docs.siliconflow.cn/cn/userguide/introduction');
     expect(getProviderDocsUrl(ark, 'en')).toBe('https://www.volcengine.com/');
     expect(getProviderDocsUrl(custom, 'en')).toBe(
