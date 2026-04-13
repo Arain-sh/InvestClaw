@@ -17,6 +17,7 @@ export const providerIcons: Record<string, string> = {
     openrouter,
     ark,
     moonshot,
+    'kimi-code': moonshot,
     siliconflow,
     'minimax-portal': minimaxPortal,
     'minimax-portal-cn': minimaxPortal,

@@ -173,6 +173,8 @@ pnpm dev
 
 > Moonshot（Kimi）说明：InvestClaw 默认保持开启 Kimi 的 web search。  
 > 当配置 Moonshot 后，InvestClaw 也会将运行时配置中的 Kimi web search 同步到中国区端点（`https://api.moonshot.cn/v1`）。
+>
+> `Kimi Code` 现已作为独立内置 Provider 提供，默认使用 coding endpoint（`https://api.kimi.com/coding`）和 `anthropic-messages` 协议；`Moonshot (CN)` 仍继续使用普通中国区端点。
 
 ### 代理设置
 
