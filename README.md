@@ -98,6 +98,7 @@ Complete the entire setup—from installation to your first AI interaction—thr
 
 ### 💬 Intelligent Chat Interface
 Communicate with AI agents through a modern chat experience. Support for multiple conversation contexts, message history, rich content rendering with Markdown, and direct `@agent` routing in the main composer for multi-agent setups.
+The Chat page now also includes a full right-side workspace explorer for the current agent, with a directory tree, nested file opening, and inline preview for Markdown, HTML, text, and common image files.
 When you target another agent with `@agent`, InvestClaw switches into that agent's own conversation context directly instead of relaying through the default agent. Agent workspaces stay separate by default, and stronger isolation depends on runtime sandbox settings.
 Each agent can also override its own `provider/model` runtime setting; agents without overrides continue inheriting the global default model.
 

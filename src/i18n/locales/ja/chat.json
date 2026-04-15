@@ -4,6 +4,7 @@
     "welcome": {
         "title": "InvestClaw リサーチ",
         "subtitle": "今日は何を分析しますか？",
+        "caption": "相場、決算、バリュエーション、実行を、より静かで集中しやすい AI ネイティブな投資リサーチデスクトップにまとめます。",
         "askQuestions": "市場スナップショット",
         "askQuestionsDesc": "寄り前・引け後の要点を整理します",
         "askQuestionsPrompt": "今日のマーケットスナップショットを作成してください。主要指数、セクターローテーション、マクロ材料、注視すべきリスクを含めてください。",
@@ -19,6 +20,29 @@
         "showThinking": "思考を表示",
         "hideThinking": "思考を非表示",
         "currentAgent": "現在の会話相手: {{agent}}"
+    },
+    "workspace": {
+        "title": "ワークスペース ファイル",
+        "treeTitle": "ファイルツリー",
+        "previewTitle": "プレビュー",
+        "previewHint": "ツリーからファイルを選ぶと、ここで内容を確認できます。",
+        "previewEmptyTitle": "ファイルを選択してください",
+        "previewEmptyDescription": "テキスト、Markdown、HTML、一般的な画像ファイルをプレビューできます。",
+        "previewRender": "レンダー",
+        "previewSource": "ソース",
+        "previewTruncated": "ファイルが大きいため、一部のみ表示しています。",
+        "previewFailed": "ファイルを開けませんでした",
+        "collapse": "ファイルシステムを折りたたむ",
+        "expand": "ファイルシステムを展開",
+        "loading": "ワークスペースを読み込み中…",
+        "loadingPreview": "ファイルを開いています…",
+        "loadFailed": "ワークスペースの読み込みに失敗しました",
+        "folderLabel": "フォルダ",
+        "emptyFolder": "このフォルダは空です。",
+        "emptyWorkspace": "この workspace にはまだファイルがありません。",
+        "missingWorkspace": "現在の agent の workspace ディレクトリがまだ存在しません。",
+        "binaryUnsupported": "このファイル形式はまだインライン表示に対応していません。",
+        "imageTooLarge": "画像サイズが大きいため、直接埋め込み表示できません。"
     },
     "composer": {
         "attachFiles": "ファイルを添付",

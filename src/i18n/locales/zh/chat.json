@@ -4,6 +4,7 @@
     "welcome": {
         "title": "InvestClaw 投研台",
         "subtitle": "今天想先研究什么？",
+        "caption": "把市场、财报、估值和执行都放进一个更安静、更专注的 AI 投研桌面。",
         "askQuestions": "市场快照",
         "askQuestionsDesc": "快速生成盘前/盘后要点",
         "askQuestionsPrompt": "请帮我生成一份今天的市场快照，覆盖主要指数、行业轮动、宏观催化剂，以及需要重点关注的风险点。",
@@ -19,6 +20,29 @@
         "showThinking": "显示思考过程",
         "hideThinking": "隐藏思考过程",
         "currentAgent": "当前对话对象：{{agent}}"
+    },
+    "workspace": {
+        "title": "工作区文件系统",
+        "treeTitle": "目录树",
+        "previewTitle": "文件预览",
+        "previewHint": "从右侧文件树中选择一个文件后，会在这里打开预览。",
+        "previewEmptyTitle": "选择一个文件开始预览",
+        "previewEmptyDescription": "支持文本、Markdown、HTML 和常见图片文件。",
+        "previewRender": "渲染",
+        "previewSource": "源码",
+        "previewTruncated": "文件过大，当前只显示部分内容。",
+        "previewFailed": "文件打开失败",
+        "collapse": "收起文件系统",
+        "expand": "展开文件系统",
+        "loading": "正在加载目录…",
+        "loadingPreview": "正在打开文件…",
+        "loadFailed": "文件系统加载失败",
+        "folderLabel": "文件夹",
+        "emptyFolder": "这个文件夹里还没有内容。",
+        "emptyWorkspace": "当前 workspace 还没有文件。",
+        "missingWorkspace": "当前 agent 的 workspace 目录还不存在。",
+        "binaryUnsupported": "这个文件暂不支持直接预览，可以先在树里继续浏览其他文件。",
+        "imageTooLarge": "图片体积过大，当前不直接内嵌显示。"
     },
     "composer": {
         "attachFiles": "添加文件",

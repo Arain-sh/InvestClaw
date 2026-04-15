@@ -4,26 +4,26 @@
 
 @layer base {
   :root {
-    --background: 42 38% 94%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 154 41% 28%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 50 40% 92%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 48 32% 92%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 48 46% 88%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --background: 40 34% 94%;
+    --foreground: 24 16% 15%;
+    --card: 40 38% 98%;
+    --card-foreground: 24 16% 15%;
+    --popover: 40 38% 98%;
+    --popover-foreground: 24 16% 15%;
+    --primary: 24 18% 14%;
+    --primary-foreground: 40 38% 97%;
+    --secondary: 40 30% 91%;
+    --secondary-foreground: 24 16% 18%;
+    --muted: 38 28% 90%;
+    --muted-foreground: 26 12% 43%;
+    --accent: 36 30% 88%;
+    --accent-foreground: 24 16% 18%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-    --border: 45 24% 84%;
-    --input: 45 24% 84%;
-    --ring: 154 41% 28%;
-    --radius: 0.5rem;
+    --border: 36 26% 84%;
+    --input: 36 26% 84%;
+    --ring: 24 18% 14%;
+    --radius: 1rem;
   }
 
   .dark {
@@ -57,6 +57,39 @@
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
+    min-height: 100vh;
+    background-image:
+      radial-gradient(circle at top, rgba(255, 255, 255, 0.88), rgba(255, 255, 255, 0) 32%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.42), rgba(255, 255, 255, 0)),
+      linear-gradient(180deg, hsl(var(--background)), hsl(var(--background)));
+    color: hsl(var(--foreground));
+    font-family:
+      "SF Pro Text",
+      "Inter",
+      "Segoe UI",
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      sans-serif;
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family:
+      "Iowan Old Style",
+      "Palatino Linotype",
+      "Book Antiqua",
+      "Times New Roman",
+      Georgia,
+      serif;
+  }
+
+  .surface-panel {
+    background: rgba(255, 252, 246, 0.9);
+    box-shadow:
+      0 18px 42px rgba(38, 32, 22, 0.06),
+      0 1px 0 rgba(255, 255, 255, 0.75) inset;
   }
 }
 
@@ -148,6 +181,10 @@
 
 .prose th {
   background: hsl(var(--muted));
+}
+
+::selection {
+  background: rgba(235, 198, 127, 0.4);
 }
 
 /* Typing indicator animation */

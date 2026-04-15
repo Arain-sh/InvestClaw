@@ -22,34 +22,62 @@ const _openclawResolvedPath = getOpenClawResolvedDir();
 const _openclawSdkRequire = createRequire(join(_openclawResolvedPath, 'package.json'));
 const _projectSdkRequire = createRequire(join(_openclawPath, 'package.json'));
 
-function requireOpenClawSdk(subpath: string): Record<string, unknown> {
-  try {
-    return _openclawSdkRequire(subpath);
-  } catch {
-    return _projectSdkRequire(subpath);
+function requireOpenClawSdk(subpaths: string | string[]): Record<string, unknown> {
+  const candidates = Array.isArray(subpaths) ? subpaths : [subpaths];
+  let lastError: unknown;
+
+  for (const candidate of candidates) {
+    try {
+      return _openclawSdkRequire(candidate);
+    } catch (error) {
+      lastError = error;
+    }
+    try {
+      return _projectSdkRequire(candidate);
+    } catch (error) {
+      lastError = error;
+    }
   }
+
+  throw lastError instanceof Error ? lastError : new Error(`Failed to load OpenClaw SDK module: ${candidates.join(', ')}`);
 }
 
 // --- Channel SDK dynamic imports ---
-const _discordSdk = requireOpenClawSdk('openclaw/plugin-sdk/discord') as {
+const _discordSdk = requireOpenClawSdk([
+  'openclaw/plugin-sdk/discord',
+  join(_openclawResolvedPath, 'dist/extensions/discord/api.js'),
+  join(_openclawPath, 'dist/extensions/discord/api.js'),
+]) as {
   listDiscordDirectoryGroupsFromConfig: (...args: unknown[]) => Promise<unknown[]>;
   listDiscordDirectoryPeersFromConfig: (...args: unknown[]) => Promise<unknown[]>;
   normalizeDiscordMessagingTarget: (target: string) => string | undefined;
 };
 
-const _telegramSdk = requireOpenClawSdk('openclaw/plugin-sdk/telegram') as {
+const _telegramSdk = requireOpenClawSdk([
+  'openclaw/plugin-sdk/telegram',
+  join(_openclawResolvedPath, 'dist/extensions/telegram/api.js'),
+  join(_openclawPath, 'dist/extensions/telegram/api.js'),
+]) as {
   listTelegramDirectoryGroupsFromConfig: (...args: unknown[]) => Promise<unknown[]>;
   listTelegramDirectoryPeersFromConfig: (...args: unknown[]) => Promise<unknown[]>;
   normalizeTelegramMessagingTarget: (target: string) => string | undefined;
 };
 
-const _slackSdk = requireOpenClawSdk('openclaw/plugin-sdk/slack') as {
+const _slackSdk = requireOpenClawSdk([
+  'openclaw/plugin-sdk/slack',
+  join(_openclawResolvedPath, 'dist/extensions/slack/api.js'),
+  join(_openclawPath, 'dist/extensions/slack/api.js'),
+]) as {
   listSlackDirectoryGroupsFromConfig: (...args: unknown[]) => Promise<unknown[]>;
   listSlackDirectoryPeersFromConfig: (...args: unknown[]) => Promise<unknown[]>;
   normalizeSlackMessagingTarget: (target: string) => string | undefined;
 };
 
-const _whatsappSdk = requireOpenClawSdk('openclaw/plugin-sdk/whatsapp-shared') as {
+const _whatsappSdk = requireOpenClawSdk([
+  'openclaw/plugin-sdk/whatsapp-shared',
+  join(_openclawResolvedPath, 'dist/extensions/whatsapp/api.js'),
+  join(_openclawPath, 'dist/extensions/whatsapp/api.js'),
+]) as {
   normalizeWhatsAppMessagingTarget: (target: string) => string | undefined;
 };
 

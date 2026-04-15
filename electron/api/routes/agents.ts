@@ -10,6 +10,7 @@ import {
   updateAgentModel,
   updateAgentName,
 } from '../../utils/agent-config';
+import { listAgentWorkspaceDirectory, readAgentWorkspaceFilePreview } from '../../utils/agent-workspace';
 import { deleteChannelAccountConfig } from '../../utils/channel-config';
 import { syncAgentModelOverrideToRuntime, syncAllProviderAuthToRuntime } from '../../services/providers/provider-runtime-sync';
 import type { HostApiContext } from '../context';
@@ -114,6 +115,35 @@ export async function handleAgentRoutes(
   if (url.pathname === '/api/agents' && req.method === 'GET') {
     sendJson(res, 200, { success: true, ...(await listAgentsSnapshot()) });
     return true;
+  }
+
+  if (url.pathname.startsWith('/api/agents/') && req.method === 'GET') {
+    const suffix = url.pathname.slice('/api/agents/'.length);
+    const parts = suffix.split('/').filter(Boolean);
+
+    if (parts.length === 2 && parts[1] === 'workspace') {
+      try {
+        const agentId = decodeURIComponent(parts[0]);
+        const path = url.searchParams.get('path');
+        const listing = await listAgentWorkspaceDirectory(agentId, path);
+        sendJson(res, 200, { success: true, ...listing });
+      } catch (error) {
+        sendJson(res, 500, { success: false, error: String(error) });
+      }
+      return true;
+    }
+
+    if (parts.length === 3 && parts[1] === 'workspace' && parts[2] === 'file') {
+      try {
+        const agentId = decodeURIComponent(parts[0]);
+        const path = url.searchParams.get('path');
+        const preview = await readAgentWorkspaceFilePreview(agentId, path);
+        sendJson(res, 200, { success: true, ...preview });
+      } catch (error) {
+        sendJson(res, 500, { success: false, error: String(error) });
+      }
+      return true;
+    }
   }
 
   if (url.pathname === '/api/agents' && req.method === 'POST') {

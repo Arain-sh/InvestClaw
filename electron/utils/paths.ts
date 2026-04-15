@@ -3,7 +3,7 @@
  * Cross-platform path resolution helpers
  */
 import { createRequire } from 'node:module';
-import { join } from 'path';
+import { dirname, join } from 'path';
 import { homedir } from 'os';
 import { existsSync, mkdirSync, readFileSync, realpathSync } from 'fs';
 
@@ -150,10 +150,53 @@ export function getOpenClawEntryPath(): string {
   return join(getOpenClawDir(), 'openclaw.mjs');
 }
 
+function resolveInstalledPackageDir(packageName: string): string | null {
+  const candidateBases = Array.from(new Set([
+    getElectronApp().getAppPath(),
+    process.cwd(),
+    __dirname,
+  ].filter(Boolean)));
+
+  for (const base of candidateBases) {
+    try {
+      return dirname(require.resolve(`${packageName}/package.json`, { paths: [base] }));
+    } catch {
+      // Try the next base.
+    }
+  }
+
+  try {
+    return dirname(require.resolve(`${packageName}/package.json`));
+  } catch {
+    return null;
+  }
+}
+
+function resolveNearestNodeBin(packageDir: string, binName: string): string | null {
+  let current = packageDir;
+
+  while (true) {
+    const candidate = join(current, '.bin', binName);
+    if (existsSync(candidate)) {
+      return candidate;
+    }
+
+    const parent = dirname(current);
+    if (parent === current) {
+      return null;
+    }
+    current = parent;
+  }
+}
+
 /**
  * Get ClawHub CLI entry script path (clawdhub.js)
  */
 export function getClawHubCliEntryPath(): string {
+  const packageDir = resolveInstalledPackageDir('clawhub');
+  if (packageDir) {
+    return join(packageDir, 'bin', 'clawdhub.js');
+  }
   return join(getElectronApp().getAppPath(), 'node_modules', 'clawhub', 'bin', 'clawdhub.js');
 }
 
@@ -162,6 +205,13 @@ export function getClawHubCliEntryPath(): string {
  */
 export function getClawHubCliBinPath(): string {
   const binName = process.platform === 'win32' ? 'clawhub.cmd' : 'clawhub';
+  const packageDir = resolveInstalledPackageDir('clawhub');
+  if (packageDir) {
+    const resolvedBin = resolveNearestNodeBin(packageDir, binName);
+    if (resolvedBin) {
+      return resolvedBin;
+    }
+  }
   return join(getElectronApp().getAppPath(), 'node_modules', '.bin', binName);
 }
 

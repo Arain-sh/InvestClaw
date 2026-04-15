@@ -40,6 +40,7 @@ interface ChatInputProps {
   isEmpty?: boolean;
   presetPrompt?: string;
   presetPromptNonce?: number;
+  layout?: 'dock' | 'hero';
 }
 
 // ── Helpers ──────────────────────────────────────────────────────
@@ -86,7 +87,16 @@ function readFileAsBase64(file: globalThis.File): Promise<string> {
 
 // ── Component ────────────────────────────────────────────────────
 
-export function ChatInput({ onSend, onStop, disabled = false, sending = false, isEmpty = false, presetPrompt = '', presetPromptNonce = 0 }: ChatInputProps) {
+export function ChatInput({
+  onSend,
+  onStop,
+  disabled = false,
+  sending = false,
+  isEmpty = false,
+  presetPrompt = '',
+  presetPromptNonce = 0,
+  layout = 'dock',
+}: ChatInputProps) {
   const { t } = useTranslation('chat');
   const [input, setInput] = useState('');
   const [attachments, setAttachments] = useState<FileAttachment[]>([]);
@@ -295,6 +305,7 @@ export function ChatInput({ onSend, onStop, disabled = false, sending = false, i
   const hasFailedAttachments = attachments.some((a) => a.status === 'error');
   const canSend = (input.trim() || attachments.length > 0) && allReady && !disabled && !sending;
   const canStop = sending && !disabled && !!onStop;
+  const isHeroLayout = layout === 'hero';
 
   const handleSend = useCallback(() => {
     if (!canSend) return;
@@ -394,8 +405,10 @@ export function ChatInput({ onSend, onStop, disabled = false, sending = false, i
   return (
     <div
       className={cn(
-        "p-4 pb-6 w-full mx-auto transition-all duration-300",
-        isEmpty ? "max-w-3xl" : "max-w-4xl"
+        'w-full transition-all duration-300',
+        isHeroLayout
+          ? 'mx-auto max-w-4xl px-2 py-3'
+          : cn('mx-auto pb-1', isEmpty ? 'max-w-3xl px-2' : 'max-w-4xl')
       )}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
@@ -404,7 +417,7 @@ export function ChatInput({ onSend, onStop, disabled = false, sending = false, i
       <div className="w-full">
         {/* Attachment Previews */}
         {attachments.length > 0 && (
-          <div className="flex gap-2 mb-3 flex-wrap">
+          <div className="mb-3 flex flex-wrap gap-2">
             {attachments.map((att) => (
               <AttachmentPreview
                 key={att.id}
@@ -416,7 +429,15 @@ export function ChatInput({ onSend, onStop, disabled = false, sending = false, i
         )}
 
         {/* Input Row */}
-        <div className={`relative bg-white dark:bg-card rounded-[28px] shadow-sm border p-1.5 transition-all ${dragOver ? 'border-primary ring-1 ring-primary' : 'border-black/10 dark:border-white/10'}`}>
+        <div
+          className={cn(
+            'relative overflow-hidden border transition-all',
+            isHeroLayout
+              ? 'rounded-[2rem] border-black/8 bg-[#fffdf8]/92 p-3 shadow-[0_28px_60px_rgba(28,22,12,0.08),0_1px_0_rgba(255,255,255,0.9)_inset] dark:bg-card'
+              : 'rounded-[2rem] border-black/10 bg-white/88 p-1.5 shadow-[0_10px_30px_rgba(28,22,12,0.06)] dark:bg-card',
+            dragOver && 'border-primary ring-1 ring-primary'
+          )}
+        >
           {selectedTarget && (
             <div className="px-2.5 pt-2 pb-1">
               <button
@@ -431,12 +452,15 @@ export function ChatInput({ onSend, onStop, disabled = false, sending = false, i
             </div>
           )}
 
-          <div className="flex items-end gap-1.5">
+          <div className={cn('flex items-end gap-1.5', isHeroLayout && 'min-h-[8rem]')}>
             {/* Attach Button */}
             <Button
               variant="ghost"
               size="icon"
-              className="shrink-0 h-10 w-10 rounded-full text-muted-foreground hover:bg-black/5 dark:hover:bg-white/10 hover:text-foreground transition-colors"
+              className={cn(
+                'shrink-0 rounded-full text-muted-foreground transition-colors hover:bg-black/5 hover:text-foreground dark:hover:bg-white/10',
+                isHeroLayout ? 'h-11 w-11' : 'h-10 w-10'
+              )}
               onClick={pickFiles}
               disabled={disabled || sending}
               title={t('composer.attachFiles')}
@@ -450,7 +474,8 @@ export function ChatInput({ onSend, onStop, disabled = false, sending = false, i
                   variant="ghost"
                   size="icon"
                   className={cn(
-                    'h-10 w-10 rounded-full text-muted-foreground hover:bg-black/5 dark:hover:bg-white/10 hover:text-foreground transition-colors',
+                    'rounded-full text-muted-foreground transition-colors hover:bg-black/5 hover:text-foreground dark:hover:bg-white/10',
+                    isHeroLayout ? 'h-11 w-11' : 'h-10 w-10',
                     (pickerOpen || selectedTarget) && 'bg-primary/10 text-primary hover:bg-primary/20'
                   )}
                   onClick={() => setPickerOpen((open) => !open)}
@@ -499,7 +524,12 @@ export function ChatInput({ onSend, onStop, disabled = false, sending = false, i
                 onPaste={handlePaste}
                 placeholder={disabled ? t('composer.gatewayDisconnectedPlaceholder') : t('composer.placeholder')}
                 disabled={disabled}
-                className="min-h-[40px] max-h-[200px] resize-none border-0 focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none bg-transparent py-2.5 px-2 text-[15px] placeholder:text-muted-foreground/60 leading-relaxed"
+                className={cn(
+                  'max-h-[200px] resize-none border-0 bg-transparent shadow-none leading-relaxed placeholder:text-muted-foreground/60 focus-visible:ring-0 focus-visible:ring-offset-0',
+                  isHeroLayout
+                    ? 'min-h-[92px] px-3 py-4 text-[19px] tracking-[-0.02em]'
+                    : 'min-h-[40px] px-2 py-2.5 text-[15px]'
+                )}
                 rows={1}
               />
             </div>
@@ -509,11 +539,13 @@ export function ChatInput({ onSend, onStop, disabled = false, sending = false, i
               onClick={sending ? handleStop : handleSend}
               disabled={sending ? !canStop : !canSend}
               size="icon"
-              className={`shrink-0 h-10 w-10 rounded-full transition-colors ${
+              className={cn(
+                'shrink-0 rounded-full transition-colors',
+                isHeroLayout ? 'h-12 w-12' : 'h-10 w-10',
                 (sending || canSend)
-                  ? 'bg-black/5 dark:bg-white/10 text-foreground hover:bg-black/10 dark:hover:bg-white/20'
-                  : 'text-muted-foreground/50 hover:bg-transparent bg-transparent'
-              }`}
+                  ? 'bg-[#f1c86f] text-[#60411a] hover:bg-[#eab95c]'
+                  : 'bg-transparent text-muted-foreground/45 hover:bg-transparent'
+              )}
               variant="ghost"
               title={sending ? t('composer.stop') : t('composer.send')}
             >
@@ -525,9 +557,14 @@ export function ChatInput({ onSend, onStop, disabled = false, sending = false, i
             </Button>
           </div>
         </div>
-        <div className="mt-2.5 flex items-center justify-between gap-2 text-[11px] text-muted-foreground/60 px-4">
+        <div
+          className={cn(
+            'mt-2.5 flex items-center justify-between gap-2 text-[11px] text-muted-foreground/65',
+            isHeroLayout ? 'px-3' : 'px-4'
+          )}
+        >
           <div className="flex items-center gap-1.5">
-            <div className={cn("w-1.5 h-1.5 rounded-full", gatewayStatus.state === 'running' ? "bg-green-500/80" : "bg-red-500/80")} />
+            <div className={cn("h-1.5 w-1.5 rounded-full", gatewayStatus.state === 'running' ? "bg-green-500/80" : "bg-red-500/80")} />
             <span>
               {t('composer.gatewayStatus', {
                 state: gatewayStatus.state === 'running'

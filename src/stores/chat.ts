@@ -57,6 +57,11 @@ const HISTORY_LOAD_MIN_INTERVAL_MS = 800;
 const HISTORY_POLL_SILENCE_WINDOW_MS = 2_500;
 const CHAT_EVENT_DEDUPE_TTL_MS = 30_000;
 const _chatEventDedupe = new Map<string, number>();
+const RETRYABLE_GATEWAY_SEND_ERROR_PATTERNS = [
+  /gateway is draining for restart/i,
+  /new tasks are not accepted/i,
+  /service restart/i,
+];
 
 function clearErrorRecoveryTimer(): void {
   if (_errorRecoveryTimer) {
@@ -69,6 +74,37 @@ function clearHistoryPoll(): void {
   if (_historyPollTimer) {
     clearTimeout(_historyPollTimer);
     _historyPollTimer = null;
+  }
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function isRetryableGatewaySendError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error ?? '');
+  return RETRYABLE_GATEWAY_SEND_ERROR_PATTERNS.some((pattern) => pattern.test(message));
+}
+
+async function waitForGatewayReadyAfterReload(timeoutMs = 15_000): Promise<void> {
+  const deadline = Date.now() + timeoutMs;
+  let runningSince: number | null = null;
+
+  while (Date.now() < deadline) {
+    const status = useGatewayStore.getState().status;
+    const connectedAtMs = typeof status.connectedAt === 'number' ? toMs(status.connectedAt) : null;
+    const justReconnected = connectedAtMs != null && Date.now() - connectedAtMs < 500;
+
+    if (status.state === 'running' && !justReconnected) {
+      runningSince ??= Date.now();
+      if (Date.now() - runningSince >= 500) {
+        return;
+      }
+    } else {
+      runningSince = null;
+    }
+
+    await sleep(250);
   }
 }
 
@@ -1603,30 +1639,33 @@ export const useChatStore = create<ChatState>((set, get) => ({
         saveImageCache(_imageCache);
       }
 
-      let result: { success: boolean; result?: { runId?: string }; error?: string };
+      let result: { success: boolean; result?: { runId?: string }; error?: string } | null = null;
 
       // Longer timeout for chat sends to tolerate high-latency networks (avoids connect error)
       const CHAT_SEND_TIMEOUT_MS = 120_000;
+      const MAX_SEND_ATTEMPTS = 3;
 
-      if (hasMedia) {
-        result = await hostApiFetch<{ success: boolean; result?: { runId?: string }; error?: string }>(
-          '/api/chat/send-with-media',
-          {
-            method: 'POST',
-            body: JSON.stringify({
-              sessionKey: currentSessionKey,
-              message: trimmed || 'Process the attached file(s).',
-              deliver: false,
-              idempotencyKey,
-              media: attachments.map((a) => ({
-                filePath: a.stagedPath,
-                mimeType: a.mimeType,
-                fileName: a.fileName,
-              })),
-            }),
-          },
-        );
-      } else {
+      const executeSendAttempt = async () => {
+        if (hasMedia) {
+          return hostApiFetch<{ success: boolean; result?: { runId?: string }; error?: string }>(
+            '/api/chat/send-with-media',
+            {
+              method: 'POST',
+              body: JSON.stringify({
+                sessionKey: currentSessionKey,
+                message: trimmed || 'Process the attached file(s).',
+                deliver: false,
+                idempotencyKey,
+                media: attachments.map((a) => ({
+                  filePath: a.stagedPath,
+                  mimeType: a.mimeType,
+                  fileName: a.fileName,
+                })),
+              }),
+            },
+          );
+        }
+
         const rpcResult = await useGatewayStore.getState().rpc<{ runId?: string }>(
           'chat.send',
           {
@@ -1637,7 +1676,41 @@ export const useChatStore = create<ChatState>((set, get) => ({
           },
           CHAT_SEND_TIMEOUT_MS,
         );
-        result = { success: true, result: rpcResult };
+        return { success: true, result: rpcResult };
+      };
+
+      let lastError: unknown = null;
+      for (let attempt = 1; attempt <= MAX_SEND_ATTEMPTS; attempt += 1) {
+        try {
+          result = await executeSendAttempt();
+          if (!result.success && isRetryableGatewaySendError(result.error) && attempt < MAX_SEND_ATTEMPTS) {
+            console.warn(
+              `[sendMessage] Gateway is reloading; retrying send ${attempt + 1}/${MAX_SEND_ATTEMPTS}`,
+            );
+            await waitForGatewayReadyAfterReload();
+            await sleep(800 * attempt);
+            continue;
+          }
+          break;
+        } catch (error) {
+          lastError = error;
+          if (isRetryableGatewaySendError(error) && attempt < MAX_SEND_ATTEMPTS) {
+            console.warn(
+              `[sendMessage] Gateway rejected send during reload; retrying ${attempt + 1}/${MAX_SEND_ATTEMPTS}`,
+            );
+            await waitForGatewayReadyAfterReload();
+            await sleep(800 * attempt);
+            continue;
+          }
+          throw error;
+        }
+      }
+
+      if (!result && lastError) {
+        throw lastError;
+      }
+      if (!result) {
+        throw new Error('Failed to send message');
       }
 
       console.log(`[sendMessage] RPC result: success=${result.success}, runId=${result.result?.runId || 'none'}`);

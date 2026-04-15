@@ -4,6 +4,7 @@
     "welcome": {
         "title": "InvestClaw Research",
         "subtitle": "What should we analyze today?",
+        "caption": "Bring markets, filings, valuation, and execution into one calmer AI-native research desktop.",
         "askQuestions": "Market Snapshot",
         "askQuestionsDesc": "Build a structured pre-market or post-market brief",
         "askQuestionsPrompt": "Build me a market snapshot for today covering major indexes, sector rotation, macro catalysts, and the biggest risk items to watch.",
@@ -19,6 +20,29 @@
         "showThinking": "Show thinking",
         "hideThinking": "Hide thinking",
         "currentAgent": "Talking to {{agent}}"
+    },
+    "workspace": {
+        "title": "Workspace Files",
+        "treeTitle": "File Tree",
+        "previewTitle": "Preview",
+        "previewHint": "Pick a file from the tree to open it here.",
+        "previewEmptyTitle": "Select a file to preview",
+        "previewEmptyDescription": "Text, Markdown, HTML, and common image files are supported.",
+        "previewRender": "Render",
+        "previewSource": "Source",
+        "previewTruncated": "This file is large, so only part of it is shown.",
+        "previewFailed": "Failed to open file",
+        "collapse": "Collapse workspace",
+        "expand": "Expand workspace",
+        "loading": "Loading workspace…",
+        "loadingPreview": "Opening file…",
+        "loadFailed": "Failed to load workspace",
+        "folderLabel": "Folder",
+        "emptyFolder": "This folder is empty.",
+        "emptyWorkspace": "This workspace does not contain any files yet.",
+        "missingWorkspace": "The current agent workspace does not exist yet.",
+        "binaryUnsupported": "This file type cannot be previewed inline yet.",
+        "imageTooLarge": "This image is too large to embed directly."
     },
     "composer": {
         "attachFiles": "Attach files",

@@ -1,16 +1,20 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { gatewayRpcMock, hostApiFetchMock, agentsState } = vi.hoisted(() => ({
+const { gatewayRpcMock, hostApiFetchMock, agentsState, gatewayStatusState } = vi.hoisted(() => ({
   gatewayRpcMock: vi.fn(),
   hostApiFetchMock: vi.fn(),
   agentsState: {
     agents: [] as Array<Record<string, unknown>>,
+  },
+  gatewayStatusState: {
+    status: { state: 'running', port: 18789 } as { state: 'stopped' | 'starting' | 'running' | 'error' | 'reconnecting'; port: number; connectedAt?: number },
   },
 }));
 
 vi.mock('@/stores/gateway', () => ({
   useGatewayStore: {
     getState: () => ({
+      status: gatewayStatusState.status,
       rpc: gatewayRpcMock,
     }),
   },
@@ -32,6 +36,7 @@ describe('chat target routing', () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2026-03-11T12:00:00Z'));
     window.localStorage.clear();
+    gatewayStatusState.status = { state: 'running', port: 18789 };
 
     agentsState.agents = [
       {
@@ -186,5 +191,47 @@ describe('chat target routing', () => {
     expect(payload.sessionKey).toBe('agent:research:desk');
     expect(payload.message).toBe('Process the attached file(s).');
     expect(payload.media[0]?.filePath).toBe('/tmp/design.png');
+  });
+
+  it('retries text sends when the gateway is draining for restart', async () => {
+    const { useChatStore } = await import('@/stores/chat');
+
+    useChatStore.setState({
+      currentSessionKey: 'agent:main:main',
+      currentAgentId: 'main',
+      sessions: [{ key: 'agent:main:main' }],
+      messages: [],
+      sessionLabels: {},
+      sessionLastActivity: {},
+      sending: false,
+      activeRunId: null,
+      streamingText: '',
+      streamingMessage: null,
+      streamingTools: [],
+      pendingFinal: false,
+      lastUserMessageAt: null,
+      pendingToolImages: [],
+      error: null,
+      loading: false,
+      thinkingLevel: null,
+      showThinking: true,
+    });
+
+    gatewayRpcMock
+      .mockRejectedValueOnce(new Error('Gateway is draining for restart; new tasks are not accepted'))
+      .mockResolvedValueOnce({ runId: 'run-after-retry' });
+
+    const sendPromise = useChatStore.getState().sendMessage('Retry after reload');
+    await vi.advanceTimersByTimeAsync(1500);
+    await sendPromise;
+
+    expect(gatewayRpcMock).toHaveBeenCalledTimes(2);
+    expect(gatewayRpcMock.mock.calls[0]?.[0]).toBe('chat.send');
+    expect(gatewayRpcMock.mock.calls[1]?.[0]).toBe('chat.send');
+
+    const state = useChatStore.getState();
+    expect(state.error).toBeNull();
+    expect(state.activeRunId).toBe('run-after-retry');
+    expect(state.messages.at(-1)?.content).toBe('Retry after reload');
   });
 });

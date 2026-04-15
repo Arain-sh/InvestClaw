@@ -4,8 +4,8 @@
  * via gateway:rpc IPC. Session selector, thinking toggle, and refresh
  * are in the toolbar; messages render with markdown + streaming.
  */
-import { useEffect, useState } from 'react';
-import { AlertCircle, Loader2, Sparkles } from 'lucide-react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { AlertCircle, ArrowRight, Loader2, Sparkles } from 'lucide-react';
 import { useChatStore, type RawMessage } from '@/stores/chat';
 import { useGatewayStore } from '@/stores/gateway';
 import { useAgentsStore } from '@/stores/agents';
@@ -18,33 +18,86 @@ import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { useStickToBottomInstant } from '@/hooks/use-stick-to-bottom-instant';
 import { useMinLoading } from '@/hooks/use-min-loading';
+import { WorkspacePanel } from './WorkspacePanel';
+import logoSvg from '@/assets/logo.svg';
+import { useShallow } from 'zustand/react/shallow';
 
 export function Chat() {
   const { t } = useTranslation('chat');
   const gatewayStatus = useGatewayStore((s) => s.status);
   const isGatewayRunning = gatewayStatus.state === 'running';
-
-  const messages = useChatStore((s) => s.messages);
-  const currentSessionKey = useChatStore((s) => s.currentSessionKey);
-  const loading = useChatStore((s) => s.loading);
-  const sending = useChatStore((s) => s.sending);
-  const error = useChatStore((s) => s.error);
-  const showThinking = useChatStore((s) => s.showThinking);
-  const streamingMessage = useChatStore((s) => s.streamingMessage);
-  const streamingTools = useChatStore((s) => s.streamingTools);
-  const pendingFinal = useChatStore((s) => s.pendingFinal);
-  const sendMessage = useChatStore((s) => s.sendMessage);
-  const abortRun = useChatStore((s) => s.abortRun);
-  const clearError = useChatStore((s) => s.clearError);
-  const fetchAgents = useAgentsStore((s) => s.fetchAgents);
-
-  const cleanupEmptySession = useChatStore((s) => s.cleanupEmptySession);
+  const {
+    messages,
+    currentSessionKey,
+    loading,
+    sending,
+    error,
+    showThinking,
+    streamingMessage,
+    streamingTools,
+    pendingFinal,
+    currentAgentId,
+    sendMessage,
+    abortRun,
+    clearError,
+    cleanupEmptySession,
+  } = useChatStore(useShallow((s) => ({
+    messages: s.messages,
+    currentSessionKey: s.currentSessionKey,
+    loading: s.loading,
+    sending: s.sending,
+    error: s.error,
+    showThinking: s.showThinking,
+    streamingMessage: s.streamingMessage,
+    streamingTools: s.streamingTools,
+    pendingFinal: s.pendingFinal,
+    currentAgentId: s.currentAgentId,
+    sendMessage: s.sendMessage,
+    abortRun: s.abortRun,
+    clearError: s.clearError,
+    cleanupEmptySession: s.cleanupEmptySession,
+  })));
+  const { agents, fetchAgents } = useAgentsStore(useShallow((s) => ({
+    agents: s.agents,
+    fetchAgents: s.fetchAgents,
+  })));
 
   const [streamingTimestamp, setStreamingTimestamp] = useState<number>(0);
   const [suggestedPrompt, setSuggestedPrompt] = useState<string>('');
   const [suggestedPromptNonce, setSuggestedPromptNonce] = useState<number>(0);
+  const [workspaceWidth, setWorkspaceWidth] = useState<number>(520);
+  const [workspaceCollapsed, setWorkspaceCollapsed] = useState(false);
+  const [isResizingWorkspace, setIsResizingWorkspace] = useState(false);
   const minLoading = useMinLoading(loading && messages.length > 0);
   const { contentRef, scrollRef } = useStickToBottomInstant(currentSessionKey);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const resizeFrameRef = useRef<number | null>(null);
+  const pendingWorkspaceWidthRef = useRef<number | null>(null);
+  const currentAgentName = useMemo(
+    () => (agents ?? []).find((agent) => agent.id === currentAgentId)?.name ?? currentAgentId,
+    [agents, currentAgentId],
+  );
+  const setSuggestedPromptFromQuickAction = useCallback((prompt: string) => {
+    setSuggestedPrompt(prompt);
+    setSuggestedPromptNonce((value) => value + 1);
+  }, []);
+  const toggleWorkspace = useCallback(() => {
+    setWorkspaceCollapsed((current) => !current);
+  }, []);
+
+  const scheduleWorkspaceWidthUpdate = useCallback((nextWidth: number) => {
+    pendingWorkspaceWidthRef.current = nextWidth;
+    if (resizeFrameRef.current != null) {
+      return;
+    }
+
+    resizeFrameRef.current = window.requestAnimationFrame(() => {
+      resizeFrameRef.current = null;
+      const pendingWidth = pendingWorkspaceWidthRef.current;
+      if (typeof pendingWidth !== 'number') return;
+      setWorkspaceWidth((current) => (current === pendingWidth ? current : pendingWidth));
+    });
+  }, []);
 
   // Load data when gateway is running.
   // When the store already holds messages for this session (i.e. the user
@@ -75,6 +128,63 @@ export function Chat() {
 
   // Gateway not running block has been completely removed so the UI always renders.
 
+  useEffect(() => {
+    if (!isResizingWorkspace) return;
+
+    const handlePointerMove = (event: PointerEvent) => {
+      const container = containerRef.current;
+      if (!container) return;
+      const rect = container.getBoundingClientRect();
+      const minLeftWidth = Math.min(420, Math.max(320, rect.width * 0.35));
+      const minRightWidth = Math.min(520, Math.max(360, rect.width * 0.32));
+      const maxRightWidth = Math.max(minRightWidth, rect.width - minLeftWidth);
+      const nextWidth = rect.right - event.clientX;
+      scheduleWorkspaceWidthUpdate(Math.max(minRightWidth, Math.min(maxRightWidth, nextWidth)));
+    };
+
+    const stopResizing = () => {
+      setIsResizingWorkspace(false);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+
+    document.addEventListener('pointermove', handlePointerMove);
+    document.addEventListener('pointerup', stopResizing, { once: true });
+
+    return () => {
+      document.removeEventListener('pointermove', handlePointerMove);
+      document.removeEventListener('pointerup', stopResizing);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+  }, [isResizingWorkspace, scheduleWorkspaceWidthUpdate]);
+
+  useEffect(() => {
+    const clampWorkspaceWidth = () => {
+      const container = containerRef.current;
+      if (!container) return;
+      const rect = container.getBoundingClientRect();
+      const minLeftWidth = Math.min(420, Math.max(320, rect.width * 0.35));
+      const minRightWidth = Math.min(520, Math.max(360, rect.width * 0.32));
+      const maxRightWidth = Math.max(minRightWidth, rect.width - minLeftWidth);
+      setWorkspaceWidth((current) => Math.max(minRightWidth, Math.min(maxRightWidth, current)));
+    };
+
+    clampWorkspaceWidth();
+    window.addEventListener('resize', clampWorkspaceWidth);
+    return () => {
+      window.removeEventListener('resize', clampWorkspaceWidth);
+    };
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (resizeFrameRef.current != null) {
+        window.cancelAnimationFrame(resizeFrameRef.current);
+      }
+    };
+  }, []);
+
   const streamMsg = streamingMessage && typeof streamingMessage === 'object'
     ? streamingMessage as unknown as { role?: string; content?: unknown; timestamp?: number }
     : null;
@@ -91,105 +201,150 @@ export function Chat() {
   const hasAnyStreamContent = hasStreamText || hasStreamThinking || hasStreamTools || hasStreamImages || hasStreamToolStatus;
 
   const isEmpty = messages.length === 0 && !sending;
+  const isLanding = isEmpty && !sending;
 
   return (
-    <div className={cn("relative flex flex-col -m-6 transition-colors duration-500 dark:bg-background")} style={{ height: 'calc(100vh - 2.5rem)' }}>
-      {/* Toolbar */}
-      <div className="flex shrink-0 items-center justify-end px-4 py-2">
-        <ChatToolbar />
-      </div>
-
-      {/* Messages Area */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4">
-        <div ref={contentRef} className="max-w-4xl mx-auto space-y-4">
-          {isEmpty ? (
-            <WelcomeScreen
-              onSelectPrompt={(prompt) => {
-                setSuggestedPrompt(prompt);
-                setSuggestedPromptNonce((value) => value + 1);
-              }}
-            />
-          ) : (
-            <>
-              {messages.map((msg, idx) => (
-                <ChatMessage
-                  key={msg.id || `msg-${idx}`}
-                  message={msg}
-                  showThinking={showThinking}
-                />
-              ))}
-
-              {/* Streaming message */}
-              {shouldRenderStreaming && (
-                <ChatMessage
-                  message={(streamMsg
-                    ? {
-                        ...(streamMsg as Record<string, unknown>),
-                        role: (typeof streamMsg.role === 'string' ? streamMsg.role : 'assistant') as RawMessage['role'],
-                        content: streamMsg.content ?? streamText,
-                        timestamp: streamMsg.timestamp ?? streamingTimestamp,
-                      }
-                    : {
-                        role: 'assistant',
-                        content: streamText,
-                        timestamp: streamingTimestamp,
-                      }) as RawMessage}
-                  showThinking={showThinking}
-                  isStreaming
-                  streamingTools={streamingTools}
-                />
-              )}
-
-              {/* Activity indicator: waiting for next AI turn after tool execution */}
-              {sending && pendingFinal && !shouldRenderStreaming && (
-                <ActivityIndicator phase="tool_processing" />
-              )}
-
-              {/* Typing indicator when sending but no stream content yet */}
-              {sending && !pendingFinal && !hasAnyStreamContent && (
-                <TypingIndicator />
-              )}
-            </>
-          )}
-        </div>
-      </div>
-
-      {/* Error bar */}
-      {error && (
-        <div className="px-4 py-2 bg-destructive/10 border-t border-destructive/20">
-          <div className="max-w-4xl mx-auto flex items-center justify-between">
-            <p className="text-sm text-destructive flex items-center gap-2">
-              <AlertCircle className="h-4 w-4" />
-              {error}
-            </p>
-            <button
-              onClick={clearError}
-              className="text-xs text-destructive/60 hover:text-destructive underline"
-            >
-              {t('common:actions.dismiss')}
-            </button>
-          </div>
-        </div>
+    <div
+      ref={containerRef}
+      className={cn(
+        'relative -m-4 flex h-full min-h-0 gap-3 overflow-hidden transition-colors duration-500 md:-m-5 md:gap-4 dark:bg-background',
+        isResizingWorkspace && 'select-none',
       )}
-
-      {/* Input Area */}
-      <ChatInput
-        onSend={sendMessage}
-        onStop={abortRun}
-        disabled={!isGatewayRunning}
-        sending={sending}
-        isEmpty={isEmpty}
-        presetPrompt={suggestedPrompt}
-        presetPromptNonce={suggestedPromptNonce}
-      />
-
-      {/* Transparent loading overlay */}
-      {minLoading && !sending && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-background/20 backdrop-blur-[1px] rounded-xl pointer-events-auto">
-          <div className="bg-background shadow-lg rounded-full p-2.5 border border-border">
-            <LoadingSpinner size="md" />
+    >
+      <section className="surface-panel relative flex min-w-0 flex-1 flex-col overflow-hidden rounded-[2rem] border border-black/6 dark:border-white/10">
+        <div className="absolute inset-x-0 top-0 z-20 flex items-start justify-between gap-3 px-5 pt-5 md:px-6">
+          <div className="hidden min-w-0 items-center gap-2 rounded-full border border-black/6 bg-white/70 px-3 py-1.5 text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground md:flex">
+            <span>{t('welcome.title')}</span>
+          </div>
+          <div className="ml-auto">
+            <ChatToolbar workspaceVisible={!workspaceCollapsed} onToggleWorkspace={toggleWorkspace} />
           </div>
         </div>
+
+        {isLanding ? (
+          <div className="flex min-h-0 flex-1 items-center justify-center px-5 pb-8 pt-12 md:px-8 md:pt-14">
+            <WelcomeScreen onSelectPrompt={setSuggestedPromptFromQuickAction}>
+              <ChatInput
+                onSend={sendMessage}
+                onStop={abortRun}
+                disabled={!isGatewayRunning}
+                sending={sending}
+                isEmpty={isEmpty}
+                presetPrompt={suggestedPrompt}
+                presetPromptNonce={suggestedPromptNonce}
+                layout="hero"
+              />
+            </WelcomeScreen>
+          </div>
+        ) : (
+          <>
+            {/* Messages Area */}
+            <div ref={scrollRef} className="flex-1 overflow-y-auto px-5 pb-4 pt-16 md:px-6">
+              <div ref={contentRef} className="mx-auto max-w-4xl space-y-5 pb-8">
+                {messages.map((msg, idx) => (
+                  <ChatMessage
+                    key={msg.id || `msg-${idx}`}
+                    message={msg}
+                    showThinking={showThinking}
+                  />
+                ))}
+
+                {shouldRenderStreaming && (
+                  <ChatMessage
+                    message={(streamMsg
+                      ? {
+                          ...(streamMsg as Record<string, unknown>),
+                          role: (typeof streamMsg.role === 'string' ? streamMsg.role : 'assistant') as RawMessage['role'],
+                          content: streamMsg.content ?? streamText,
+                          timestamp: streamMsg.timestamp ?? streamingTimestamp,
+                        }
+                      : {
+                          role: 'assistant',
+                          content: streamText,
+                          timestamp: streamingTimestamp,
+                        }) as RawMessage}
+                    showThinking={showThinking}
+                    isStreaming
+                    streamingTools={streamingTools}
+                  />
+                )}
+
+                {sending && pendingFinal && !shouldRenderStreaming && (
+                  <ActivityIndicator phase="tool_processing" />
+                )}
+
+                {sending && !pendingFinal && !hasAnyStreamContent && (
+                  <TypingIndicator />
+                )}
+              </div>
+            </div>
+
+            <div className="shrink-0 px-5 pb-5 md:px-6">
+              <ChatInput
+                onSend={sendMessage}
+                onStop={abortRun}
+                disabled={!isGatewayRunning}
+                sending={sending}
+                isEmpty={isEmpty}
+                presetPrompt={suggestedPrompt}
+                presetPromptNonce={suggestedPromptNonce}
+              />
+            </div>
+          </>
+        )}
+
+        {error && (
+          <div className="border-t border-destructive/20 bg-destructive/10 px-5 py-2 md:px-6">
+            <div className="mx-auto flex max-w-4xl items-center justify-between">
+              <p className="flex items-center gap-2 text-sm text-destructive">
+                <AlertCircle className="h-4 w-4" />
+                {error}
+              </p>
+              <button
+                onClick={clearError}
+                className="text-xs text-destructive/60 hover:text-destructive underline"
+              >
+                {t('common:actions.dismiss')}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {minLoading && !sending && (
+          <div className="absolute inset-0 z-50 flex items-center justify-center rounded-xl bg-background/20 backdrop-blur-[1px] pointer-events-auto">
+            <div className="rounded-full border border-border bg-background p-2.5 shadow-lg">
+              <LoadingSpinner size="md" />
+            </div>
+          </div>
+        )}
+      </section>
+
+      {!workspaceCollapsed && (
+        <>
+          <div
+            role="separator"
+            aria-orientation="vertical"
+            data-testid="chat-workspace-resizer"
+            className="group relative hidden w-3 shrink-0 cursor-col-resize bg-transparent lg:block"
+            onPointerDown={() => {
+              setIsResizingWorkspace(true);
+              document.body.style.cursor = 'col-resize';
+              document.body.style.userSelect = 'none';
+            }}
+          >
+            <div className={cn(
+              'absolute inset-y-4 left-1/2 w-px -translate-x-1/2 rounded-full bg-black/10 transition-colors dark:bg-white/10',
+              isResizingWorkspace && 'bg-primary/60',
+            )} />
+          </div>
+
+          <aside className="hidden shrink-0 overflow-hidden pb-1 pr-1 pt-1 lg:block" style={{ width: `${workspaceWidth}px` }}>
+            <WorkspacePanel
+              agentId={currentAgentId}
+              agentName={currentAgentName}
+            />
+          </aside>
+        </>
       )}
     </div>
   );
@@ -197,7 +352,13 @@ export function Chat() {
 
 // ── Welcome Screen ──────────────────────────────────────────────
 
-function WelcomeScreen({ onSelectPrompt }: { onSelectPrompt: (prompt: string) => void }) {
+const WelcomeScreen = memo(function WelcomeScreen({
+  onSelectPrompt,
+  children,
+}: {
+  onSelectPrompt: (prompt: string) => void;
+  children: ReactNode;
+}) {
   const { t } = useTranslation('chat');
   const quickActions = [
     { key: 'askQuestions', label: t('welcome.askQuestions'), prompt: t('welcome.askQuestionsPrompt') },
@@ -206,27 +367,45 @@ function WelcomeScreen({ onSelectPrompt }: { onSelectPrompt: (prompt: string) =>
   ];
 
   return (
-    <div className="flex flex-col items-center justify-center text-center h-[60vh]">
-      <h1 className="text-4xl md:text-5xl font-serif text-foreground/80 mb-8 font-normal tracking-tight" style={{ fontFamily: 'Georgia, Cambria, "Times New Roman", Times, serif' }}>
+    <div data-testid="chat-landing-hero" className="pointer-events-none mx-auto flex w-full max-w-4xl flex-col items-center text-center">
+      <div className="pointer-events-auto mb-6 flex h-16 w-16 items-center justify-center rounded-[1.6rem] border border-black/8 bg-white/80 shadow-[0_1px_0_rgba(255,255,255,0.85)_inset,0_18px_36px_rgba(24,18,12,0.06)]">
+        <img src={logoSvg} alt="InvestClaw" className="h-8 w-auto" />
+      </div>
+
+      <div className="pointer-events-auto mb-4 inline-flex items-center rounded-full border border-black/6 bg-white/75 px-4 py-1.5 text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
+        {t('welcome.title')}
+      </div>
+
+      <h1 className="font-display max-w-3xl text-[2.7rem] font-medium leading-[1.05] tracking-[-0.045em] text-foreground md:text-[4.2rem]">
         {t('welcome.subtitle')}
       </h1>
 
-      <div className="flex flex-wrap items-center justify-center gap-2.5 max-w-lg w-full">
+      <p className="pointer-events-auto mt-4 max-w-2xl text-sm leading-7 text-muted-foreground md:text-[15px]">
+        {t('welcome.caption')}
+      </p>
+
+      <div className="pointer-events-auto mt-8 w-full">
+        {children}
+      </div>
+
+      <div className="pointer-events-auto mt-6 flex max-w-3xl w-full flex-wrap items-center justify-center gap-3">
         {quickActions.map(({ key, label, prompt }) => (
           <button
             key={key}
             type="button"
             onClick={() => onSelectPrompt(prompt)}
             data-testid={`chat-quick-action-${key}`}
-            className="px-4 py-1.5 rounded-full border border-black/10 dark:border-white/10 text-[13px] font-medium text-foreground/70 hover:bg-black/5 dark:hover:bg-white/5 transition-colors bg-black/[0.02]"
+            className="inline-flex items-center gap-2 rounded-full border border-black/8 bg-white/72 px-4 py-2 text-[13px] font-medium text-foreground/72 shadow-[0_1px_0_rgba(255,255,255,0.85)_inset] transition-colors hover:bg-white"
           >
+            <Sparkles className="h-3.5 w-3.5 text-[#d39c2d]" />
             {label}
+            <ArrowRight className="h-3.5 w-3.5 text-muted-foreground/70" />
           </button>
         ))}
       </div>
     </div>
   );
-}
+});
 
 // ── Typing Indicator ────────────────────────────────────────────
 
