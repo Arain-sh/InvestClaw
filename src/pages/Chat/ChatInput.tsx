@@ -121,6 +121,7 @@ export function ChatInput({
     [agents, targetAgentId],
   );
   const showAgentPicker = mentionableAgents.length > 0;
+  const textareaDisabled = sending;
 
   // Auto-resize textarea
   useEffect(() => {
@@ -132,10 +133,10 @@ export function ChatInput({
 
   // Focus textarea on mount (avoids Windows focus loss after session delete + native dialog)
   useEffect(() => {
-    if (!disabled && textareaRef.current) {
+    if (!textareaDisabled && textareaRef.current) {
       textareaRef.current.focus();
     }
-  }, [disabled]);
+  }, [textareaDisabled]);
 
   useEffect(() => {
     if (!presetPrompt.trim()) return;
@@ -378,6 +379,27 @@ export function ChatInput({
   // Handle drag & drop
   const [dragOver, setDragOver] = useState(false);
 
+  const focusTextarea = useCallback(() => {
+    if (textareaDisabled) return;
+    textareaRef.current?.focus();
+  }, [textareaDisabled]);
+
+  const shouldIgnoreComposerFocus = useCallback((target: EventTarget | null) => {
+    if (!(target instanceof Element)) return false;
+    return !!target.closest('button, a, input, textarea, select, [role="button"], [data-composer-interactive="true"]');
+  }, []);
+
+  const handleComposerSurfacePointerDown = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
+    if (shouldIgnoreComposerFocus(event.target)) return;
+    event.preventDefault();
+    focusTextarea();
+  }, [focusTextarea, shouldIgnoreComposerFocus]);
+
+  const handleComposerSurfaceClick = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
+    if (shouldIgnoreComposerFocus(event.target)) return;
+    focusTextarea();
+  }, [focusTextarea, shouldIgnoreComposerFocus]);
+
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -404,12 +426,15 @@ export function ChatInput({
 
   return (
     <div
+      data-testid={isHeroLayout ? 'chat-composer-shell' : undefined}
       className={cn(
         'w-full transition-all duration-300',
         isHeroLayout
-          ? 'mx-auto max-w-4xl px-2 py-3'
+          ? 'mx-auto max-w-[52rem] px-1 py-2'
           : cn('mx-auto pb-1', isEmpty ? 'max-w-3xl px-2' : 'max-w-4xl')
       )}
+      onPointerDownCapture={handleComposerSurfacePointerDown}
+      onClick={handleComposerSurfaceClick}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
@@ -430,13 +455,16 @@ export function ChatInput({
 
         {/* Input Row */}
         <div
+          data-testid={isHeroLayout ? 'chat-composer-card' : undefined}
           className={cn(
-            'relative overflow-hidden border transition-all',
+            'relative overflow-hidden border transition-all cursor-text',
             isHeroLayout
-              ? 'rounded-[2rem] border-black/8 bg-[#fffdf8]/92 p-3 shadow-[0_28px_60px_rgba(28,22,12,0.08),0_1px_0_rgba(255,255,255,0.9)_inset] dark:bg-card'
-              : 'rounded-[2rem] border-black/10 bg-white/88 p-1.5 shadow-[0_10px_30px_rgba(28,22,12,0.06)] dark:bg-card',
+              ? 'rounded-[2.2rem] border-black/8 bg-white/92 p-5 shadow-[0_1px_0_rgba(255,255,255,0.94)_inset,0_14px_30px_rgba(28,22,12,0.032)] dark:bg-card'
+              : 'rounded-[1.8rem] border-black/10 bg-white/88 p-1.5 shadow-[0_8px_24px_rgba(28,22,12,0.045)] dark:bg-card',
             dragOver && 'border-primary ring-1 ring-primary'
           )}
+          onPointerDownCapture={handleComposerSurfacePointerDown}
+          onClick={handleComposerSurfaceClick}
         >
           {selectedTarget && (
             <div className="px-2.5 pt-2 pb-1">
@@ -452,15 +480,16 @@ export function ChatInput({
             </div>
           )}
 
-          <div className={cn('flex items-end gap-1.5', isHeroLayout && 'min-h-[8rem]')}>
+          <div className={cn('flex items-end gap-1.5', isHeroLayout && 'min-h-[10.4rem]')}>
             {/* Attach Button */}
             <Button
               variant="ghost"
               size="icon"
-              className={cn(
-                'shrink-0 rounded-full text-muted-foreground transition-colors hover:bg-black/5 hover:text-foreground dark:hover:bg-white/10',
-                isHeroLayout ? 'h-11 w-11' : 'h-10 w-10'
-              )}
+              data-composer-interactive="true"
+                className={cn(
+                  'shrink-0 rounded-full text-muted-foreground transition-colors hover:bg-black/5 hover:text-foreground dark:hover:bg-white/10',
+                  isHeroLayout ? 'h-11 w-11 self-end mb-1' : 'h-10 w-10'
+                )}
               onClick={pickFiles}
               disabled={disabled || sending}
               title={t('composer.attachFiles')}
@@ -473,9 +502,10 @@ export function ChatInput({
                 <Button
                   variant="ghost"
                   size="icon"
+                  data-composer-interactive="true"
                   className={cn(
                     'rounded-full text-muted-foreground transition-colors hover:bg-black/5 hover:text-foreground dark:hover:bg-white/10',
-                    isHeroLayout ? 'h-11 w-11' : 'h-10 w-10',
+                    isHeroLayout ? 'h-11 w-11 self-end mb-1' : 'h-10 w-10',
                     (pickerOpen || selectedTarget) && 'bg-primary/10 text-primary hover:bg-primary/20'
                   )}
                   onClick={() => setPickerOpen((open) => !open)}
@@ -522,12 +552,12 @@ export function ChatInput({
                   isComposingRef.current = false;
                 }}
                 onPaste={handlePaste}
-                placeholder={disabled ? t('composer.gatewayDisconnectedPlaceholder') : t('composer.placeholder')}
-                disabled={disabled}
+                placeholder={disabled ? t('composer.gatewayDisconnectedPlaceholder') : (isHeroLayout ? t('composer.heroPlaceholder') : t('composer.placeholder'))}
+                disabled={textareaDisabled}
                 className={cn(
                   'max-h-[200px] resize-none border-0 bg-transparent shadow-none leading-relaxed placeholder:text-muted-foreground/60 focus-visible:ring-0 focus-visible:ring-offset-0',
                   isHeroLayout
-                    ? 'min-h-[92px] px-3 py-4 text-[19px] tracking-[-0.02em]'
+                    ? 'min-h-[138px] px-4 py-3 text-[1.34rem] tracking-[-0.03em]'
                     : 'min-h-[40px] px-2 py-2.5 text-[15px]'
                 )}
                 rows={1}
@@ -539,11 +569,12 @@ export function ChatInput({
               onClick={sending ? handleStop : handleSend}
               disabled={sending ? !canStop : !canSend}
               size="icon"
+              data-composer-interactive="true"
               className={cn(
                 'shrink-0 rounded-full transition-colors',
-                isHeroLayout ? 'h-12 w-12' : 'h-10 w-10',
+                isHeroLayout ? 'h-12 w-12 self-end mb-1' : 'h-10 w-10',
                 (sending || canSend)
-                  ? 'bg-[#f1c86f] text-[#60411a] hover:bg-[#eab95c]'
+                  ? 'bg-[#f0c56a] text-[#5f4018] hover:bg-[#e8bb58]'
                   : 'bg-transparent text-muted-foreground/45 hover:bg-transparent'
               )}
               variant="ghost"
@@ -557,38 +588,40 @@ export function ChatInput({
             </Button>
           </div>
         </div>
-        <div
-          className={cn(
-            'mt-2.5 flex items-center justify-between gap-2 text-[11px] text-muted-foreground/65',
-            isHeroLayout ? 'px-3' : 'px-4'
-          )}
-        >
-          <div className="flex items-center gap-1.5">
-            <div className={cn("h-1.5 w-1.5 rounded-full", gatewayStatus.state === 'running' ? "bg-green-500/80" : "bg-red-500/80")} />
-            <span>
-              {t('composer.gatewayStatus', {
-                state: gatewayStatus.state === 'running'
-                  ? t('composer.gatewayConnected')
-                  : gatewayStatus.state,
-                port: gatewayStatus.port,
-                pid: gatewayStatus.pid ? `| pid: ${gatewayStatus.pid}` : '',
-              })}
-            </span>
+        {!isHeroLayout && (
+          <div
+            className={cn(
+              'mt-2.5 flex items-center justify-between gap-2 text-[11px] text-muted-foreground/65',
+              'px-4'
+            )}
+          >
+            <div className="flex items-center gap-1.5">
+              <div className={cn("h-1.5 w-1.5 rounded-full", gatewayStatus.state === 'running' ? "bg-green-500/80" : "bg-red-500/80")} />
+              <span>
+                {t('composer.gatewayStatus', {
+                  state: gatewayStatus.state === 'running'
+                    ? t('composer.gatewayConnected')
+                    : gatewayStatus.state,
+                  port: gatewayStatus.port,
+                  pid: gatewayStatus.pid ? `| pid: ${gatewayStatus.pid}` : '',
+                })}
+              </span>
+            </div>
+            {hasFailedAttachments && (
+              <Button
+                variant="link"
+                size="sm"
+                className="h-auto p-0 text-[11px]"
+                onClick={() => {
+                  setAttachments((prev) => prev.filter((att) => att.status !== 'error'));
+                  void pickFiles();
+                }}
+              >
+                {t('composer.retryFailedAttachments')}
+              </Button>
+            )}
           </div>
-          {hasFailedAttachments && (
-            <Button
-              variant="link"
-              size="sm"
-              className="h-auto p-0 text-[11px]"
-              onClick={() => {
-                setAttachments((prev) => prev.filter((att) => att.status !== 'error'));
-                void pickFiles();
-              }}
-            >
-              {t('composer.retryFailedAttachments')}
-            </Button>
-          )}
-        </div>
+        )}
       </div>
     </div>
   );

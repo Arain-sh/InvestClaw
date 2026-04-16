@@ -3,6 +3,8 @@ import {
   buildElectronProxyConfig,
   buildProxyEnv,
   normalizeProxyServer,
+  parseMacSystemProxyOutput,
+  resolveEffectiveProxySettings,
   resolveProxySettings,
 } from '@electron/utils/proxy';
 
@@ -71,7 +73,87 @@ describe('proxy helpers', () => {
       proxyHttpsServer: '',
       proxyAllServer: '',
       proxyBypassRules: '<local>',
+    }, {
+      env: {},
+      platform: 'linux',
     })).toEqual({ mode: 'direct' });
+  });
+
+  it('inherits proxy env vars when manual proxy is disabled', () => {
+    expect(resolveEffectiveProxySettings({
+      proxyEnabled: false,
+      proxyServer: '',
+      proxyHttpServer: '',
+      proxyHttpsServer: '',
+      proxyAllServer: '',
+      proxyBypassRules: '<local>;localhost',
+    }, {
+      env: {
+        HTTPS_PROXY: 'http://127.0.0.1:7897',
+        ALL_PROXY: 'socks5://127.0.0.1:7898',
+      } as NodeJS.ProcessEnv,
+      platform: 'darwin',
+    })).toEqual({
+      httpProxy: '',
+      httpsProxy: 'http://127.0.0.1:7897',
+      allProxy: 'socks5://127.0.0.1:7898',
+      bypassRules: '<local>;localhost',
+    });
+  });
+
+  it('parses macOS system proxy output when env vars are absent', () => {
+    const parsed = parseMacSystemProxyOutput(`
+<dictionary> {
+  HTTPEnable : 1
+  HTTPProxy : 127.0.0.1
+  HTTPPort : 7897
+  HTTPSEnable : 1
+  HTTPSProxy : 127.0.0.1
+  HTTPSPort : 7897
+  SOCKSEnable : 1
+  SOCKSProxy : 127.0.0.1
+  SOCKSPort : 7898
+  ExceptionsList : <array> {
+    0 : localhost
+    1 : 127.0.0.1
+  }
+}
+    `);
+
+    expect(parsed).toEqual({
+      httpProxy: 'http://127.0.0.1:7897',
+      httpsProxy: 'http://127.0.0.1:7897',
+      allProxy: 'socks5://127.0.0.1:7898',
+      bypassRules: 'localhost,127.0.0.1',
+    });
+  });
+
+  it('builds env vars from inherited macOS system proxy settings', () => {
+    expect(buildProxyEnv({
+      proxyEnabled: false,
+      proxyServer: '',
+      proxyHttpServer: '',
+      proxyHttpsServer: '',
+      proxyAllServer: '',
+      proxyBypassRules: '<local>;localhost',
+    }, {
+      env: {},
+      platform: 'darwin',
+      systemProxyOutput: `
+<dictionary> {
+  HTTPEnable : 1
+  HTTPProxy : 127.0.0.1
+  HTTPPort : 7897
+  HTTPSEnable : 1
+  HTTPSProxy : 127.0.0.1
+  HTTPSPort : 7897
+}
+      `,
+    })).toMatchObject({
+      HTTP_PROXY: 'http://127.0.0.1:7897',
+      HTTPS_PROXY: 'http://127.0.0.1:7897',
+      ALL_PROXY: 'http://127.0.0.1:7897',
+    });
   });
 
   it('builds protocol-specific Electron rules when proxy is enabled', () => {

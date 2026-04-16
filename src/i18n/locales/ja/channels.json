@@ -163,9 +163,9 @@
             "description": "組み込みの QR フローで個人 WeChat に接続します",
             "docsUrl": "https://github.com/Arain-sh/InvestClaw#readme",
             "instructions": [
-                "QRコードを生成すると、InvestClaw が必要な WeChat ブリッジをインストールして有効化します",
+                "QRコードを生成すると、AraInvest が必要な WeChat ブリッジをインストールして有効化します",
                 "以下の QR コードを WeChat でスキャンし、スマートフォン側で接続を確認します",
-                "接続が完了すると、WeChat に新しい「InvestClaw WeChat」チャットが自動で表示されます",
+                "接続が完了すると、WeChat に新しい「AraInvest WeChat」チャットが自動で表示されます",
                 "後から同じ QR フローを使って、別の WeChat アカウントを追加したり既存アカウントを再接続したりできます"
             ]
         },

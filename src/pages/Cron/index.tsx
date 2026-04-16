@@ -2,7 +2,7 @@
  * Cron Page
  * Manage scheduled tasks
  */
-import { useEffect, useState, useCallback, type ReactNode, type SelectHTMLAttributes } from 'react';
+import { memo, useEffect, useState, useCallback, type ReactNode, type SelectHTMLAttributes } from 'react';
 import {
   Plus,
   Clock,
@@ -417,10 +417,10 @@ function TaskDialog({ job, configuredChannels, onClose, onSave }: TaskDialogProp
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={onClose}>
-      <Card className="w-full max-w-lg max-h-[90vh] flex flex-col rounded-3xl border-0 shadow-2xl bg-[#f3f1e9] dark:bg-card overflow-hidden" onClick={(e) => e.stopPropagation()}>
+      <Card className="app-shell-panel w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden rounded-[1.9rem] border border-black/8 shadow-[0_20px_48px_rgba(26,20,12,0.08)] dark:border-white/10" onClick={(e) => e.stopPropagation()}>
         <CardHeader className="flex flex-row items-start justify-between pb-2 shrink-0">
           <div>
-            <CardTitle className="text-2xl font-serif font-normal">{job ? t('dialog.editTitle') : t('dialog.createTitle')}</CardTitle>
+            <CardTitle className="font-display text-2xl font-semibold tracking-[-0.05em]">{job ? t('dialog.editTitle') : t('dialog.createTitle')}</CardTitle>
             <CardDescription className="text-[15px] mt-1 text-foreground/70">{t('dialog.description')}</CardDescription>
           </div>
           <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full h-8 w-8 -mr-2 -mt-2 text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5">
@@ -682,7 +682,7 @@ interface CronJobCardProps {
   onTrigger: () => Promise<void>;
 }
 
-function CronJobCard({ job, deliveryAccountName, onToggle, onEdit, onDelete, onTrigger }: CronJobCardProps) {
+const CronJobCard = memo(function CronJobCard({ job, deliveryAccountName, onToggle, onEdit, onDelete, onTrigger }: CronJobCardProps) {
   const { t } = useTranslation('cron');
   const [triggering, setTriggering] = useState(false);
 
@@ -713,12 +713,12 @@ function CronJobCard({ job, deliveryAccountName, onToggle, onEdit, onDelete, onT
 
   return (
     <div
-      className="group flex flex-col p-5 rounded-2xl bg-transparent border border-transparent hover:bg-black/5 dark:hover:bg-white/5 transition-all relative overflow-hidden cursor-pointer"
+      className="page-card group relative flex cursor-pointer flex-col overflow-hidden p-5 transition-colors hover:bg-white/92 dark:hover:bg-card/95"
       onClick={onEdit}
     >
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-4">
-          <div className="h-[46px] w-[46px] shrink-0 flex items-center justify-center text-foreground bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-full shadow-sm group-hover:scale-105 transition-transform">
+          <div className="flex h-[46px] w-[46px] shrink-0 items-center justify-center rounded-full border border-black/5 bg-black/5 text-foreground transition-transform group-hover:scale-[1.02] dark:border-white/10 dark:bg-white/5">
             <Clock className={cn("h-5 w-5", job.enabled ? "text-foreground" : "text-muted-foreground")} />
           </div>
           <div className="flex flex-col min-w-0">
@@ -826,7 +826,7 @@ function CronJobCard({ job, deliveryAccountName, onToggle, onEdit, onDelete, onT
       </div>
     </div>
   );
-}
+});
 
 export function Cron() {
   const { t } = useTranslation('cron');
@@ -892,22 +892,22 @@ export function Cron() {
 
   if (loading) {
     return (
-      <div className="flex flex-col -m-6 dark:bg-background min-h-[calc(100vh-2.5rem)] items-center justify-center">
+      <div className="page-view items-center justify-center">
         <LoadingSpinner size="lg" />
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col -m-6 dark:bg-background h-[calc(100vh-2.5rem)] overflow-hidden">
-      <div className="w-full max-w-5xl mx-auto flex flex-col h-full p-10 pt-16">
+    <div className="page-view">
+      <div className="page-container">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-start justify-between mb-12 shrink-0 gap-4">
+        <div className="page-header">
           <div>
-            <h1 className="text-5xl md:text-6xl font-serif text-foreground mb-3 font-normal tracking-tight" style={{ fontFamily: 'Georgia, Cambria, "Times New Roman", Times, serif' }}>
+            <h1 className="page-title mb-2">
               {t('title')}
             </h1>
-            <p className="text-[17px] text-foreground/70 font-medium">
+            <p className="page-subtitle">
               {t('subtitle')}
             </p>
           </div>
@@ -939,7 +939,7 @@ export function Cron() {
         </div>
 
         {/* Content Area */}
-        <div className="flex-1 overflow-y-auto pr-2 pb-10 min-h-0 -mr-2">
+        <div className="page-scroll">
           {/* Gateway Warning */}
           {!isGatewayRunning && (
             <div className="mb-8 p-4 rounded-xl border border-yellow-500/50 bg-yellow-500/10 flex items-center gap-3">
@@ -961,51 +961,51 @@ export function Cron() {
           )}
 
           {/* Statistics */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            <div className="p-5 rounded-[24px] bg-black/5 dark:bg-white/5 border border-transparent flex flex-col justify-between min-h-[130px] relative overflow-hidden group hover:bg-black/10 dark:hover:bg-white/10 transition-colors">
+          <div className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-4 content-auto">
+            <div className="page-card flex min-h-[124px] flex-col justify-between p-5">
               <div className="flex items-center justify-between">
                 <div className="h-11 w-11 rounded-full bg-primary/10 flex items-center justify-center">
                   <Clock className="h-5 w-5 text-primary" />
                 </div>
               </div>
               <div className="mt-4 flex items-baseline gap-3">
-                <p className="text-[40px] leading-none font-serif text-foreground">{safeJobs.length}</p>
+                <p className="font-display text-[2.2rem] font-semibold leading-none tracking-[-0.05em] text-foreground">{safeJobs.length}</p>
                 <p className="text-[14px] font-medium text-muted-foreground">{t('stats.total')}</p>
               </div>
             </div>
 
-            <div className="p-5 rounded-[24px] bg-black/5 dark:bg-white/5 border border-transparent flex flex-col justify-between min-h-[130px] relative overflow-hidden group hover:bg-black/10 dark:hover:bg-white/10 transition-colors">
+            <div className="page-card flex min-h-[124px] flex-col justify-between p-5">
               <div className="flex items-center justify-between">
                 <div className="h-11 w-11 rounded-full bg-green-500/10 flex items-center justify-center">
                   <Play className="h-5 w-5 text-green-600 dark:text-green-500 ml-0.5" />
                 </div>
               </div>
               <div className="mt-4 flex items-baseline gap-3">
-                <p className="text-[40px] leading-none font-serif text-foreground">{activeJobs.length}</p>
+                <p className="font-display text-[2.2rem] font-semibold leading-none tracking-[-0.05em] text-foreground">{activeJobs.length}</p>
                 <p className="text-[14px] font-medium text-muted-foreground">{t('stats.active')}</p>
               </div>
             </div>
 
-            <div className="p-5 rounded-[24px] bg-black/5 dark:bg-white/5 border border-transparent flex flex-col justify-between min-h-[130px] relative overflow-hidden group hover:bg-black/10 dark:hover:bg-white/10 transition-colors">
+            <div className="page-card flex min-h-[124px] flex-col justify-between p-5">
               <div className="flex items-center justify-between">
                 <div className="h-11 w-11 rounded-full bg-yellow-500/10 flex items-center justify-center">
                   <Pause className="h-5 w-5 text-yellow-600 dark:text-yellow-500" />
                 </div>
               </div>
               <div className="mt-4 flex items-baseline gap-3">
-                <p className="text-[40px] leading-none font-serif text-foreground">{pausedJobs.length}</p>
+                <p className="font-display text-[2.2rem] font-semibold leading-none tracking-[-0.05em] text-foreground">{pausedJobs.length}</p>
                 <p className="text-[14px] font-medium text-muted-foreground">{t('stats.paused')}</p>
               </div>
             </div>
 
-            <div className="p-5 rounded-[24px] bg-black/5 dark:bg-white/5 border border-transparent flex flex-col justify-between min-h-[130px] relative overflow-hidden group hover:bg-black/10 dark:hover:bg-white/10 transition-colors">
+            <div className="page-card flex min-h-[124px] flex-col justify-between p-5">
               <div className="flex items-center justify-between">
                 <div className="h-11 w-11 rounded-full bg-destructive/10 flex items-center justify-center">
                   <XCircle className="h-5 w-5 text-destructive" />
                 </div>
               </div>
               <div className="mt-4 flex items-baseline gap-3">
-                <p className="text-[40px] leading-none font-serif text-foreground">{failedJobs.length}</p>
+                <p className="font-display text-[2.2rem] font-semibold leading-none tracking-[-0.05em] text-foreground">{failedJobs.length}</p>
                 <p className="text-[14px] font-medium text-muted-foreground">{t('stats.failed')}</p>
               </div>
             </div>

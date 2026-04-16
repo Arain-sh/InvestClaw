@@ -22,7 +22,7 @@ import { getOpenClawDir, getOpenClawEntryPath, isOpenClawPresent } from '../util
 import { getUvMirrorEnv } from '../utils/uv-env';
 import { cleanupDanglingWeChatPluginState, listConfiguredChannels, readOpenClawConfig } from '../utils/channel-config';
 import { syncGatewayTokenToConfig, syncBrowserConfigToOpenClaw, syncSessionIdleMinutesToOpenClaw, sanitizeOpenClawConfig } from '../utils/openclaw-auth';
-import { buildProxyEnv, resolveProxySettings } from '../utils/proxy';
+import { buildProxyEnv, resolveEffectiveProxySettings } from '../utils/proxy';
 import { syncProxyConfigToOpenClaw } from '../utils/openclaw-proxy';
 import { logger } from '../utils/logger';
 import { prependPathEntry } from '../utils/env-path';
@@ -344,9 +344,9 @@ export async function prepareGatewayLaunchContext(port: number): Promise<Gateway
   const { skipChannels, channelStartupSummary } = await resolveChannelStartupPolicy();
   const uvEnv = await getUvMirrorEnv();
   const proxyEnv = buildProxyEnv(appSettings);
-  const resolvedProxy = resolveProxySettings(appSettings);
-  const proxySummary = appSettings.proxyEnabled
-    ? `http=${resolvedProxy.httpProxy || '-'}, https=${resolvedProxy.httpsProxy || '-'}, all=${resolvedProxy.allProxy || '-'}`
+  const resolvedProxy = resolveEffectiveProxySettings(appSettings);
+  const proxySummary = resolvedProxy.httpProxy || resolvedProxy.httpsProxy || resolvedProxy.allProxy
+    ? `http=${resolvedProxy.httpProxy || '-'}, https=${resolvedProxy.httpsProxy || '-'}, all=${resolvedProxy.allProxy || '-'}${appSettings.proxyEnabled ? '' : ' (inherited)'}`
     : 'disabled';
 
   const { NODE_OPTIONS: _nodeOptions, ...baseEnv } = process.env;

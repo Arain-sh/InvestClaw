@@ -1,7 +1,7 @@
 {
     "steps": {
         "welcome": {
-            "title": "Welcome to InvestClaw",
+            "title": "Welcome to AraInvest",
             "description": "Your investment research desk is ready to be configured"
         },
         "runtime": {
@@ -22,12 +22,12 @@
         },
         "complete": {
             "title": "All Set!",
-            "description": "InvestClaw is ready for market research"
+            "description": "AraInvest is ready for market research"
         }
     },
     "welcome": {
-        "title": "Welcome to InvestClaw",
-        "description": "InvestClaw creates a desktop workspace for investment research, earnings review, watchlist tracking, and repeatable analysis.",
+        "title": "Welcome to AraInvest",
+        "description": "AraInvest creates a desktop workspace for investment research, earnings review, watchlist tracking, and repeatable analysis.",
         "features": {
             "noCommand": "No CLI setup required",
             "modernUI": "Research-first desktop workflow",
@@ -113,7 +113,7 @@
     },
     "complete": {
         "title": "Setup Complete!",
-        "subtitle": "InvestClaw is configured and ready to analyze markets, filings, and portfolio ideas.",
+        "subtitle": "AraInvest is configured and ready to analyze markets, filings, and portfolio ideas.",
         "provider": "AI Provider",
         "components": "Components",
         "gateway": "Gateway",

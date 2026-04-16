@@ -9,6 +9,7 @@
         "dashboard": "Dashboard",
         "settings": "Settings",
         "devConsole": "Developer Console",
+        "runtimeConsole": "Runtime Console",
         "models": "Models",
         "deleteSessionConfirm": "Are you sure you want to delete session \"{{label}}\"?",
         "openClawPage": "Runtime Console"
@@ -53,7 +54,7 @@
     },
     "gateway": {
         "notRunning": "Gateway Not Running",
-        "notRunningDesc": "The InvestClaw gateway needs to be running to use this feature. It will start automatically, or you can start it from Settings.",
+        "notRunningDesc": "The AraInvest gateway needs to be running to use this feature. It will start automatically, or you can start it from Settings.",
         "warning": "Gateway is not running."
     }
 }

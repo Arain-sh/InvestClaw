@@ -1,6 +1,6 @@
 {
   "title": "設定",
-  "subtitle": "InvestClaw の投資リサーチ環境を設定",
+  "subtitle": "AraInvest の投資リサーチ環境を設定",
   "appearance": {
     "title": "通用",
     "description": "外観とスタイルをカスタマイズ",
@@ -10,7 +10,7 @@
     "system": "システム",
     "language": "言語",
     "launchAtStartup": "システム起動時に自動起動",
-    "launchAtStartupDesc": "ログイン時に InvestClaw を自動的に起動します"
+    "launchAtStartupDesc": "ログイン時に AraInvest を自動的に起動します"
   },
   "aiProviders": {
     "title": "AI プロバイダー",
@@ -37,7 +37,7 @@
     "notRequired": "不要",
     "empty": {
       "title": "プロバイダーが構成されていません",
-      "desc": "AI プロバイダーを追加して InvestClaw で相場とポートフォリオを分析しましょう",
+      "desc": "AI プロバイダーを追加して AraInvest で相場とポートフォリオを分析しましょう",
       "cta": "最初のプロバイダーを追加"
     },
     "dialog": {
@@ -60,7 +60,7 @@
       "protocol": "プロトコル",
       "advancedConfig": "詳細設定",
       "userAgent": "User-Agent",
-      "userAgentPlaceholder": "InvestClaw/1.0",
+      "userAgentPlaceholder": "AraInvest/1.0",
       "fallbackModels": "フォールバックモデル",
       "fallbackProviders": "別プロバイダーへのフォールバック",
       "fallbackModelIds": "同一プロバイダーのフォールバックモデル ID",
@@ -126,14 +126,14 @@
   },
   "gateway": {
     "title": "ゲートウェイ",
-    "description": "InvestClaw ランタイムのゲートウェイ設定",
+    "description": "AraInvest ランタイムのゲートウェイ設定",
     "status": "ステータス",
     "port": "ポート",
     "logs": "ログ",
     "appLogs": "アプリケーションログ",
     "openFolder": "フォルダーを開く",
     "autoStart": "ゲートウェイ自動起動",
-    "autoStartDesc": "InvestClaw 起動時にゲートウェイを自動起動",
+    "autoStartDesc": "AraInvest 起動時にゲートウェイを自動起動",
     "proxyTitle": "プロキシ",
     "proxyDesc": "Electron と Gateway の通信をローカルプロキシ経由にします。",
     "proxyServer": "プロキシサーバー",
@@ -154,7 +154,7 @@
   },
   "updates": {
     "title": "アップデート",
-    "description": "InvestClaw を最新に保つ",
+    "description": "AraInvest を最新に保つ",
     "autoCheck": "自動更新チェック",
     "autoCheckDesc": "起動時に更新を確認",
     "autoDownload": "自動アップデート",
@@ -268,7 +268,7 @@
   },
   "about": {
     "title": "バージョン情報",
-    "appName": "InvestClaw",
+    "appName": "AraInvest",
     "tagline": "投資リサーチ副操縦士",
     "basedOn": "arain により構築",
     "version": "バージョン {{version}}",

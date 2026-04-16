@@ -478,30 +478,31 @@ export function Settings() {
   };
 
   return (
-    <div data-testid="settings-page" className="flex flex-col -m-6 dark:bg-background h-[calc(100vh-2.5rem)] overflow-hidden">
-      <div className="w-full max-w-5xl mx-auto flex flex-col h-full p-10 pt-16">
+    <div data-testid="settings-page" className="page-view">
+      <div className="page-container">
 
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-start justify-between mb-12 shrink-0 gap-4">
+        <div className="page-header">
           <div>
-            <h1 className="text-5xl md:text-6xl font-serif text-foreground mb-3 font-normal tracking-tight" style={{ fontFamily: 'Georgia, Cambria, "Times New Roman", Times, serif' }}>
+            <h1 className="page-title mb-2">
               {t('title')}
             </h1>
-            <p className="text-[17px] text-foreground/70 font-medium">
+            <p className="page-subtitle">
               {t('subtitle')}
             </p>
           </div>
         </div>
 
         {/* Content Area */}
-        <div className="flex-1 overflow-y-auto pr-2 pb-10 min-h-0 -mr-2 space-y-12">
+        <div className="page-scroll space-y-10">
 
           {/* Appearance */}
-          <div>
-            <h2 className="text-3xl font-serif text-foreground mb-6 font-normal tracking-tight" style={{ fontFamily: 'Georgia, Cambria, "Times New Roman", Times, serif' }}>
-              {t('appearance.title')}
-            </h2>
-            <div className="space-y-6">
+          <div className="content-auto section-block">
+            <div className="space-y-2">
+              <h2 className="section-heading">{t('appearance.title')}</h2>
+              <p className="section-copy">Tune the desktop chrome, language, and startup behavior for your daily research flow.</p>
+            </div>
+            <div className="page-card-muted space-y-6 p-6">
               <div className="space-y-3">
                 <Label className="text-[15px] font-medium text-foreground/80">{t('appearance.theme')}</Label>
                 <div className="flex flex-wrap gap-2">
@@ -564,11 +565,12 @@ export function Settings() {
           <Separator className="bg-black/5 dark:bg-white/5" />
 
           {/* Gateway */}
-          <div>
-            <h2 className="text-3xl font-serif text-foreground mb-6 font-normal tracking-tight" style={{ fontFamily: 'Georgia, Cambria, "Times New Roman", Times, serif' }}>
-              {t('gateway.title')}
-            </h2>
-            <div className="space-y-6">
+          <div className="content-auto section-block">
+            <div className="space-y-2">
+              <h2 className="section-heading">{t('gateway.title')}</h2>
+              <p className="section-copy">Monitor runtime status, logs, and startup behavior from one quieter control surface.</p>
+            </div>
+            <div className="page-card-muted space-y-6 p-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                   <Label className="text-[15px] font-medium text-foreground">{t('gateway.status')}</Label>
@@ -670,7 +672,7 @@ export function Settings() {
             <>
               <Separator className="bg-black/5 dark:bg-white/5" />
               <div data-testid="settings-developer-section">
-                <h2 data-testid="settings-developer-title" className="text-3xl font-serif text-foreground mb-6 font-normal tracking-tight" style={{ fontFamily: 'Georgia, Cambria, "Times New Roman", Times, serif' }}>
+                <h2 data-testid="settings-developer-title" className="font-display mb-6 text-[1.8rem] font-semibold tracking-[-0.05em] text-foreground">
                   {t('developer.title')}
                 </h2>
                 <div className="space-y-8">
@@ -1042,8 +1044,8 @@ export function Settings() {
           <Separator className="bg-black/5 dark:bg-white/5" />
 
           {/* Updates */}
-          <div>
-            <h2 className="text-3xl font-serif text-foreground mb-6 font-normal tracking-tight" style={{ fontFamily: 'Georgia, Cambria, "Times New Roman", Times, serif' }}>
+          <div className="content-auto">
+            <h2 className="font-display mb-6 text-[1.8rem] font-semibold tracking-[-0.05em] text-foreground">
               {t('updates.title')}
             </h2>
             <div className="space-y-6">
@@ -1083,8 +1085,8 @@ export function Settings() {
           <Separator className="bg-black/5 dark:bg-white/5" />
 
           {/* About */}
-          <div>
-            <h2 className="text-3xl font-serif text-foreground mb-6 font-normal tracking-tight" style={{ fontFamily: 'Georgia, Cambria, "Times New Roman", Times, serif' }}>
+          <div className="content-auto">
+            <h2 className="font-display mb-6 text-[1.8rem] font-semibold tracking-[-0.05em] text-foreground">
               {t('about.title')}
             </h2>
             <div className="space-y-3 text-[14px] text-muted-foreground">

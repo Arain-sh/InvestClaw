@@ -1,17 +1,22 @@
 {
     "gatewayNotRunning": "Gateway Not Running",
-    "gatewayRequired": "The InvestClaw gateway needs to be running to use chat. It will start automatically, or you can start it from Settings.",
+    "gatewayRequired": "The AraInvest gateway needs to be running to use chat. It will start automatically, or you can start it from Settings.",
     "welcome": {
-        "title": "InvestClaw Research",
-        "subtitle": "What should we analyze today?",
-        "caption": "Bring markets, filings, valuation, and execution into one calmer AI-native research desktop.",
-        "askQuestions": "Market Snapshot",
+        "title": "AraInvest Research",
+        "greeting": {
+            "morning": "Good morning",
+            "afternoon": "Good afternoon",
+            "evening": "Good evening"
+        },
+        "subtitle": "",
+        "caption": "",
+        "askQuestions": "Market pulse",
         "askQuestionsDesc": "Build a structured pre-market or post-market brief",
         "askQuestionsPrompt": "Build me a market snapshot for today covering major indexes, sector rotation, macro catalysts, and the biggest risk items to watch.",
-        "creativeTasks": "Earnings Digest",
+        "creativeTasks": "Filing decode",
         "creativeTasksDesc": "Summarize filings, transcripts, and management guidance",
         "creativeTasksPrompt": "Summarize the latest earnings report for my target company, highlight revenue drivers, margin changes, management guidance, and the key bullish and bearish takeaways.",
-        "brainstorming": "Strategy Review",
+        "brainstorming": "Strategy review",
         "brainstormingPrompt": "Review a swing-trading idea for me: list the setup, catalysts, invalidation level, risk controls, and the questions I still need to answer before taking the trade."
     },
     "noLogs": "(No logs available yet)",
@@ -51,6 +56,7 @@
         "targetChip": "@{{agent}}",
         "agentPickerTitle": "Route the next message to another agent",
         "gatewayDisconnectedPlaceholder": "Gateway not connected...",
+        "heroPlaceholder": "How can I help you today?",
         "placeholder": "Ask about markets, filings, watchlists, valuation, or strategy ideas...",
         "send": "Send",
         "stop": "Stop",

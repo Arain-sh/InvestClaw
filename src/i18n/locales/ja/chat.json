@@ -1,10 +1,15 @@
 {
     "gatewayNotRunning": "ゲートウェイが停止中",
-    "gatewayRequired": "チャットを利用するには InvestClaw ゲートウェイが実行されている必要があります。自動的に起動するか、設定から起動できます。",
+    "gatewayRequired": "チャットを利用するには AraInvest ゲートウェイが実行されている必要があります。自動的に起動するか、設定から起動できます。",
     "welcome": {
-        "title": "InvestClaw リサーチ",
-        "subtitle": "今日は何を分析しますか？",
-        "caption": "相場、決算、バリュエーション、実行を、より静かで集中しやすい AI ネイティブな投資リサーチデスクトップにまとめます。",
+        "title": "AraInvest リサーチ",
+        "greeting": {
+            "morning": "おはようございます",
+            "afternoon": "こんにちは",
+            "evening": "こんばんは"
+        },
+        "subtitle": "",
+        "caption": "",
         "askQuestions": "市場スナップショット",
         "askQuestionsDesc": "寄り前・引け後の要点を整理します",
         "askQuestionsPrompt": "今日のマーケットスナップショットを作成してください。主要指数、セクターローテーション、マクロ材料、注視すべきリスクを含めてください。",
@@ -51,6 +56,7 @@
         "targetChip": "@{{agent}}",
         "agentPickerTitle": "次のメッセージを別の Agent に直接送信します",
         "gatewayDisconnectedPlaceholder": "ゲートウェイ未接続...",
+        "heroPlaceholder": "今日リサーチしたい市場、企業、戦略を入力してください...",
         "placeholder": "相場、決算、ウォッチリスト、バリュエーション、戦略案について質問してください...",
         "send": "送信",
         "stop": "停止",

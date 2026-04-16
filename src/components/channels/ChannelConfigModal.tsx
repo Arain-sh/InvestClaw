@@ -478,7 +478,7 @@ export function ChannelConfigModal({
       }}
     >
       <Card
-        className="w-full max-w-3xl max-h-[90vh] flex flex-col rounded-3xl border-0 shadow-2xl bg-[#f3f1e9] dark:bg-card overflow-hidden"
+        className="app-shell-panel w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden rounded-[1.9rem] border border-black/8 shadow-[0_20px_48px_rgba(26,20,12,0.08)] dark:border-white/10"
         onMouseDown={(event) => event.stopPropagation()}
         onClick={(event) => event.stopPropagation()}
       >

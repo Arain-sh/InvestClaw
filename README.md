@@ -1,9 +1,9 @@
 
 <p align="center">
-  <img src="src/assets/logo.svg" width="128" height="128" alt="InvestClaw Logo" />
+  <img src="src/assets/logo.svg" width="128" height="128" alt="AraInvest Logo" />
 </p>
 
-<h1 align="center">InvestClaw</h1>
+<h1 align="center">AraInvest</h1>
 
 <p align="center">
   <strong>The AI Investment Research Desk by arain</strong>
@@ -11,7 +11,7 @@
 
 <p align="center">
   <a href="#features">Features</a> •
-  <a href="#why-investclaw">Why InvestClaw</a> •
+  <a href="#why-arainvest">Why AraInvest</a> •
   <a href="#getting-started">Getting Started</a> •
   <a href="#architecture">Architecture</a> •
   <a href="#development">Development</a> •
@@ -34,13 +34,13 @@
 
 ## Overview
 
-**InvestClaw** is a desktop workspace for investors who want a dedicated research desk without command-line overhead. It turns multi-step market research, filings review, watchlist maintenance, and idea generation into a guided GUI workflow.
+**AraInvest** is a desktop workspace for investors who want a dedicated research desk without command-line overhead. It turns multi-step market research, filings review, watchlist maintenance, and idea generation into a guided GUI workflow.
 
-Whether you're running a morning market brief, dissecting an earnings release, or automating recurring portfolio checklists, InvestClaw gives you one place to organize those flows.
+Whether you're running a morning market brief, dissecting an earnings release, or automating recurring portfolio checklists, AraInvest gives you one place to organize those flows.
 
-InvestClaw ships with embedded runtime services, multi-provider setup, document skills, and desktop-native controls. You can still fine-tune advanced behavior via **Settings → Advanced → Developer Mode**.
+AraInvest ships with embedded runtime services, multi-provider setup, document skills, and desktop-native controls. You can still fine-tune advanced behavior via **Settings → Advanced → Developer Mode**.
 
-> InvestClaw is a research assistant. It does not provide financial advice, and you should validate any investment decision independently.
+> AraInvest is a research assistant. It does not provide financial advice, and you should validate any investment decision independently.
 
 ---
 ## Screenshot
@@ -71,11 +71,11 @@ InvestClaw ships with embedded runtime services, multi-provider setup, document 
 
 ---
 
-## Why InvestClaw
+## Why AraInvest
 
-Investment research should feel like a repeatable workflow, not a pile of tabs and scratch notes. InvestClaw is designed to make agent-driven analysis structured, inspectable, and easy to run every day.
+Investment research should feel like a repeatable workflow, not a pile of tabs and scratch notes. AraInvest is designed to make agent-driven analysis structured, inspectable, and easy to run every day.
 
-| Challenge | InvestClaw Solution |
+| Challenge | AraInvest Solution |
 |-----------|----------------|
 | Research scattered across tools | One desktop workspace for chat, files, agents, and recurring tasks |
 | Filings and earnings overload | Built-in document skills for PDFs, spreadsheets, and transcripts |
@@ -85,7 +85,7 @@ Investment research should feel like a repeatable workflow, not a pile of tabs a
 
 ### Embedded Runtime
 
-InvestClaw bundles its runtime inside the desktop application, so installation, upgrades, and daily use stay inside one product workflow.
+AraInvest bundles its runtime inside the desktop application, so installation, upgrades, and daily use stay inside one product workflow.
 
 The result is a smoother setup path for research work: fewer moving parts, fewer manual steps, and a more consistent desktop experience.
 
@@ -99,13 +99,13 @@ Complete the entire setup—from installation to your first AI interaction—thr
 ### 💬 Intelligent Chat Interface
 Communicate with AI agents through a modern chat experience. Support for multiple conversation contexts, message history, rich content rendering with Markdown, and direct `@agent` routing in the main composer for multi-agent setups.
 The Chat page now also includes a full right-side workspace explorer for the current agent, with a directory tree, nested file opening, and inline preview for Markdown, HTML, text, and common image files.
-When you target another agent with `@agent`, InvestClaw switches into that agent's own conversation context directly instead of relaying through the default agent. Agent workspaces stay separate by default, and stronger isolation depends on runtime sandbox settings.
+When you target another agent with `@agent`, AraInvest switches into that agent's own conversation context directly instead of relaying through the default agent. Agent workspaces stay separate by default, and stronger isolation depends on runtime sandbox settings.
 Each agent can also override its own `provider/model` runtime setting; agents without overrides continue inheriting the global default model.
 
 ### 📡 Multi-Channel Management
 Configure and monitor multiple AI channels simultaneously. Each channel operates independently, allowing you to run specialized agents for different tasks.
 Each channel now supports multiple accounts, per-account agent binding, and switching the channel default account directly from the Channels page.
-InvestClaw now also includes a personal WeChat channel bridge, so you can link WeChat directly from the Channels page with an in-app QR flow.
+AraInvest now also includes a personal WeChat channel bridge, so you can link WeChat directly from the Channels page with an in-app QR flow.
 
 ### ⏰ Cron-Based Automation
 Schedule AI tasks to run automatically. Define triggers, set intervals, and let your AI agents work around the clock without manual intervention.
@@ -114,7 +114,7 @@ Known limitation: WeChat is intentionally excluded from supported cron delivery 
 
 ### 🧩 Extensible Skill System
 Extend your AI agents with pre-built skills. Browse, install, and manage skills through the integrated skill panel—no package managers required.
-InvestClaw also pre-bundles full document-processing skills (`pdf`, `xlsx`, `docx`, `pptx`), deploys them automatically to the managed skills directory (default `~/.openclaw/skills`) on startup, and enables them by default on first install. Additional bundled skills (`find-skills`, `self-improving-agent`, `tavily-search`, `brave-web-search`) are also enabled by default; if required API keys are missing, the runtime will surface configuration errors.  
+AraInvest also pre-bundles full document-processing skills (`pdf`, `xlsx`, `docx`, `pptx`), deploys them automatically to the managed skills directory (default `~/.openclaw/skills`) on startup, and enables them by default on first install. Additional bundled skills (`find-skills`, `self-improving-agent`, `tavily-search`, `brave-web-search`) are also enabled by default; if required API keys are missing, the runtime will surface configuration errors.  
 The Skills page can display skills discovered from multiple runtime sources (managed dir, workspace, and extra skill dirs), and now shows each skill's actual location so you can open the real folder directly.
 
 Environment variables for bundled search skills:
@@ -127,10 +127,10 @@ Connect to multiple AI providers (OpenAI, Anthropic, and more) with credentials 
 For **Custom** providers used with OpenAI-compatible gateways, you can set a custom `User-Agent` in **Settings → AI Providers → Edit Provider** for compatibility-sensitive endpoints.
 
 ### 🌙 Adaptive Theming
-Light mode, dark mode, or system-synchronized themes. InvestClaw adapts to your preferences automatically.
+Light mode, dark mode, or system-synchronized themes. AraInvest adapts to your preferences automatically.
 
 ### 🚀 Startup Launch Control
-In **Settings → General**, you can enable **Launch at system startup** so InvestClaw starts automatically after login.
+In **Settings → General**, you can enable **Launch at system startup** so AraInvest starts automatically after login.
 
 ---
 
@@ -173,7 +173,7 @@ pnpm run start:local
 This path matches the built desktop flow used by automated Electron smoke tests and is the most reliable local launch mode when `pnpm dev` is only needed for renderer development.
 ### First Launch
 
-When you launch InvestClaw for the first time, the **Setup Wizard** will guide you through:
+When you launch AraInvest for the first time, the **Setup Wizard** will guide you through:
 
 1. **Language & Region** – Configure your preferred locale
 2. **AI Provider** – Add providers with API keys or OAuth (for providers that support browser/device login)
@@ -182,12 +182,12 @@ When you launch InvestClaw for the first time, the **Setup Wizard** will guide y
 
 The wizard preselects your system language when it is supported, and falls back to English otherwise.
 
-> Note for Moonshot (Kimi): InvestClaw keeps Kimi web search enabled by default.  
-> When Moonshot is configured, InvestClaw also syncs Kimi web search to the China endpoint (`https://api.moonshot.cn/v1`) in runtime config.
+> Note for Moonshot (Kimi): AraInvest keeps Kimi web search enabled by default.  
+> When Moonshot is configured, AraInvest also syncs Kimi web search to the China endpoint (`https://api.moonshot.cn/v1`) in runtime config.
 
 ### Proxy Settings
 
-InvestClaw includes built-in proxy settings for environments where Electron, the InvestClaw gateway, or channels such as Telegram need to reach the internet through a local proxy client.
+AraInvest includes built-in proxy settings for environments where Electron, the AraInvest gateway, or channels such as Telegram need to reach the internet through a local proxy client.
 
 Open **Settings → Gateway → Proxy** and configure:
 
@@ -206,10 +206,10 @@ Proxy Server: http://127.0.0.1:7890
 Notes:
 
 - A bare `host:port` value is treated as HTTP.
-- If advanced proxy fields are left empty, InvestClaw falls back to `Proxy Server`.
+- If advanced proxy fields are left empty, AraInvest falls back to `Proxy Server`.
 - Saving proxy settings reapplies Electron networking immediately and restarts the Gateway automatically.
-- InvestClaw also syncs the proxy to the runtime's Telegram channel config when Telegram is enabled.
-- Gateway restarts preserve an existing Telegram channel proxy if InvestClaw proxy is currently disabled.
+- AraInvest also syncs the proxy to the runtime's Telegram channel config when Telegram is enabled.
+- Gateway restarts preserve an existing Telegram channel proxy if AraInvest proxy is currently disabled.
 - To explicitly clear Telegram channel proxy from runtime config, save proxy settings with proxy disabled.
 - In **Settings → Advanced → Developer**, you can run **Runtime Diagnostics** to execute `openclaw doctor --json` and inspect the diagnostic output without leaving the app.
 - On packaged Windows builds, the bundled `openclaw` CLI/TUI runs via the shipped `node.exe` entrypoint to keep terminal input behavior stable.
@@ -218,10 +218,10 @@ Notes:
 
 ## Architecture
 
-InvestClaw employs a **dual-process architecture** with a unified host API layer. The renderer talks to a single client abstraction, while Electron Main owns protocol selection and process lifecycle:
+AraInvest employs a **dual-process architecture** with a unified host API layer. The renderer talks to a single client abstraction, while Electron Main owns protocol selection and process lifecycle:
 
 ```┌─────────────────────────────────────────────────────────────────┐
-│                        InvestClaw Desktop App                         │
+│                        AraInvest Desktop App                         │
 │                                                                  │
 │  ┌────────────────────────────────────────────────────────────┐  │
 │  │              Electron Main Process                          │  │
@@ -256,7 +256,7 @@ InvestClaw employs a **dual-process architecture** with a unified host API layer
                                │ WS / HTTP / IPC fallback
                                ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                     InvestClaw Gateway                           │
+│                     AraInvest Gateway                           │
 │                                                                  │
 │  • AI agent runtime and orchestration                           │
 │  • Message channel management                                    │
@@ -275,14 +275,14 @@ InvestClaw employs a **dual-process architecture** with a unified host API layer
 
 ### Process Model & Gateway Troubleshooting
 
-- InvestClaw is an Electron app, so **one app instance normally appears as multiple OS processes** (main/renderer/zygote/utility). This is expected.
+- AraInvest is an Electron app, so **one app instance normally appears as multiple OS processes** (main/renderer/zygote/utility). This is expected.
 - Single-instance protection uses Electron's lock plus a local process-file lock fallback, preventing duplicate app launch in environments where desktop IPC/session bus is unstable.
 - During rolling upgrades, mixed old/new app versions can still have asymmetric protection behavior. For best reliability, upgrade all desktop clients to the same version.
-- The InvestClaw gateway listener should still be **single-owner**: only one process should listen on `127.0.0.1:18789`.
+- The AraInvest gateway listener should still be **single-owner**: only one process should listen on `127.0.0.1:18789`.
 - To verify the active listener:
   - macOS/Linux: `lsof -nP -iTCP:18789 -sTCP:LISTEN`
   - Windows (PowerShell): `Get-NetTCPConnection -LocalPort 18789 -State Listen`
-- Clicking the window close button (`X`) hides InvestClaw to tray; it does **not** fully quit the app. Use tray menu **Quit InvestClaw** for complete shutdown.
+- Clicking the window close button (`X`) hides AraInvest to tray; it does **not** fully quit the app. Use tray menu **Quit AraInvest** for complete shutdown.
 
 ---
 
@@ -385,7 +385,7 @@ from `dist/` and `dist-electron/`, so it does not require manually running
 
 - builds the renderer and Electron bundles with `pnpm run build:vite`
 - starts Electron in an isolated E2E mode with a temporary `HOME`
-- uses a temporary InvestClaw `userData` directory
+- uses a temporary AraInvest `userData` directory
 - skips heavy startup side effects such as gateway auto-start, bundled skill
   installation, tray creation, and CLI auto-install
 
@@ -413,7 +413,7 @@ Add future Electron flows under `tests/e2e/` and reuse the shared fixture in
 
 ## Contributing
 
-We welcome contributions! Whether it's bug fixes, new features, documentation improvements, or translations, every contribution helps make InvestClaw better.
+We welcome contributions! Whether it's bug fixes, new features, documentation improvements, or translations, every contribution helps make AraInvest better.
 
 ### How to Contribute
 
@@ -434,7 +434,7 @@ We welcome contributions! Whether it's bug fixes, new features, documentation im
 
 ## License
 
-InvestClaw is released under the [MIT License](LICENSE). You're free to use, modify, and distribute this software.
+AraInvest is released under the [MIT License](LICENSE). You're free to use, modify, and distribute this software.
 
 ---
 

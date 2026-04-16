@@ -1,4 +1,4 @@
-import { useEffect, useReducer, useRef, useState } from 'react';
+import { useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ChevronLeft,
@@ -213,44 +213,63 @@ export function Models() {
     };
   }, [isGatewayRunning, gatewayStatus.connectedAt, gatewayStatus.pid, usageFetchMaxAttempts]);
 
-  const visibleUsageHistory = isGatewayRunning
-    ? fetchState.data.filter((entry) => !shouldHideUsageEntry(entry))
-    : [];
-  const filteredUsageHistory = filterUsageHistoryByWindow(visibleUsageHistory, usageWindow);
-  const usageGroups = groupUsageHistory(filteredUsageHistory, usageGroupBy);
+  const visibleUsageHistory = useMemo(() => (
+    isGatewayRunning
+      ? fetchState.data.filter((entry) => !shouldHideUsageEntry(entry))
+      : []
+  ), [fetchState.data, isGatewayRunning]);
+
+  const filteredUsageHistory = useMemo(
+    () => filterUsageHistoryByWindow(visibleUsageHistory, usageWindow),
+    [usageWindow, visibleUsageHistory],
+  );
+
+  const usageGroups = useMemo(
+    () => groupUsageHistory(filteredUsageHistory, usageGroupBy),
+    [filteredUsageHistory, usageGroupBy],
+  );
+
   const usagePageSize = 5;
   const usageTotalPages = Math.max(1, Math.ceil(filteredUsageHistory.length / usagePageSize));
   const safeUsagePage = Math.min(usagePage, usageTotalPages);
-  const pagedUsageHistory = filteredUsageHistory.slice((safeUsagePage - 1) * usagePageSize, safeUsagePage * usagePageSize);
+  const pagedUsageHistory = useMemo(
+    () => filteredUsageHistory.slice((safeUsagePage - 1) * usagePageSize, safeUsagePage * usagePageSize),
+    [filteredUsageHistory, safeUsagePage],
+  );
   const usageLoading = isGatewayRunning && fetchState.status === 'loading';
 
   return (
-    <div data-testid="models-page" className="flex flex-col -m-6 dark:bg-background h-[calc(100vh-2.5rem)] overflow-hidden">
-      <div className="w-full max-w-5xl mx-auto flex flex-col h-full p-10 pt-16">
+    <div data-testid="models-page" className="page-view">
+      <div className="page-container">
         
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-start justify-between mb-12 shrink-0 gap-4">
+        <div className="page-header">
           <div>
-            <h1 data-testid="models-page-title" className="text-5xl md:text-6xl font-serif text-foreground mb-3 font-normal tracking-tight" style={{ fontFamily: 'Georgia, Cambria, "Times New Roman", Times, serif' }}>
+            <h1 data-testid="models-page-title" className="page-title mb-2">
               {t('dashboard:models.title')}
             </h1>
-            <p className="text-[17px] text-foreground/70 font-medium">
+            <p className="page-subtitle">
               {t('dashboard:models.subtitle')}
             </p>
           </div>
         </div>
 
         {/* Content Area */}
-        <div className="flex-1 overflow-y-auto pr-2 pb-10 min-h-0 -mr-2 space-y-12">
+        <div className="page-scroll space-y-10">
           
           {/* AI Providers Section */}
           <ProvidersSettings />
 
           {/* Token Usage History Section */}
-          <div>
-            <h2 className="text-3xl font-serif text-foreground mb-6 font-normal tracking-tight" style={{ fontFamily: 'Georgia, Cambria, "Times New Roman", Times, serif' }}>
-              {t('dashboard:recentTokenHistory.title', 'Token Usage History')}
-            </h2>
+          <div className="content-auto section-block">
+            <div className="space-y-2">
+              <h2 className="section-heading">
+                {t('dashboard:recentTokenHistory.title', 'Token Usage History')}
+              </h2>
+              <p className="section-copy">
+                Review model usage, cost footprint, and recent assistant activity without leaving the desk.
+              </p>
+            </div>
             <div>
               {usageLoading ? (
                 <div className="flex items-center justify-center py-12 text-muted-foreground bg-black/5 dark:bg-white/5 rounded-3xl border border-transparent border-dashed">
@@ -266,9 +285,9 @@ export function Models() {
                 </div>
               ) : (
                 <div className="space-y-6">
-                  <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div className="soft-toolbar justify-between">
                     <div className="flex flex-wrap items-center gap-3">
-                      <div className="flex rounded-xl bg-transparent p-1 border border-black/10 dark:border-white/10">
+                      <div className="segmented-control">
                         <Button
                           variant={usageGroupBy === 'model' ? 'secondary' : 'ghost'}
                           size="sm"
@@ -292,7 +311,7 @@ export function Models() {
                           {t('dashboard:recentTokenHistory.groupByTime')}
                         </Button>
                       </div>
-                      <div className="flex rounded-xl bg-transparent p-1 border border-black/10 dark:border-white/10">
+                      <div className="segmented-control">
                         <Button
                           variant={usageWindow === '7d' ? 'secondary' : 'ghost'}
                           size="sm"

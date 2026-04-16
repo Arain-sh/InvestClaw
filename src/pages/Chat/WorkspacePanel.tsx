@@ -1,5 +1,5 @@
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
-import { AlertCircle, ChevronRight, FileCode2, FileImage, FileSymlink, FileText, Folder, FolderOpen, Loader2, RefreshCw } from 'lucide-react';
+import { AlertCircle, ChevronRight, FileCode2, FileImage, FileSymlink, FileText, Folder, FolderOpen, Loader2, RefreshCw, X } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Button } from '@/components/ui/button';
@@ -11,6 +11,7 @@ import { useTranslation } from 'react-i18next';
 interface WorkspacePanelProps {
   agentId: string;
   agentName: string;
+  onRequestClose?: () => void;
 }
 
 type PreviewMode = 'render' | 'source';
@@ -96,9 +97,9 @@ const WorkspaceTreeNode = memo(function WorkspaceTreeNode({
           onOpenFile(entry.relativePath);
         }}
         className={cn(
-          'flex w-full items-center gap-2 rounded-[1rem] px-3 py-2 text-left',
-          'hover:bg-white/72 dark:hover:bg-white/[0.04]',
-          isSelected && 'bg-white text-primary shadow-[0_1px_0_rgba(255,255,255,0.85)_inset,0_10px_24px_rgba(24,18,12,0.05)]',
+          'flex w-full select-none items-center gap-2 rounded-[0.95rem] px-3 py-2 text-left transition-colors',
+          'hover:bg-white/78 dark:hover:bg-white/[0.04]',
+          isSelected && 'bg-white text-primary shadow-[0_1px_0_rgba(255,255,255,0.88)_inset,0_10px_22px_rgba(24,18,12,0.032)]',
           entry.kind === 'symlink' && 'cursor-not-allowed opacity-60',
         )}
         style={{ paddingLeft: `${12 + depth * 16}px` }}
@@ -124,7 +125,7 @@ const WorkspaceTreeNode = memo(function WorkspaceTreeNode({
   );
 });
 
-export function WorkspacePanel({ agentId, agentName }: WorkspacePanelProps) {
+export function WorkspacePanel({ agentId, agentName, onRequestClose }: WorkspacePanelProps) {
   const { t } = useTranslation('chat');
   const [workspace, setWorkspace] = useState<AgentWorkspaceListing | null>(null);
   const [directoryEntries, setDirectoryEntries] = useState<Record<string, AgentWorkspaceEntry[]>>({});
@@ -500,9 +501,9 @@ export function WorkspacePanel({ agentId, agentName }: WorkspacePanelProps) {
   return (
     <aside
       data-testid="chat-workspace-panel"
-      className="surface-panel flex h-full min-h-0 flex-col overflow-hidden rounded-[2rem] border border-black/6 [contain:layout_paint_style] dark:border-white/10"
+      className="surface-panel flex h-full min-h-0 flex-col overflow-hidden rounded-[1.95rem] border border-black/6 [contain:layout_paint_style] dark:border-white/10"
     >
-      <div className="flex shrink-0 items-center justify-between gap-3 border-b border-black/6 px-4 py-3.5 dark:border-white/10">
+      <div className="app-chrome flex shrink-0 items-center justify-between gap-3 border-b border-black/6 px-4 py-3.5 dark:border-white/10">
         <div className="min-w-0">
           <div className="text-sm font-semibold tracking-[-0.02em]">{t('workspace.title')}</div>
           <div className="truncate pt-0.5 text-xs text-muted-foreground">
@@ -510,25 +511,37 @@ export function WorkspacePanel({ agentId, agentName }: WorkspacePanelProps) {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <div className="hidden max-w-[11rem] truncate rounded-full border border-black/8 bg-white/70 px-2.5 py-1 text-[11px] font-medium text-foreground/70 dark:border-white/10 dark:text-foreground/80 md:block">
+          {onRequestClose ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 rounded-full border border-black/8 bg-white/80 text-foreground/70 hover:bg-white"
+              data-testid="workspace-close"
+              onClick={onRequestClose}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          ) : null}
+          <div className="hidden max-w-[11rem] truncate rounded-full border border-black/8 bg-white/80 px-2.5 py-1 text-[11px] font-medium text-foreground/70 dark:border-white/10 dark:text-foreground/80 md:block">
             {agentName}
           </div>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 rounded-full border border-black/8 bg-white/72 text-foreground/70 hover:bg-white"
-            data-testid="workspace-refresh"
-            onClick={() => void refreshWorkspace()}
-            disabled={loadingRoot}
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 rounded-full border border-black/8 bg-white/80 text-foreground/70 hover:bg-white"
+              data-testid="workspace-refresh"
+              onClick={() => void refreshWorkspace()}
+              disabled={loadingRoot}
           >
             <RefreshCw className={cn('h-4 w-4', loadingRoot && 'animate-spin')} />
           </Button>
         </div>
       </div>
 
-      <div className="grid min-h-0 flex-1 grid-cols-[minmax(260px,0.92fr)_minmax(0,1.2fr)] gap-0">
-        <div className="flex min-h-0 flex-col border-r border-black/6 bg-[#f7f2e8]/72 dark:border-white/10">
+      <div className="grid min-h-0 flex-1 grid-cols-[minmax(230px,0.86fr)_minmax(0,1.14fr)] gap-0 xl:grid-cols-[minmax(248px,0.92fr)_minmax(0,1.2fr)]">
+        <div className="flex min-h-0 flex-col border-r border-black/6 bg-white/[0.45] dark:border-white/10">
           <div className="shrink-0 border-b border-black/6 px-4 py-3 dark:border-white/10">
             <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
               {t('workspace.treeTitle')}
@@ -538,12 +551,12 @@ export function WorkspacePanel({ agentId, agentName }: WorkspacePanelProps) {
             </div>
           </div>
 
-          <div data-testid="workspace-tree" className="min-h-0 flex-1 overflow-auto px-2.5 py-3 [contain:layout_paint_style]">
+          <div data-testid="workspace-tree" className="app-chrome min-h-0 flex-1 overflow-auto px-2.5 py-3 [contain:layout_paint_style]">
             {treeBody}
           </div>
         </div>
 
-        <div className="flex min-h-0 flex-col bg-white/52">
+        <div className="flex min-h-0 flex-col bg-white/[0.65]">
           <div className="flex shrink-0 items-center justify-between gap-3 border-b border-black/6 px-4 py-3 dark:border-white/10">
             <div className="min-w-0">
               <div
@@ -558,7 +571,7 @@ export function WorkspacePanel({ agentId, agentName }: WorkspacePanelProps) {
             </div>
 
             {(canRenderMarkdown || canRenderHtml) && (
-              <div className="flex items-center gap-1 rounded-full border border-black/8 bg-white/72 p-1 dark:border-white/10 dark:bg-white/5">
+              <div className="flex items-center gap-1 rounded-full border border-black/8 bg-white/76 p-1 dark:border-white/10 dark:bg-white/5">
                 <button
                   type="button"
                   onClick={() => setPreviewMode('render')}

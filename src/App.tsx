@@ -3,26 +3,37 @@
  * Handles routing and global providers
  */
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
-import { Component, useEffect } from 'react';
+import { Component, Suspense, lazy, useEffect } from 'react';
 import type { ErrorInfo, ReactNode } from 'react';
 import { Toaster } from 'sonner';
 import i18n from './i18n';
 import { MainLayout } from './components/layout/MainLayout';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import { Models } from './pages/Models';
-import { Chat } from './pages/Chat';
-import { Agents } from './pages/Agents';
-import { Channels } from './pages/Channels';
-import { Skills } from './pages/Skills';
-import { Cron } from './pages/Cron';
-import { Settings } from './pages/Settings';
-import { Setup } from './pages/Setup';
+import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { useSettingsStore } from './stores/settings';
 import { useGatewayStore } from './stores/gateway';
 import { useProviderStore } from './stores/providers';
 import { applyGatewayTransportPreference } from './lib/api-client';
 import { getElectronBridge } from './lib/electron-bridge';
 
+const Models = lazy(() => import('./pages/Models').then((module) => ({ default: module.Models })));
+const Chat = lazy(() => import('./pages/Chat').then((module) => ({ default: module.Chat })));
+const Agents = lazy(() => import('./pages/Agents').then((module) => ({ default: module.Agents })));
+const Channels = lazy(() => import('./pages/Channels').then((module) => ({ default: module.Channels })));
+const Skills = lazy(() => import('./pages/Skills').then((module) => ({ default: module.Skills })));
+const Cron = lazy(() => import('./pages/Cron').then((module) => ({ default: module.Cron })));
+const Settings = lazy(() => import('./pages/Settings').then((module) => ({ default: module.Settings })));
+const Setup = lazy(() => import('./pages/Setup').then((module) => ({ default: module.Setup })));
+
+function RouteFallback() {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-background px-6">
+      <div className="page-card-muted flex min-h-[180px] w-full max-w-md items-center justify-center p-10">
+        <LoadingSpinner size="lg" />
+      </div>
+    </div>
+  );
+}
 
 /**
  * Error Boundary to catch and display React rendering errors
@@ -49,18 +60,21 @@ class ErrorBoundary extends Component<
       return (
         <div style={{
           padding: '40px',
-          color: '#f87171',
-          background: '#0f172a',
+          color: '#5b4732',
+          background: '#f8f5ef',
           minHeight: '100vh',
-          fontFamily: 'monospace'
+          fontFamily: 'SF Pro Text, Helvetica Neue, Arial, sans-serif'
         }}>
-          <h1 style={{ fontSize: '24px', marginBottom: '16px' }}>Something went wrong</h1>
+          <h1 style={{ fontSize: '28px', marginBottom: '16px', fontFamily: 'Iowan Old Style, Georgia, serif', letterSpacing: '-0.04em' }}>
+            Something went wrong
+          </h1>
           <pre style={{
             whiteSpace: 'pre-wrap',
             wordBreak: 'break-all',
-            background: '#1e293b',
+            background: 'rgba(255,255,255,0.84)',
+            border: '1px solid rgba(49,35,14,0.08)',
             padding: '16px',
-            borderRadius: '8px',
+            borderRadius: '18px',
             fontSize: '14px'
           }}>
             {this.state.error?.message}
@@ -71,11 +85,11 @@ class ErrorBoundary extends Component<
             onClick={() => { this.setState({ hasError: false, error: null }); window.location.reload(); }}
             style={{
               marginTop: '16px',
-              padding: '8px 16px',
-              background: '#3b82f6',
+              padding: '10px 18px',
+              background: '#156c4f',
               color: 'white',
               border: 'none',
-              borderRadius: '6px',
+              borderRadius: '999px',
               cursor: 'pointer'
             }}
           >
@@ -172,21 +186,23 @@ function App() {
   return (
     <ErrorBoundary>
       <TooltipProvider delayDuration={300}>
-        <Routes>
-          {/* Setup wizard (shown on first launch) */}
-          <Route path="/setup/*" element={<Setup />} />
+        <Suspense fallback={<RouteFallback />}>
+          <Routes>
+            {/* Setup wizard (shown on first launch) */}
+            <Route path="/setup/*" element={<Setup />} />
 
-          {/* Main application routes */}
-          <Route element={<MainLayout />}>
-            <Route path="/" element={<Chat />} />
-            <Route path="/models" element={<Models />} />
-            <Route path="/agents" element={<Agents />} />
-            <Route path="/channels" element={<Channels />} />
-            <Route path="/skills" element={<Skills />} />
-            <Route path="/cron" element={<Cron />} />
-            <Route path="/settings/*" element={<Settings />} />
-          </Route>
-        </Routes>
+            {/* Main application routes */}
+            <Route element={<MainLayout />}>
+              <Route path="/" element={<Chat />} />
+              <Route path="/models" element={<Models />} />
+              <Route path="/agents" element={<Agents />} />
+              <Route path="/channels" element={<Channels />} />
+              <Route path="/skills" element={<Skills />} />
+              <Route path="/cron" element={<Cron />} />
+              <Route path="/settings/*" element={<Settings />} />
+            </Route>
+          </Routes>
+        </Suspense>
 
         {/* Global toast notifications */}
         <Toaster

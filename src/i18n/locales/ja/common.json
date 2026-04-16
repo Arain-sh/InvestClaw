@@ -9,6 +9,7 @@
         "dashboard": "ダッシュボード",
         "settings": "設定",
         "devConsole": "開発者コンソール",
+        "runtimeConsole": "ランタイムコンソール",
         "models": "モデル",
         "deleteSessionConfirm": "セッション \"{{label}}\" を削除してもよろしいですか？",
         "openClawPage": "ランタイムコンソール"
@@ -53,7 +54,7 @@
     },
     "gateway": {
         "notRunning": "ゲートウェイが停止中",
-        "notRunningDesc": "この機能を使うには InvestClaw ゲートウェイが動作している必要があります。自動起動するか、設定から起動できます。",
+        "notRunningDesc": "この機能を使うには AraInvest ゲートウェイが動作している必要があります。自動起動するか、設定から起動できます。",
         "warning": "ゲートウェイが停止中です。"
     }
 }

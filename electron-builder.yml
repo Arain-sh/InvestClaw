@@ -1,6 +1,6 @@
 appId: com.arain.investclaw
-productName: InvestClaw
-copyright: Copyright © 2026 InvestClaw
+productName: AraInvest
+copyright: Copyright © 2026 AraInvest
 compression: maximum
 artifactName: ${productName}-${version}-${os}-${arch}.${ext}
 
@@ -81,8 +81,8 @@ mac:
   entitlementsInherit: entitlements.mac.plist
   notarize: true
   extendInfo:
-    NSMicrophoneUsageDescription: InvestClaw requires microphone access for voice features
-    NSCameraUsageDescription: InvestClaw requires camera access for video features
+    NSMicrophoneUsageDescription: AraInvest requires microphone access for voice features
+    NSCameraUsageDescription: AraInvest requires camera access for video features
 
 dmg:
   # Explicit volume size prevents dmg-builder@1.2.0 auto-calculation from
@@ -128,8 +128,8 @@ nsis:
   differentialPackage: true
   createDesktopShortcut: true
   createStartMenuShortcut: true
-  shortcutName: InvestClaw
-  uninstallDisplayName: InvestClaw
+  shortcutName: AraInvest
+  uninstallDisplayName: AraInvest
   license: LICENSE
   include: scripts/installer.nsh
   installerIcon: resources/icons/icon.ico
@@ -159,10 +159,10 @@ linux:
   maintainer: arain
   vendor: arain
   synopsis: AI investment research desk by arain
-  description: InvestClaw is a desktop investment research workspace for market analysis, filings review, watchlists, and multi-step portfolio workflows.
+  description: AraInvest is a desktop investment research workspace for market analysis, filings review, watchlists, and multi-step portfolio workflows.
   desktop:
     entry:
-      Name: InvestClaw
+      Name: AraInvest
       Comment: AI investment research desk by arain
       Categories: Utility;Network;
       Keywords: ai;investment;research;markets;automation;

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AlertCircle, Bot, Check, Plus, RefreshCw, Settings2, Trash2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -156,24 +156,21 @@ export function Agents() {
 
   if (loading) {
     return (
-      <div className="flex flex-col -m-6 dark:bg-background min-h-[calc(100vh-2.5rem)] items-center justify-center">
+      <div className="page-view items-center justify-center">
         <LoadingSpinner size="lg" />
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col -m-6 dark:bg-background h-[calc(100vh-2.5rem)] overflow-hidden">
-      <div className="w-full max-w-5xl mx-auto flex flex-col h-full p-10 pt-16">
-        <div className="flex flex-col md:flex-row md:items-start justify-between mb-12 shrink-0 gap-4">
+    <div className="page-view">
+      <div className="page-container">
+        <div className="page-header">
           <div>
-            <h1
-              className="text-5xl md:text-6xl font-serif text-foreground mb-3 font-normal tracking-tight"
-              style={{ fontFamily: 'Georgia, Cambria, "Times New Roman", Times, serif' }}
-            >
+            <h1 className="page-title mb-2">
               {t('title')}
             </h1>
-            <p className="text-[17px] text-foreground/70 font-medium">{t('subtitle')}</p>
+            <p className="page-subtitle">{t('subtitle')}</p>
           </div>
           <div className="flex items-center gap-3 md:mt-2">
             <Button
@@ -194,7 +191,7 @@ export function Agents() {
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto pr-2 pb-10 min-h-0 -mr-2">
+        <div className="page-scroll">
           {gatewayStatus.state !== 'running' && (
             <div className="mb-8 p-4 rounded-xl border border-yellow-500/50 bg-yellow-500/10 flex items-center gap-3">
               <AlertCircle className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
@@ -213,7 +210,7 @@ export function Agents() {
             </div>
           )}
 
-          <div className="space-y-3">
+          <div className="space-y-3 content-auto">
             {agents.map((agent) => (
               <AgentCard
                 key={agent.id}
@@ -273,7 +270,7 @@ export function Agents() {
   );
 }
 
-function AgentCard({
+const AgentCard = memo(function AgentCard({
   agent,
   channelGroups,
   onOpenSettings,
@@ -304,11 +301,11 @@ function AgentCard({
   return (
     <div
       className={cn(
-        'group flex items-start gap-4 p-4 rounded-2xl transition-all text-left border relative overflow-hidden bg-transparent border-transparent hover:bg-black/5 dark:hover:bg-white/5',
-        agent.isDefault && 'bg-black/[0.04] dark:bg-white/[0.06]'
+        'page-card group flex items-start gap-4 p-4 text-left transition-colors hover:bg-white/92 dark:hover:bg-card/95',
+        agent.isDefault && 'bg-white/88 dark:bg-card/95'
       )}
     >
-      <div className="h-[46px] w-[46px] shrink-0 flex items-center justify-center text-primary bg-primary/10 rounded-full shadow-sm mb-3">
+      <div className="mb-3 flex h-[46px] w-[46px] shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
         <Bot className="h-[22px] w-[22px]" />
       </div>
       <div className="flex flex-col flex-1 min-w-0 py-0.5 mt-1">
@@ -363,7 +360,7 @@ function AgentCard({
       </div>
     </div>
   );
-}
+});
 
 const inputClasses = 'h-[44px] rounded-xl font-mono text-[13px] bg-[#eeece3] dark:bg-muted border-black/10 dark:border-white/10 focus-visible:ring-2 focus-visible:ring-blue-500/50 focus-visible:border-blue-500 shadow-sm transition-all text-foreground placeholder:text-foreground/40';
 const selectClasses = 'h-[44px] w-full rounded-xl font-mono text-[13px] bg-[#eeece3] dark:bg-muted border border-black/10 dark:border-white/10 focus-visible:ring-2 focus-visible:ring-blue-500/50 focus-visible:border-blue-500 shadow-sm transition-all text-foreground px-3';
@@ -419,9 +416,9 @@ function AddAgentDialog({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md rounded-3xl border-0 shadow-2xl bg-[#f3f1e9] dark:bg-card overflow-hidden">
+      <Card className="app-shell-panel w-full max-w-md overflow-hidden rounded-[1.9rem] border border-black/8 shadow-[0_20px_48px_rgba(26,20,12,0.08)] dark:border-white/10">
         <CardHeader className="pb-2">
-          <CardTitle className="text-2xl font-serif font-normal tracking-tight">
+          <CardTitle className="font-display text-2xl font-semibold tracking-[-0.05em]">
             {t('createDialog.title')}
           </CardTitle>
           <CardDescription className="text-[15px] mt-1 text-foreground/70">
@@ -538,10 +535,10 @@ function AgentSettingsModal({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-2xl max-h-[90vh] flex flex-col rounded-3xl border-0 shadow-2xl bg-[#f3f1e9] dark:bg-card overflow-hidden">
+      <Card className="app-shell-panel w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden rounded-[1.9rem] border border-black/8 shadow-[0_20px_48px_rgba(26,20,12,0.08)] dark:border-white/10">
         <CardHeader className="flex flex-row items-start justify-between pb-2 shrink-0">
           <div>
-            <CardTitle className="text-2xl font-serif font-normal tracking-tight">
+            <CardTitle className="font-display text-2xl font-semibold tracking-[-0.05em]">
               {t('settingsDialog.title', { name: agent.name })}
             </CardTitle>
             <CardDescription className="text-[15px] mt-1 text-foreground/70">
@@ -615,7 +612,7 @@ function AgentSettingsModal({
           <div className="space-y-4">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h3 className="text-xl font-serif text-foreground font-normal tracking-tight">
+                <h3 className="font-display text-xl font-semibold tracking-[-0.05em] text-foreground">
                   {t('settingsDialog.channelsTitle')}
                 </h3>
                 <p className="text-[14px] text-foreground/70 mt-1">{t('settingsDialog.channelsDescription')}</p>
@@ -707,7 +704,7 @@ function AgentModelModal({
         if (left.id === providerDefaultAccountId) return -1;
         if (right.id === providerDefaultAccountId) return 1;
         return right.updatedAt.localeCompare(left.updatedAt);
-      });
+});
 
     const deduped = new Map<string, RuntimeProviderOption>();
     for (const account of entries) {
@@ -813,10 +810,10 @@ function AgentModelModal({
 
   return (
     <div className="fixed inset-0 z-[60] bg-black/50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-xl rounded-3xl border-0 shadow-2xl bg-[#f3f1e9] dark:bg-card overflow-hidden">
+      <Card className="app-shell-panel w-full max-w-xl overflow-hidden rounded-[1.9rem] border border-black/8 shadow-[0_20px_48px_rgba(26,20,12,0.08)] dark:border-white/10">
         <CardHeader className="flex flex-row items-start justify-between pb-2">
           <div>
-            <CardTitle className="text-2xl font-serif font-normal tracking-tight">
+            <CardTitle className="font-display text-2xl font-semibold tracking-[-0.05em]">
               {t('settingsDialog.modelLabel')}
             </CardTitle>
             <CardDescription className="text-[15px] mt-1 text-foreground/70">

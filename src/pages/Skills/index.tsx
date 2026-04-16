@@ -180,7 +180,7 @@ function SkillDetailDialog({ skill, isOpen, onClose, onToggle, onUninstall, onOp
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <SheetContent
-        className="w-full sm:max-w-[450px] p-0 flex flex-col border-l border-black/10 dark:border-white/10 bg-[#f3f1e9] dark:bg-card shadow-[0_0_40px_rgba(0,0,0,0.2)]"
+        className="app-shell-panel w-full sm:max-w-[450px] p-0 flex flex-col border-l border-black/10 dark:border-white/10 shadow-[0_20px_48px_rgba(26,20,12,0.08)]"
         side="right"
       >
         {/* Scrollable Content */}
@@ -189,12 +189,12 @@ function SkillDetailDialog({ skill, isOpen, onClose, onToggle, onUninstall, onOp
             <div className="w-16 h-16 flex items-center justify-center rounded-full bg-white dark:bg-accent border border-black/5 dark:border-white/5 shrink-0 mb-4 relative shadow-sm">
               <span className="text-3xl">{skill.icon || '🔧'}</span>
               {skill.isCore && (
-                <div className="absolute -bottom-1 -right-1 bg-[#f3f1e9] dark:bg-card rounded-full p-1 shadow-sm border border-black/5 dark:border-white/5">
+                <div className="absolute -bottom-1 -right-1 rounded-full border border-black/5 bg-background p-1 shadow-sm dark:border-white/5">
                   <Lock className="h-3 w-3 text-muted-foreground shrink-0" />
                 </div>
               )}
             </div>
-            <h2 className="text-[28px] font-serif text-foreground font-normal mb-3 text-center tracking-tight">
+            <h2 className="font-display mb-3 text-center text-[28px] font-semibold tracking-[-0.05em] text-foreground">
               {skill.name}
             </h2>
             <div className="flex items-center justify-center gap-2.5 mb-6 opacity-80">
@@ -594,23 +594,23 @@ export function Skills() {
 
   if (loading) {
     return (
-      <div className="flex flex-col -m-6 dark:bg-background min-h-[calc(100vh-2.5rem)] items-center justify-center">
+      <div className="page-view items-center justify-center">
         <LoadingSpinner size="lg" />
       </div>
     );
   }
 
   return (
-    <div data-testid="skills-page" className="flex flex-col -m-6 dark:bg-background h-[calc(100vh-2.5rem)] overflow-hidden">
-      <div className="w-full max-w-5xl mx-auto flex flex-col h-full p-10 pt-16">
+    <div data-testid="skills-page" className="page-view">
+      <div className="page-container">
 
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-start justify-between mb-6 shrink-0 gap-4">
+        <div className="page-header mb-6">
           <div>
-            <h1 data-testid="skills-page-title" className="text-5xl md:text-6xl font-serif text-foreground mb-3 font-normal tracking-tight" style={{ fontFamily: 'Georgia, Cambria, "Times New Roman", Times, serif' }}>
+            <h1 data-testid="skills-page-title" className="page-title mb-2">
               {t('title')}
             </h1>
-            <p className="text-[17px] text-foreground/70 font-medium">
+            <p className="page-subtitle">
               {t('subtitle')}
             </p>
           </div>
@@ -639,7 +639,7 @@ export function Skills() {
         )}
 
         {/* Sub Navigation and Actions */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-black/10 dark:border-white/10 pb-4 mb-4 shrink-0 gap-4">
+        <div className="mb-4 flex shrink-0 flex-col justify-between gap-4 border-b border-black/8 pb-4 dark:border-white/10 md:flex-row md:items-center">
           <div className="flex items-center flex-wrap gap-4 text-[14px]">
             <div className="relative group flex items-center bg-black/5 dark:bg-white/5 rounded-full px-3 py-1.5 focus-within:bg-black/10 transition-colors border border-transparent focus-within:border-black/10 dark:focus-within:border-white/10 mr-2">
               <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
@@ -725,7 +725,7 @@ export function Skills() {
         </div>
 
         {/* Content Area */}
-        <div className="flex-1 overflow-y-auto pr-2 pb-10 min-h-0 -mr-2">
+        <div className="page-scroll">
           {error && (
             <div className="mb-4 p-4 rounded-xl border border-destructive/50 bg-destructive/10 text-destructive text-sm font-medium flex items-center gap-2">
               <AlertCircle className="h-5 w-5 shrink-0" />
@@ -737,7 +737,7 @@ export function Skills() {
             </div>
           )}
 
-          <div className="flex flex-col gap-1">
+          <div className="content-auto flex flex-col gap-1">
             {filteredSkills.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
                 <Puzzle className="h-10 w-10 mb-4 opacity-50" />
@@ -747,7 +747,7 @@ export function Skills() {
               filteredSkills.map((skill) => (
                 <div
                   key={skill.id}
-                  className="group flex flex-row items-center justify-between py-3.5 px-3 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer border-b border-black/5 dark:border-white/5 last:border-0"
+                  className="group flex cursor-pointer flex-row items-center justify-between rounded-[1.2rem] border-b border-black/5 px-3 py-3.5 transition-colors hover:bg-black/[0.03] dark:border-white/5 dark:hover:bg-white/5 last:border-0"
                   onClick={() => setSelectedSkill(skill)}
                 >
                   <div className="flex items-start gap-4 flex-1 overflow-hidden pr-4">
@@ -803,11 +803,11 @@ export function Skills() {
       <Sheet open={installSheetOpen} onOpenChange={setInstallSheetOpen}>
         <SheetContent
           data-testid="skills-install-sheet"
-          className="w-full sm:max-w-[560px] p-0 flex flex-col border-l border-black/10 dark:border-white/10 bg-[#f3f1e9] dark:bg-card shadow-[0_0_40px_rgba(0,0,0,0.2)]"
+          className="app-shell-panel w-full sm:max-w-[560px] p-0 flex flex-col border-l border-black/10 dark:border-white/10 shadow-[0_20px_48px_rgba(26,20,12,0.08)]"
           side="right"
         >
           <div className="px-7 py-6 border-b border-black/10 dark:border-white/10">
-            <h2 className="text-[24px] font-serif text-foreground font-normal tracking-tight">{t('marketplace.installDialogTitle')}</h2>
+            <h2 className="font-display text-[24px] font-semibold tracking-[-0.05em] text-foreground">{t('marketplace.installDialogTitle')}</h2>
             <p className="mt-1 text-[13px] text-foreground/70">{t('marketplace.installDialogSubtitle')}</p>
             <div className="mt-4 flex flex-col md:flex-row gap-2">
               <div className="relative flex items-center bg-black/5 dark:bg-white/5 rounded-xl px-3 py-2 border border-black/10 dark:border-white/10 flex-1">

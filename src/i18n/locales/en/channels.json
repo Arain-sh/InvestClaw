@@ -163,9 +163,9 @@
             "description": "Connect personal WeChat with the built-in QR flow",
             "docsUrl": "https://github.com/Arain-sh/InvestClaw#readme",
             "instructions": [
-                "Click Generate QR Code and InvestClaw will install and enable the required WeChat bridge",
+                "Click Generate QR Code and AraInvest will install and enable the required WeChat bridge",
                 "Scan the QR code below with WeChat and confirm the connection on your phone",
-                "After linking succeeds, a new InvestClaw WeChat chat will appear in WeChat automatically",
+                "After linking succeeds, a new AraInvest WeChat chat will appear in WeChat automatically",
                 "You can repeat the QR flow later to add another WeChat account or reconnect an existing one"
             ]
         },

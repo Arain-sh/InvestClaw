@@ -1,5 +1,5 @@
 import { readOpenClawConfig, writeOpenClawConfig } from './channel-config';
-import { resolveProxySettings, type ProxySettings } from './proxy';
+import { resolveEffectiveProxySettings, type ProxySettings } from './proxy';
 import { logger } from './logger';
 import { withConfigLock } from './config-mutex';
 
@@ -27,14 +27,12 @@ export async function syncProxyConfigToOpenClaw(
       return;
     }
 
-    const resolved = resolveProxySettings(settings);
+    const resolved = resolveEffectiveProxySettings(settings);
     const preserveExistingWhenDisabled = options.preserveExistingWhenDisabled !== false;
-    const nextProxy = settings.proxyEnabled
-      ? (resolved.allProxy || resolved.httpsProxy || resolved.httpProxy)
-      : '';
+    const nextProxy = resolved.allProxy || resolved.httpsProxy || resolved.httpProxy;
     const currentProxy = typeof telegramConfig.proxy === 'string' ? telegramConfig.proxy : '';
 
-    if (!settings.proxyEnabled && preserveExistingWhenDisabled && currentProxy) {
+    if (!settings.proxyEnabled && preserveExistingWhenDisabled && currentProxy && !nextProxy) {
       logger.info('Skipped Telegram proxy sync because InvestClaw proxy is disabled and preserve mode is enabled');
       return;
     }

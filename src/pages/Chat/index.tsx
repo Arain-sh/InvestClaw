@@ -5,7 +5,7 @@
  * are in the toolbar; messages render with markdown + streaming.
  */
 import { memo, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { AlertCircle, ArrowRight, Loader2, Sparkles } from 'lucide-react';
+import { AlertCircle, ArrowRight, BarChart3, FileSearch, Lightbulb, Loader2, Sparkles } from 'lucide-react';
 import { useChatStore, type RawMessage } from '@/stores/chat';
 import { useGatewayStore } from '@/stores/gateway';
 import { useAgentsStore } from '@/stores/agents';
@@ -22,8 +22,11 @@ import { WorkspacePanel } from './WorkspacePanel';
 import logoSvg from '@/assets/logo.svg';
 import { useShallow } from 'zustand/react/shallow';
 
+const WORKSPACE_OVERLAY_BREAKPOINT = 760;
+
 export function Chat() {
   const { t } = useTranslation('chat');
+  const initialViewportWidth = typeof window === 'undefined' ? 1600 : window.innerWidth;
   const gatewayStatus = useGatewayStore((s) => s.status);
   const isGatewayRunning = gatewayStatus.state === 'running';
   const {
@@ -65,14 +68,22 @@ export function Chat() {
   const [streamingTimestamp, setStreamingTimestamp] = useState<number>(0);
   const [suggestedPrompt, setSuggestedPrompt] = useState<string>('');
   const [suggestedPromptNonce, setSuggestedPromptNonce] = useState<number>(0);
-  const [workspaceWidth, setWorkspaceWidth] = useState<number>(520);
-  const [workspaceCollapsed, setWorkspaceCollapsed] = useState(false);
+  const [workspaceWidth, setWorkspaceWidth] = useState<number>(460);
+  const [workspaceCollapsed, setWorkspaceCollapsed] = useState(
+    initialViewportWidth < WORKSPACE_OVERLAY_BREAKPOINT,
+  );
   const [isResizingWorkspace, setIsResizingWorkspace] = useState(false);
   const minLoading = useMinLoading(loading && messages.length > 0);
   const { contentRef, scrollRef } = useStickToBottomInstant(currentSessionKey);
   const containerRef = useRef<HTMLDivElement>(null);
   const resizeFrameRef = useRef<number | null>(null);
+  const layoutFrameRef = useRef<number | null>(null);
   const pendingWorkspaceWidthRef = useRef<number | null>(null);
+  const hasManualWorkspaceResizeRef = useRef(false);
+  const hasManualWorkspaceToggleRef = useRef(false);
+  const [workspaceDisplayMode, setWorkspaceDisplayMode] = useState<'docked' | 'overlay'>(
+    initialViewportWidth < WORKSPACE_OVERLAY_BREAKPOINT ? 'overlay' : 'docked',
+  );
   const currentAgentName = useMemo(
     () => (agents ?? []).find((agent) => agent.id === currentAgentId)?.name ?? currentAgentId,
     [agents, currentAgentId],
@@ -82,6 +93,7 @@ export function Chat() {
     setSuggestedPromptNonce((value) => value + 1);
   }, []);
   const toggleWorkspace = useCallback(() => {
+    hasManualWorkspaceToggleRef.current = true;
     setWorkspaceCollapsed((current) => !current);
   }, []);
 
@@ -98,6 +110,29 @@ export function Chat() {
       setWorkspaceWidth((current) => (current === pendingWidth ? current : pendingWidth));
     });
   }, []);
+
+  const getWorkspaceSizing = useCallback((containerWidth: number) => {
+    const isCompactLayout = containerWidth < 980;
+    const minMainWidth = isCompactLayout
+      ? Math.min(520, Math.max(320, containerWidth * 0.32))
+      : Math.min(640, Math.max(360, containerWidth * 0.3));
+    const minRightWidth = isCompactLayout
+      ? Math.min(360, Math.max(280, containerWidth * 0.26))
+      : Math.min(420, Math.max(320, containerWidth * 0.24));
+    const maxRightWidth = Math.max(minRightWidth, containerWidth - minMainWidth);
+    const preferredRightWidth = Math.max(
+      minRightWidth,
+      Math.min(maxRightWidth, Math.round(containerWidth * (isCompactLayout ? 0.34 : 0.32))),
+    );
+
+    return {
+      minRightWidth,
+      maxRightWidth,
+      preferredRightWidth,
+    };
+  }, []);
+  const showDockedWorkspace = !workspaceCollapsed && workspaceDisplayMode === 'docked';
+  const showOverlayWorkspace = !workspaceCollapsed && workspaceDisplayMode === 'overlay';
 
   // Load data when gateway is running.
   // When the store already holds messages for this session (i.e. the user
@@ -135,9 +170,7 @@ export function Chat() {
       const container = containerRef.current;
       if (!container) return;
       const rect = container.getBoundingClientRect();
-      const minLeftWidth = Math.min(420, Math.max(320, rect.width * 0.35));
-      const minRightWidth = Math.min(520, Math.max(360, rect.width * 0.32));
-      const maxRightWidth = Math.max(minRightWidth, rect.width - minLeftWidth);
+      const { minRightWidth, maxRightWidth } = getWorkspaceSizing(rect.width);
       const nextWidth = rect.right - event.clientX;
       scheduleWorkspaceWidthUpdate(Math.max(minRightWidth, Math.min(maxRightWidth, nextWidth)));
     };
@@ -157,30 +190,67 @@ export function Chat() {
       document.body.style.cursor = '';
       document.body.style.userSelect = '';
     };
-  }, [isResizingWorkspace, scheduleWorkspaceWidthUpdate]);
+  }, [getWorkspaceSizing, isResizingWorkspace, scheduleWorkspaceWidthUpdate]);
 
   useEffect(() => {
-    const clampWorkspaceWidth = () => {
+    const syncWorkspaceLayout = () => {
       const container = containerRef.current;
       if (!container) return;
       const rect = container.getBoundingClientRect();
-      const minLeftWidth = Math.min(420, Math.max(320, rect.width * 0.35));
-      const minRightWidth = Math.min(520, Math.max(360, rect.width * 0.32));
-      const maxRightWidth = Math.max(minRightWidth, rect.width - minLeftWidth);
-      setWorkspaceWidth((current) => Math.max(minRightWidth, Math.min(maxRightWidth, current)));
+      const nextDisplayMode = rect.width < WORKSPACE_OVERLAY_BREAKPOINT ? 'overlay' : 'docked';
+      const { minRightWidth, maxRightWidth, preferredRightWidth } = getWorkspaceSizing(rect.width);
+
+      setWorkspaceDisplayMode((current) => (current === nextDisplayMode ? current : nextDisplayMode));
+      if (!hasManualWorkspaceToggleRef.current) {
+        setWorkspaceCollapsed(nextDisplayMode === 'overlay');
+      }
+      setWorkspaceWidth((current) => {
+        const nextWidth = hasManualWorkspaceResizeRef.current
+          ? Math.max(minRightWidth, Math.min(maxRightWidth, current))
+          : preferredRightWidth;
+        return Math.abs(nextWidth - current) < 1 ? current : nextWidth;
+      });
     };
 
-    clampWorkspaceWidth();
-    window.addEventListener('resize', clampWorkspaceWidth);
-    return () => {
-      window.removeEventListener('resize', clampWorkspaceWidth);
+    const scheduleLayoutSync = () => {
+      if (layoutFrameRef.current != null) {
+        return;
+      }
+
+      layoutFrameRef.current = window.requestAnimationFrame(() => {
+        layoutFrameRef.current = null;
+        syncWorkspaceLayout();
+      });
     };
-  }, []);
+
+    scheduleLayoutSync();
+
+    const observer = new ResizeObserver(() => {
+      scheduleLayoutSync();
+    });
+
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+
+    window.addEventListener('resize', scheduleLayoutSync);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', scheduleLayoutSync);
+      if (layoutFrameRef.current != null) {
+        window.cancelAnimationFrame(layoutFrameRef.current);
+      }
+    };
+  }, [getWorkspaceSizing]);
 
   useEffect(() => {
     return () => {
       if (resizeFrameRef.current != null) {
         window.cancelAnimationFrame(resizeFrameRef.current);
+      }
+      if (layoutFrameRef.current != null) {
+        window.cancelAnimationFrame(layoutFrameRef.current);
       }
     };
   }, []);
@@ -207,22 +277,26 @@ export function Chat() {
     <div
       ref={containerRef}
       className={cn(
-        'relative -m-4 flex h-full min-h-0 gap-3 overflow-hidden transition-colors duration-500 md:-m-5 md:gap-4 dark:bg-background',
+        'relative flex h-full min-h-0 gap-2.5 overflow-hidden p-2.5 transition-colors duration-300 md:gap-3 md:p-3 dark:bg-background',
         isResizingWorkspace && 'select-none',
       )}
     >
-      <section className="surface-panel relative flex min-w-0 flex-1 flex-col overflow-hidden rounded-[2rem] border border-black/6 dark:border-white/10">
-        <div className="absolute inset-x-0 top-0 z-20 flex items-start justify-between gap-3 px-5 pt-5 md:px-6">
-          <div className="hidden min-w-0 items-center gap-2 rounded-full border border-black/6 bg-white/70 px-3 py-1.5 text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground md:flex">
-            <span>{t('welcome.title')}</span>
-          </div>
+      <section
+        data-testid="chat-main-panel"
+        className="surface-panel relative flex min-w-0 flex-1 flex-col overflow-hidden rounded-[1.95rem] border border-black/6 dark:border-white/10"
+      >
+        <div className="absolute inset-x-0 top-0 z-40 flex items-start justify-end px-4 pt-4 md:px-5 md:pt-5">
           <div className="ml-auto">
-            <ChatToolbar workspaceVisible={!workspaceCollapsed} onToggleWorkspace={toggleWorkspace} />
+            <ChatToolbar
+              workspaceVisible={!workspaceCollapsed}
+              onToggleWorkspace={toggleWorkspace}
+              hideUtilityToggles={showOverlayWorkspace}
+            />
           </div>
         </div>
 
         {isLanding ? (
-          <div className="flex min-h-0 flex-1 items-center justify-center px-5 pb-8 pt-12 md:px-8 md:pt-14">
+          <div className="flex min-h-0 flex-1 items-center justify-center px-4 pb-8 pt-16 md:px-6 md:pb-10 md:pt-20 xl:px-10">
             <WelcomeScreen onSelectPrompt={setSuggestedPromptFromQuickAction}>
               <ChatInput
                 onSend={sendMessage}
@@ -239,7 +313,7 @@ export function Chat() {
         ) : (
           <>
             {/* Messages Area */}
-            <div ref={scrollRef} className="flex-1 overflow-y-auto px-5 pb-4 pt-16 md:px-6">
+            <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 pb-4 pt-16 md:px-6">
               <div ref={contentRef} className="mx-auto max-w-4xl space-y-5 pb-8">
                 {messages.map((msg, idx) => (
                   <ChatMessage
@@ -279,7 +353,7 @@ export function Chat() {
               </div>
             </div>
 
-            <div className="shrink-0 px-5 pb-5 md:px-6">
+            <div className="shrink-0 px-4 pb-4 md:px-6 md:pb-5">
               <ChatInput
                 onSend={sendMessage}
                 onStop={abortRun}
@@ -311,7 +385,7 @@ export function Chat() {
         )}
 
         {minLoading && !sending && (
-          <div className="absolute inset-0 z-50 flex items-center justify-center rounded-xl bg-background/20 backdrop-blur-[1px] pointer-events-auto">
+          <div className="absolute inset-0 z-50 flex items-center justify-center rounded-xl bg-background/20 pointer-events-auto">
             <div className="rounded-full border border-border bg-background p-2.5 shadow-lg">
               <LoadingSpinner size="md" />
             </div>
@@ -319,14 +393,15 @@ export function Chat() {
         )}
       </section>
 
-      {!workspaceCollapsed && (
+      {showDockedWorkspace && (
         <>
           <div
             role="separator"
             aria-orientation="vertical"
             data-testid="chat-workspace-resizer"
-            className="group relative hidden w-3 shrink-0 cursor-col-resize bg-transparent lg:block"
+            className="group relative w-3 shrink-0 cursor-col-resize bg-transparent"
             onPointerDown={() => {
+              hasManualWorkspaceResizeRef.current = true;
               setIsResizingWorkspace(true);
               document.body.style.cursor = 'col-resize';
               document.body.style.userSelect = 'none';
@@ -338,13 +413,32 @@ export function Chat() {
             )} />
           </div>
 
-          <aside className="hidden shrink-0 overflow-hidden pb-1 pr-1 pt-1 lg:block" style={{ width: `${workspaceWidth}px` }}>
+          <aside className="shrink-0 overflow-hidden pb-1 pr-1 pt-1" style={{ width: `${workspaceWidth}px` }}>
             <WorkspacePanel
               agentId={currentAgentId}
               agentName={currentAgentName}
             />
           </aside>
         </>
+      )}
+
+      {showOverlayWorkspace && (
+        <div className="pointer-events-none absolute inset-0 z-30">
+          <button
+            type="button"
+            aria-label={t('workspace.collapse')}
+            data-testid="workspace-overlay-backdrop"
+            className="pointer-events-auto absolute inset-0 bg-transparent"
+            onClick={() => setWorkspaceCollapsed(true)}
+          />
+          <div className="pointer-events-auto absolute inset-y-0 right-0 flex w-full max-w-[min(31rem,calc(100%-0.75rem))] min-w-[18.5rem] overflow-hidden p-1 md:p-1.5">
+            <WorkspacePanel
+              agentId={currentAgentId}
+              agentName={currentAgentName}
+              onRequestClose={() => setWorkspaceCollapsed(true)}
+            />
+          </div>
+        </div>
       )}
     </div>
   );
@@ -360,46 +454,39 @@ const WelcomeScreen = memo(function WelcomeScreen({
   children: ReactNode;
 }) {
   const { t } = useTranslation('chat');
+  const currentHour = new Date().getHours();
+  const greetingKey = currentHour < 12 ? 'morning' : currentHour < 18 ? 'afternoon' : 'evening';
   const quickActions = [
-    { key: 'askQuestions', label: t('welcome.askQuestions'), prompt: t('welcome.askQuestionsPrompt') },
-    { key: 'creativeTasks', label: t('welcome.creativeTasks'), prompt: t('welcome.creativeTasksPrompt') },
-    { key: 'brainstorming', label: t('welcome.brainstorming'), prompt: t('welcome.brainstormingPrompt') },
+    { key: 'askQuestions', label: t('welcome.askQuestions'), prompt: t('welcome.askQuestionsPrompt'), icon: BarChart3 },
+    { key: 'creativeTasks', label: t('welcome.creativeTasks'), prompt: t('welcome.creativeTasksPrompt'), icon: FileSearch },
+    { key: 'brainstorming', label: t('welcome.brainstorming'), prompt: t('welcome.brainstormingPrompt'), icon: Lightbulb },
   ];
 
   return (
-    <div data-testid="chat-landing-hero" className="pointer-events-none mx-auto flex w-full max-w-4xl flex-col items-center text-center">
-      <div className="pointer-events-auto mb-6 flex h-16 w-16 items-center justify-center rounded-[1.6rem] border border-black/8 bg-white/80 shadow-[0_1px_0_rgba(255,255,255,0.85)_inset,0_18px_36px_rgba(24,18,12,0.06)]">
-        <img src={logoSvg} alt="InvestClaw" className="h-8 w-auto" />
+    <div data-testid="chat-landing-hero" className="pointer-events-none mx-auto flex w-full max-w-[57rem] flex-col items-center text-center">
+      <div className="pointer-events-auto mb-8 flex items-center justify-center gap-4 md:mb-10 md:gap-5">
+        <img src={logoSvg} alt="AraInvest" className="h-[2.95rem] w-auto opacity-95 md:h-[3.35rem]" />
+        <h1 className="text-balance font-editorial text-[clamp(3.7rem,5.2vw,5.9rem)] leading-[0.95] text-foreground/92">
+          {t(`welcome.greeting.${greetingKey}`)}
+        </h1>
       </div>
 
-      <div className="pointer-events-auto mb-4 inline-flex items-center rounded-full border border-black/6 bg-white/75 px-4 py-1.5 text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
-        {t('welcome.title')}
-      </div>
-
-      <h1 className="font-display max-w-3xl text-[2.7rem] font-medium leading-[1.05] tracking-[-0.045em] text-foreground md:text-[4.2rem]">
-        {t('welcome.subtitle')}
-      </h1>
-
-      <p className="pointer-events-auto mt-4 max-w-2xl text-sm leading-7 text-muted-foreground md:text-[15px]">
-        {t('welcome.caption')}
-      </p>
-
-      <div className="pointer-events-auto mt-8 w-full">
+      <div className="pointer-events-auto w-full">
         {children}
       </div>
 
-      <div className="pointer-events-auto mt-6 flex max-w-3xl w-full flex-wrap items-center justify-center gap-3">
-        {quickActions.map(({ key, label, prompt }) => (
+      <div className="pointer-events-auto mt-5 flex w-full max-w-[52rem] flex-wrap items-center justify-center gap-2.5 md:mt-6 md:gap-3">
+        {quickActions.map(({ key, label, prompt, icon: ActionIcon }) => (
           <button
             key={key}
             type="button"
             onClick={() => onSelectPrompt(prompt)}
             data-testid={`chat-quick-action-${key}`}
-            className="inline-flex items-center gap-2 rounded-full border border-black/8 bg-white/72 px-4 py-2 text-[13px] font-medium text-foreground/72 shadow-[0_1px_0_rgba(255,255,255,0.85)_inset] transition-colors hover:bg-white"
+            className="inline-flex items-center gap-2.5 rounded-full border border-black/8 bg-white/82 px-4 py-2 text-[13px] font-medium text-foreground/74 shadow-[0_1px_0_rgba(255,255,255,0.9)_inset] transition-colors hover:bg-white/96"
           >
-            <Sparkles className="h-3.5 w-3.5 text-[#d39c2d]" />
+            <ActionIcon className="h-3.5 w-3.5 text-[#d39c2d]" />
             {label}
-            <ArrowRight className="h-3.5 w-3.5 text-muted-foreground/70" />
+            <ArrowRight className="h-3.5 w-3.5 text-muted-foreground/55" />
           </button>
         ))}
       </div>

@@ -6,7 +6,7 @@ export type GatewayStderrClassification = {
 const MAX_STDERR_LINES = 120;
 
 export function classifyGatewayStderrMessage(message: string): GatewayStderrClassification {
-  const msg = message.trim();
+  const msg = normalizeGatewayStderrMessage(message);
   if (!msg) {
     return { level: 'drop', normalized: msg };
   }
@@ -21,7 +21,44 @@ export function classifyGatewayStderrMessage(message: string): GatewayStderrClas
   if (msg.includes('[ws] closed before connect') && msg.includes('code=1005')) {
     return { level: 'debug', normalized: msg };
   }
+  if (
+    msg.includes('[ws] closed before connect')
+    && msg.includes('code=1006')
+    && (msg.includes('remote=127.0.0.1') || msg.includes('peer=127.0.0.1'))
+  ) {
+    return { level: 'debug', normalized: msg };
+  }
   if (msg.includes('security warning: dangerous config flags enabled')) {
+    return { level: 'debug', normalized: msg };
+  }
+  if (msg.includes('[whatsapp] No messages received in 30m - restarting connection')) {
+    return { level: 'debug', normalized: msg };
+  }
+  if (msg.includes('[whatsapp] Web connection closed (status 499)')) {
+    return { level: 'debug', normalized: msg };
+  }
+  if (
+    msg.includes('[whatsapp]')
+    && msg.includes('channel exited:')
+    && (
+      msg.includes('[details unavailable from upstream logger]')
+      || msg.includes('statusCode":408')
+      || msg.includes('"code":"ECONNRESET"')
+      || msg.includes('Request Time-out')
+    )
+  ) {
+    return { level: 'debug', normalized: msg };
+  }
+  if (msg.includes('[bonjour] watchdog detected non-announced service')) {
+    return { level: 'debug', normalized: msg };
+  }
+  if (msg.includes('[bonjour] restarting advertiser')) {
+    return { level: 'debug', normalized: msg };
+  }
+  if (msg.includes('[bonjour] gateway name conflict resolved')) {
+    return { level: 'debug', normalized: msg };
+  }
+  if (msg.includes('[bonjour] gateway hostname conflict resolved')) {
     return { level: 'debug', normalized: msg };
   }
 
@@ -39,6 +76,20 @@ export function classifyGatewayStderrMessage(message: string): GatewayStderrClas
   }
 
   return { level: 'warn', normalized: msg };
+}
+
+function normalizeGatewayStderrMessage(message: string): string {
+  const msg = message.trim();
+  if (!msg) return msg;
+
+  if (msg.includes('channel exited: [object Object]')) {
+    return msg.replace(
+      'channel exited: [object Object]',
+      'channel exited: [details unavailable from upstream logger]',
+    );
+  }
+
+  return msg;
 }
 
 export function recordGatewayStartupStderrLine(lines: string[], line: string): void {

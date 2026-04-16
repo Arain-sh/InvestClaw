@@ -1,10 +1,15 @@
 {
     "gatewayNotRunning": "网关未运行",
-    "gatewayRequired": "InvestClaw 网关需要运行才能使用聊天。它将自动启动，或者您也可以从设置中启动。",
+    "gatewayRequired": "AraInvest 网关需要运行才能使用聊天。它将自动启动，或者您也可以从设置中启动。",
     "welcome": {
-        "title": "InvestClaw 投研台",
-        "subtitle": "今天想先研究什么？",
-        "caption": "把市场、财报、估值和执行都放进一个更安静、更专注的 AI 投研桌面。",
+        "title": "AraInvest 投研台",
+        "greeting": {
+            "morning": "早上好",
+            "afternoon": "下午好",
+            "evening": "晚上好"
+        },
+        "subtitle": "",
+        "caption": "",
         "askQuestions": "市场快照",
         "askQuestionsDesc": "快速生成盘前/盘后要点",
         "askQuestionsPrompt": "请帮我生成一份今天的市场快照，覆盖主要指数、行业轮动、宏观催化剂，以及需要重点关注的风险点。",
@@ -51,6 +56,7 @@
         "targetChip": "@{{agent}}",
         "agentPickerTitle": "将下一条消息直接发送给其他 Agent",
         "gatewayDisconnectedPlaceholder": "网关未连接...",
+        "heroPlaceholder": "输入你今天想研究的市场、公司或策略...",
         "placeholder": "询问市场、财报、估值、观察列表或交易策略...",
         "send": "发送",
         "stop": "停止",

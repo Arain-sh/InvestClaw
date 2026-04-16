@@ -1,7 +1,7 @@
 {
     "steps": {
         "welcome": {
-            "title": "InvestClawへようこそ",
+            "title": "AraInvestへようこそ",
             "description": "投資リサーチ用ワークスペースの準備が整いました"
         },
         "runtime": {
@@ -22,12 +22,12 @@
         },
         "complete": {
             "title": "完了！",
-            "description": "InvestClaw で投資分析を始められます"
+            "description": "AraInvest で投資分析を始められます"
         }
     },
     "welcome": {
-        "title": "InvestClawへようこそ",
-        "description": "InvestClaw は、マーケット分析、決算レビュー、ウォッチリスト管理、継続的な投資調査に使いやすいデスクトップ環境を提供します。",
+        "title": "AraInvestへようこそ",
+        "description": "AraInvest は、マーケット分析、決算レビュー、ウォッチリスト管理、継続的な投資調査に使いやすいデスクトップ環境を提供します。",
         "features": {
             "noCommand": "コマンドライン設定不要",
             "modernUI": "投資調査向けのワークフロー",
@@ -113,7 +113,7 @@
     },
     "complete": {
         "title": "セットアップ完了！",
-        "subtitle": "InvestClaw の準備が整いました。相場、決算、投資アイデアの分析を始められます。",
+        "subtitle": "AraInvest の準備が整いました。相場、決算、投資アイデアの分析を始められます。",
         "provider": "AI プロバイダー",
         "components": "コンポーネント",
         "gateway": "ゲートウェイ",

@@ -76,7 +76,7 @@ if (!hasElectronBridge()) {
   console.warn('[startup] Electron preload bridge is not available');
 }
 
-renderStartupMessage('InvestClaw Is Starting', 'Loading renderer...');
+renderStartupMessage('AraInvest Is Starting', 'Loading renderer...');
 
 void import('./App')
   .then(({ default: App }) => {
@@ -90,5 +90,5 @@ void import('./App')
   })
   .catch((error) => {
     console.error('Failed to import App:', error);
-    renderStartupMessage('Failed To Load InvestClaw', formatStartupError(error));
+    renderStartupMessage('Failed To Load AraInvest', formatStartupError(error));
   });
