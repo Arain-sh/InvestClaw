@@ -743,6 +743,8 @@ function buildSessionSwitchPatch(
       ? clearSessionEntryFromMap(state.sessionLastActivity, state.currentSessionKey)
       : state.sessionLastActivity,
     messages: [],
+    loading: false,
+    sending: false,
     streamingText: '',
     streamingMessage: null,
     streamingTools: [],
@@ -1191,6 +1193,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
     // This prevents the poll timer from firing after the switch and loading
     // the wrong session's history into the new session's view.
     clearHistoryPoll();
+    clearErrorRecoveryTimer();
     set((s) => buildSessionSwitchPatch(s, key));
     get().loadHistory();
   },
@@ -1234,6 +1237,8 @@ export const useChatStore = create<ChatState>((set, get) => ({
         sessionLabels: Object.fromEntries(Object.entries(s.sessionLabels).filter(([k]) => k !== key)),
         sessionLastActivity: Object.fromEntries(Object.entries(s.sessionLastActivity).filter(([k]) => k !== key)),
         messages: [],
+        loading: false,
+        sending: false,
         streamingText: '',
         streamingMessage: null,
         streamingTools: [],
@@ -1264,6 +1269,8 @@ export const useChatStore = create<ChatState>((set, get) => ({
     // NOTE: We intentionally do NOT call sessions.reset on the old session.
     // sessions.reset archives (renames) the session JSONL file, making old
     // conversation history inaccessible when the user switches back to it.
+    clearHistoryPoll();
+    clearErrorRecoveryTimer();
     const { currentSessionKey, messages, sessions, sessionLastActivity, sessionLabels } = get();
     // 仅将没有任何历史记录且无活动时间的会话视为空会话
     const leavingEmpty = !currentSessionKey.endsWith(':main')
@@ -1289,6 +1296,8 @@ export const useChatStore = create<ChatState>((set, get) => ({
         ? Object.fromEntries(Object.entries(s.sessionLastActivity).filter(([k]) => k !== currentSessionKey))
         : s.sessionLastActivity,
       messages: [],
+      loading: false,
+      sending: false,
       streamingText: '',
       streamingMessage: null,
       streamingTools: [],

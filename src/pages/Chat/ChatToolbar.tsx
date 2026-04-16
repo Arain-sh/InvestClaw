@@ -37,7 +37,7 @@ export function ChatToolbar({ workspaceVisible, onToggleWorkspace, hideUtilityTo
 
   return (
     <div className="app-chrome flex items-center gap-1.5 md:gap-2">
-      <div className="hidden xl:flex items-center gap-1.5 rounded-full border border-black/8 bg-white/84 px-3.5 py-1.5 text-[12px] font-medium text-foreground/72 shadow-[0_1px_0_rgba(255,255,255,0.88)_inset] dark:border-white/10 dark:bg-white/5">
+      <div className="hidden xl:flex items-center gap-1.5 rounded-full border border-slate-300/45 bg-white/64 px-3.5 py-1.5 text-[12px] font-medium text-foreground/72 backdrop-blur-md dark:border-white/10 dark:bg-white/5">
         <Bot className="h-3.5 w-3.5 text-primary" />
         <span>{t('toolbar.currentAgent', { agent: currentAgentName })}</span>
       </div>

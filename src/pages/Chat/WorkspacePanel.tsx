@@ -501,9 +501,9 @@ export function WorkspacePanel({ agentId, agentName, onRequestClose }: Workspace
   return (
     <aside
       data-testid="chat-workspace-panel"
-      className="surface-panel flex h-full min-h-0 flex-col overflow-hidden rounded-[1.95rem] border border-black/6 [contain:layout_paint_style] dark:border-white/10"
+      className="surface-panel flex h-full min-h-0 flex-col overflow-hidden rounded-[1.7rem] border border-slate-300/45 [contain:layout_paint_style] dark:border-white/10"
     >
-      <div className="app-chrome flex shrink-0 items-center justify-between gap-3 border-b border-black/6 px-4 py-3.5 dark:border-white/10">
+      <div className="app-chrome flex shrink-0 items-center justify-between gap-3 border-b border-slate-300/45 px-4 py-3.5 dark:border-white/10">
         <div className="min-w-0">
           <div className="text-sm font-semibold tracking-[-0.02em]">{t('workspace.title')}</div>
           <div className="truncate pt-0.5 text-xs text-muted-foreground">
@@ -516,21 +516,21 @@ export function WorkspacePanel({ agentId, agentName, onRequestClose }: Workspace
               type="button"
               variant="ghost"
               size="icon"
-              className="h-8 w-8 rounded-full border border-black/8 bg-white/80 text-foreground/70 hover:bg-white"
+              className="h-8 w-8 rounded-full border border-slate-300/45 bg-white/68 text-foreground/70 hover:bg-white/86"
               data-testid="workspace-close"
               onClick={onRequestClose}
             >
               <X className="h-4 w-4" />
             </Button>
           ) : null}
-          <div className="hidden max-w-[11rem] truncate rounded-full border border-black/8 bg-white/80 px-2.5 py-1 text-[11px] font-medium text-foreground/70 dark:border-white/10 dark:text-foreground/80 md:block">
+          <div className="hidden max-w-[11rem] truncate rounded-full border border-slate-300/45 bg-white/68 px-2.5 py-1 text-[11px] font-medium text-foreground/70 dark:border-white/10 dark:text-foreground/80 md:block">
             {agentName}
           </div>
             <Button
               type="button"
               variant="ghost"
               size="icon"
-              className="h-8 w-8 rounded-full border border-black/8 bg-white/80 text-foreground/70 hover:bg-white"
+              className="h-8 w-8 rounded-full border border-slate-300/45 bg-white/68 text-foreground/70 hover:bg-white/86"
               data-testid="workspace-refresh"
               onClick={() => void refreshWorkspace()}
               disabled={loadingRoot}
@@ -541,8 +541,8 @@ export function WorkspacePanel({ agentId, agentName, onRequestClose }: Workspace
       </div>
 
       <div className="grid min-h-0 flex-1 grid-cols-[minmax(230px,0.86fr)_minmax(0,1.14fr)] gap-0 xl:grid-cols-[minmax(248px,0.92fr)_minmax(0,1.2fr)]">
-        <div className="flex min-h-0 flex-col border-r border-black/6 bg-white/[0.45] dark:border-white/10">
-          <div className="shrink-0 border-b border-black/6 px-4 py-3 dark:border-white/10">
+        <div className="flex min-h-0 flex-col border-r border-slate-300/45 bg-white/[0.38] dark:border-white/10">
+          <div className="shrink-0 border-b border-slate-300/45 px-4 py-3 dark:border-white/10">
             <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
               {t('workspace.treeTitle')}
             </div>
@@ -556,8 +556,8 @@ export function WorkspacePanel({ agentId, agentName, onRequestClose }: Workspace
           </div>
         </div>
 
-        <div className="flex min-h-0 flex-col bg-white/[0.65]">
-          <div className="flex shrink-0 items-center justify-between gap-3 border-b border-black/6 px-4 py-3 dark:border-white/10">
+        <div className="flex min-h-0 flex-col bg-white/[0.58]">
+          <div className="flex shrink-0 items-center justify-between gap-3 border-b border-slate-300/45 px-4 py-3 dark:border-white/10">
             <div className="min-w-0">
               <div
                 data-testid="workspace-preview-title"

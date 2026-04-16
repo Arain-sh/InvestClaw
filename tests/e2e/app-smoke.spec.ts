@@ -64,6 +64,8 @@ test.describe('InvestClaw Electron smoke flows', () => {
 
     await page.getByTestId('chat-quick-action-askQuestions').click();
     await expect(page.locator('textarea')).not.toHaveValue('');
+    await page.getByTestId('sidebar-new-chat').evaluate((button: HTMLElement) => button.click());
+    await expect(page.locator('textarea')).toHaveValue('');
   });
 
   test('shows the right-side workspace and opens nested files from the current agent workspace', async ({ homeDir, launchElectronApp }) => {

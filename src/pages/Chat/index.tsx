@@ -277,13 +277,13 @@ export function Chat() {
     <div
       ref={containerRef}
       className={cn(
-        'relative flex h-full min-h-0 gap-2.5 overflow-hidden p-2.5 transition-colors duration-300 md:gap-3 md:p-3 dark:bg-background',
+        'relative flex h-full min-h-0 gap-0 overflow-hidden p-3 transition-colors duration-300 md:p-4 dark:bg-background',
         isResizingWorkspace && 'select-none',
       )}
     >
       <section
         data-testid="chat-main-panel"
-        className="surface-panel relative flex min-w-0 flex-1 flex-col overflow-hidden rounded-[1.95rem] border border-black/6 dark:border-white/10"
+        className="relative flex min-w-0 flex-1 flex-col overflow-hidden rounded-[1.7rem] bg-[linear-gradient(180deg,rgba(255,255,255,0.5),rgba(248,251,255,0.76))]"
       >
         <div className="absolute inset-x-0 top-0 z-40 flex items-start justify-end px-4 pt-4 md:px-5 md:pt-5">
           <div className="ml-auto">
@@ -299,11 +299,13 @@ export function Chat() {
           <div className="flex min-h-0 flex-1 items-center justify-center px-4 pb-8 pt-16 md:px-6 md:pb-10 md:pt-20 xl:px-10">
             <WelcomeScreen onSelectPrompt={setSuggestedPromptFromQuickAction}>
               <ChatInput
+                key={`hero-${currentSessionKey}`}
                 onSend={sendMessage}
                 onStop={abortRun}
                 disabled={!isGatewayRunning}
                 sending={sending}
                 isEmpty={isEmpty}
+                sessionKey={currentSessionKey}
                 presetPrompt={suggestedPrompt}
                 presetPromptNonce={suggestedPromptNonce}
                 layout="hero"
@@ -355,11 +357,13 @@ export function Chat() {
 
             <div className="shrink-0 px-4 pb-4 md:px-6 md:pb-5">
               <ChatInput
+                key={`dock-${currentSessionKey}`}
                 onSend={sendMessage}
                 onStop={abortRun}
                 disabled={!isGatewayRunning}
                 sending={sending}
                 isEmpty={isEmpty}
+                sessionKey={currentSessionKey}
                 presetPrompt={suggestedPrompt}
                 presetPromptNonce={suggestedPromptNonce}
               />
@@ -385,8 +389,8 @@ export function Chat() {
         )}
 
         {minLoading && !sending && (
-          <div className="absolute inset-0 z-50 flex items-center justify-center rounded-xl bg-background/20 pointer-events-auto">
-            <div className="rounded-full border border-border bg-background p-2.5 shadow-lg">
+          <div className="absolute inset-0 z-50 flex items-center justify-center rounded-xl bg-background/14 pointer-events-auto">
+            <div className="rounded-full border border-slate-300/45 bg-white/78 p-2.5 shadow-[0_12px_28px_rgba(15,23,42,0.08)] backdrop-blur-md">
               <LoadingSpinner size="md" />
             </div>
           </div>
@@ -408,7 +412,7 @@ export function Chat() {
             }}
           >
             <div className={cn(
-              'absolute inset-y-4 left-1/2 w-px -translate-x-1/2 rounded-full bg-black/10 transition-colors dark:bg-white/10',
+              'absolute inset-y-4 left-1/2 w-px -translate-x-1/2 rounded-full bg-slate-300/70 transition-colors dark:bg-white/10',
               isResizingWorkspace && 'bg-primary/60',
             )} />
           </div>
@@ -463,10 +467,10 @@ const WelcomeScreen = memo(function WelcomeScreen({
   ];
 
   return (
-    <div data-testid="chat-landing-hero" className="pointer-events-none mx-auto flex w-full max-w-[57rem] flex-col items-center text-center">
-      <div className="pointer-events-auto mb-8 flex items-center justify-center gap-4 md:mb-10 md:gap-5">
-        <img src={logoSvg} alt="AraInvest" className="h-[2.95rem] w-auto opacity-95 md:h-[3.35rem]" />
-        <h1 className="text-balance font-editorial text-[clamp(3.7rem,5.2vw,5.9rem)] leading-[0.95] text-foreground/92">
+    <div data-testid="chat-landing-hero" className="pointer-events-none mx-auto flex w-full max-w-[58rem] flex-col items-center text-center">
+      <div className="pointer-events-auto mb-7 flex items-center justify-center gap-4 md:mb-9 md:gap-4.5">
+        <img src={logoSvg} alt="AraInvest" className="h-[2.35rem] w-auto opacity-95 md:h-[2.6rem]" />
+        <h1 className="text-balance font-display text-[clamp(3.2rem,4.6vw,4.95rem)] font-semibold leading-[0.96] tracking-[-0.065em] text-foreground/90">
           {t(`welcome.greeting.${greetingKey}`)}
         </h1>
       </div>
@@ -482,9 +486,9 @@ const WelcomeScreen = memo(function WelcomeScreen({
             type="button"
             onClick={() => onSelectPrompt(prompt)}
             data-testid={`chat-quick-action-${key}`}
-            className="inline-flex items-center gap-2.5 rounded-full border border-black/8 bg-white/82 px-4 py-2 text-[13px] font-medium text-foreground/74 shadow-[0_1px_0_rgba(255,255,255,0.9)_inset] transition-colors hover:bg-white/96"
+            className="inline-flex items-center gap-2.5 rounded-full border border-slate-300/55 bg-white/70 px-4 py-2 text-[13px] font-medium text-foreground/74 shadow-[0_8px_16px_rgba(15,23,42,0.032)] transition-colors hover:bg-white/84"
           >
-            <ActionIcon className="h-3.5 w-3.5 text-[#d39c2d]" />
+            <ActionIcon className="h-3.5 w-3.5 text-[#d97745]" />
             {label}
             <ArrowRight className="h-3.5 w-3.5 text-muted-foreground/55" />
           </button>

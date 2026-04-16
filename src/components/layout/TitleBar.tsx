@@ -13,7 +13,7 @@ export function TitleBar() {
 
   if (platform === 'darwin') {
     // macOS: just a drag region, traffic lights are native
-    return <div className="drag-region h-6 shrink-0 bg-transparent" />;
+    return <div className="drag-region h-7 shrink-0 bg-transparent" />;
   }
 
   // Linux keeps the native frame/title bar for better IME compatibility.
@@ -51,7 +51,7 @@ function WindowsTitleBar() {
   };
 
   return (
-    <div className="drag-region app-chrome flex h-9 shrink-0 items-center justify-end border-b border-black/5 bg-background/88">
+    <div className="drag-region app-chrome flex h-9 shrink-0 items-center justify-end border-b border-slate-300/35 bg-white/50 backdrop-blur-xl">
 
       {/* Right: Window Controls */}
       <div className="no-drag flex h-full">

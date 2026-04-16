@@ -59,9 +59,9 @@ function NavItem({ to, icon, label, badge, collapsed, onClick, testId }: NavItem
       className={({ isActive }) =>
         cn(
           'flex items-center gap-3 rounded-[1rem] px-3 py-2.5 text-[14px] font-medium transition-colors',
-          'hover:bg-black/[0.03] dark:hover:bg-white/5 text-foreground/72',
+          'hover:bg-white/44 dark:hover:bg-white/5 text-foreground/72',
           isActive
-            ? 'bg-white/94 text-foreground shadow-[0_1px_0_rgba(255,255,255,0.9)_inset,0_10px_22px_rgba(24,18,12,0.026)]'
+            ? 'bg-white/74 text-foreground shadow-[0_8px_18px_rgba(15,23,42,0.032)]'
             : '',
           collapsed && 'justify-center px-0'
         )
@@ -123,7 +123,6 @@ export function Sidebar() {
     sessionLabels,
     sessionLastActivity,
     switchSession,
-    newSession,
     deleteSession,
     loadSessions,
     loadHistory,
@@ -133,7 +132,6 @@ export function Sidebar() {
     sessionLabels: s.sessionLabels,
     sessionLastActivity: s.sessionLastActivity,
     switchSession: s.switchSession,
-    newSession: s.newSession,
     deleteSession: s.deleteSession,
     loadSessions: s.loadSessions,
     loadHistory: s.loadHistory,
@@ -250,25 +248,25 @@ export function Sidebar() {
   }, []);
 
   const handleNewChat = useCallback(() => {
-    const { messages } = useChatStore.getState();
-    if (messages.length > 0) newSession();
+    window.dispatchEvent(new CustomEvent('arainvest:chat-reset'));
+    useChatStore.getState().newSession();
     navigate('/');
-  }, [navigate, newSession]);
+  }, [navigate]);
 
   return (
     <aside
       data-testid="sidebar"
       className={cn(
-        'app-shell-panel app-chrome flex min-h-0 shrink-0 flex-col rounded-[1.9rem] bg-[#faf7f0]/94 transition-[width] duration-200 dark:bg-background/95',
+        'app-chrome flex min-h-0 shrink-0 flex-col border-r border-slate-300/45 bg-[linear-gradient(180deg,rgba(255,255,255,0.54),rgba(244,248,253,0.42))] backdrop-blur-2xl transition-[width] duration-200 dark:border-white/10 dark:bg-background/90',
         sidebarCollapsed ? 'w-[4.75rem]' : 'w-[15.75rem] xl:w-[16.35rem] 2xl:w-[16.5rem]'
       )}
     >
       {/* Top Header Toggle */}
-      <div className={cn("flex items-center px-3 pb-2 pt-4.5", sidebarCollapsed ? "justify-center" : "justify-between")}>
+      <div className={cn("flex items-center px-3 pb-2 pt-4", sidebarCollapsed ? "justify-center" : "justify-between")}>
         {!sidebarCollapsed && (
           <div className="flex items-center gap-2.5 px-2 overflow-hidden">
             <img src={logoSvg} alt="AraInvest" className="h-6 w-auto shrink-0" />
-            <span className="font-editorial truncate whitespace-nowrap text-[1.08rem] leading-none text-foreground/92">
+            <span className="font-display truncate whitespace-nowrap text-[1rem] font-semibold leading-none tracking-[-0.03em] text-foreground/88">
               AraInvest
             </span>
           </div>
@@ -291,10 +289,20 @@ export function Sidebar() {
       <nav className="flex flex-col gap-1 px-3">
         <button
           data-testid="sidebar-new-chat"
-          onClick={handleNewChat}
-          className={cn(
-            'mb-3 flex w-full items-center gap-3 rounded-[1.3rem] border border-black/7 bg-white/92 px-3 py-3 text-[14px] font-medium text-foreground shadow-[0_1px_0_rgba(255,255,255,0.92)_inset,0_10px_24px_rgba(24,18,12,0.025)] transition-colors',
-            'hover:bg-white',
+          type="button"
+          onPointerDown={(event) => {
+            if (event.button !== 0) return;
+            event.preventDefault();
+            handleNewChat();
+          }}
+          onClick={(event) => {
+            if (event.detail === 0) {
+              handleNewChat();
+            }
+          }}
+        className={cn(
+            'mb-3 flex w-full items-center gap-3 rounded-[1.05rem] border border-white/60 bg-white/68 px-3 py-3 text-[14px] font-medium text-foreground shadow-[0_8px_24px_rgba(15,23,42,0.03)] transition-colors backdrop-blur-md',
+            'hover:bg-white/82',
             sidebarCollapsed && 'justify-center px-0',
           )}
         >
@@ -340,8 +348,8 @@ export function Sidebar() {
             className={({ isActive }) =>
               cn(
                 'flex items-center gap-3 rounded-[1rem] px-3 py-2.5 text-[14px] font-medium transition-colors',
-                'hover:bg-black/[0.03] dark:hover:bg-white/5 text-foreground/78',
-                isActive && 'bg-white/94 text-foreground shadow-[0_1px_0_rgba(255,255,255,0.9)_inset,0_10px_22px_rgba(24,18,12,0.026)]',
+                'hover:bg-white/44 dark:hover:bg-white/5 text-foreground/78',
+                isActive && 'bg-white/74 text-foreground shadow-[0_8px_18px_rgba(15,23,42,0.032)]',
                 sidebarCollapsed ? 'justify-center px-0' : ''
               )
             }
@@ -361,7 +369,7 @@ export function Sidebar() {
           variant="ghost"
           className={cn(
             'mt-1 flex h-auto w-full items-center gap-3 rounded-[1rem] px-3 py-2.5 text-[14px] font-medium transition-colors',
-            'hover:bg-black/[0.03] dark:hover:bg-white/5 text-foreground/78',
+            'hover:bg-white/44 dark:hover:bg-white/5 text-foreground/78',
             sidebarCollapsed ? 'justify-center px-0' : 'justify-start'
           )}
           onClick={openDevConsole}
@@ -393,11 +401,11 @@ export function Sidebar() {
                     ? 'bg-green-500/10 text-green-700 dark:text-green-400'
                     : 'bg-black/5 text-muted-foreground dark:bg-white/5'
                 )}
-              >
-                <span
-                  className={cn(
-                    'h-1.5 w-1.5 rounded-full',
-                    isGatewayRunning ? 'bg-green-500' : 'bg-muted-foreground'
+                >
+                  <span
+                    className={cn(
+                      'h-1.5 w-1.5 rounded-full',
+                      isGatewayRunning ? 'bg-green-500' : 'bg-muted-foreground'
                   )}
                 />
                 {gatewayStatus.state}
@@ -491,23 +499,25 @@ const SessionListRow = memo(function SessionListRow({
   return (
     <div key={sessionKey} className="group relative flex items-center">
       <button
+        type="button"
         onClick={handleSelect}
         className={cn(
           'w-full rounded-[1rem] px-2.5 py-2 text-left text-[13px] transition-colors pr-7',
-          'hover:bg-white/86',
+          'hover:bg-white/60',
           isActive
-            ? 'bg-white/94 text-foreground font-medium shadow-[0_1px_0_rgba(255,255,255,0.9)_inset,0_10px_20px_rgba(24,18,12,0.026)]'
+            ? 'bg-white/78 text-foreground font-medium shadow-[0_10px_24px_rgba(15,23,42,0.035)]'
             : 'text-foreground/75',
         )}
       >
         <div className="flex min-w-0 items-center gap-2">
-          <span className="shrink-0 rounded-full border border-black/7 bg-[#f3eee3] px-2 py-0.5 text-[10px] font-medium text-foreground/65 dark:bg-white/[0.08]">
+          <span className="shrink-0 rounded-full border border-slate-300/50 bg-white/65 px-2 py-0.5 text-[10px] font-medium text-foreground/65 dark:bg-white/[0.08]">
             {agentName}
           </span>
           <span className="truncate">{label}</span>
         </div>
       </button>
       <button
+        type="button"
         aria-label="Delete session"
         onClick={(e) => {
           e.stopPropagation();

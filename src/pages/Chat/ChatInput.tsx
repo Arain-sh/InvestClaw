@@ -38,6 +38,7 @@ interface ChatInputProps {
   disabled?: boolean;
   sending?: boolean;
   isEmpty?: boolean;
+  sessionKey?: string;
   presetPrompt?: string;
   presetPromptNonce?: number;
   layout?: 'dock' | 'hero';
@@ -93,6 +94,7 @@ export function ChatInput({
   disabled = false,
   sending = false,
   isEmpty = false,
+  sessionKey,
   presetPrompt = '',
   presetPromptNonce = 0,
   layout = 'dock',
@@ -156,6 +158,35 @@ export function ChatInput({
       setPickerOpen(false);
     }
   }, [agents, currentAgentId, targetAgentId]);
+
+  useEffect(() => {
+    setInput('');
+    setAttachments([]);
+    setTargetAgentId(null);
+    setPickerOpen(false);
+    setDragOver(false);
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+    }
+  }, [sessionKey]);
+
+  useEffect(() => {
+    const handleComposerReset = () => {
+      setInput('');
+      setAttachments([]);
+      setTargetAgentId(null);
+      setPickerOpen(false);
+      setDragOver(false);
+      if (textareaRef.current) {
+        textareaRef.current.style.height = 'auto';
+      }
+    };
+
+    window.addEventListener('arainvest:chat-reset', handleComposerReset);
+    return () => {
+      window.removeEventListener('arainvest:chat-reset', handleComposerReset);
+    };
+  }, []);
 
   useEffect(() => {
     if (!pickerOpen) return;
