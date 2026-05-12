@@ -417,7 +417,7 @@ function TaskDialog({ job, configuredChannels, onClose, onSave }: TaskDialogProp
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={onClose}>
-      <Card className="app-shell-panel w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden rounded-[1.9rem] border border-black/8 shadow-[0_20px_48px_rgba(26,20,12,0.08)] dark:border-white/10" onClick={(e) => e.stopPropagation()}>
+      <Card className="app-modal-panel w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden rounded-[1.9rem]" onClick={(e) => e.stopPropagation()}>
         <CardHeader className="flex flex-row items-start justify-between pb-2 shrink-0">
           <div>
             <CardTitle className="font-display text-2xl font-semibold tracking-[-0.05em]">{job ? t('dialog.editTitle') : t('dialog.createTitle')}</CardTitle>
@@ -930,7 +930,7 @@ export function Cron() {
                 setShowDialog(true);
               }}
               disabled={!isGatewayRunning}
-              className="h-9 text-[13px] font-medium rounded-full px-4 shadow-none"
+              className="h-9 text-[13px] font-medium rounded-full px-4 shadow-none dark:bg-[#f4d586] dark:text-[#0f1712] dark:hover:bg-[#efd078]"
             >
               <Plus className="h-3.5 w-3.5 mr-2" />
               {t('newTask')}
@@ -1025,7 +1025,7 @@ export function Cron() {
                   setShowDialog(true);
                 }}
                 disabled={!isGatewayRunning}
-                className="rounded-full px-6 h-10"
+                className="rounded-full px-6 h-10 dark:bg-[#f4d586] dark:text-[#0f1712] dark:hover:bg-[#efd078]"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 {t('empty.create')}

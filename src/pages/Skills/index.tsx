@@ -180,7 +180,7 @@ function SkillDetailDialog({ skill, isOpen, onClose, onToggle, onUninstall, onOp
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <SheetContent
-        className="app-shell-panel w-full sm:max-w-[450px] p-0 flex flex-col border-l border-black/10 dark:border-white/10 shadow-[0_20px_48px_rgba(26,20,12,0.08)]"
+        className="app-modal-panel w-full sm:max-w-[450px] p-0 flex flex-col border-l"
         side="right"
       >
         {/* Scrollable Content */}
@@ -803,7 +803,7 @@ export function Skills() {
       <Sheet open={installSheetOpen} onOpenChange={setInstallSheetOpen}>
         <SheetContent
           data-testid="skills-install-sheet"
-          className="app-shell-panel w-full sm:max-w-[560px] p-0 flex flex-col border-l border-black/10 dark:border-white/10 shadow-[0_20px_48px_rgba(26,20,12,0.08)]"
+          className="app-modal-panel w-full sm:max-w-[560px] p-0 flex flex-col border-l"
           side="right"
         >
           <div className="px-7 py-6 border-b border-black/10 dark:border-white/10">

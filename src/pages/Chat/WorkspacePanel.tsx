@@ -99,7 +99,7 @@ const WorkspaceTreeNode = memo(function WorkspaceTreeNode({
         className={cn(
           'flex w-full select-none items-center gap-2 rounded-[0.95rem] px-3 py-2 text-left transition-colors',
           'hover:bg-white/78 dark:hover:bg-white/[0.04]',
-          isSelected && 'bg-white text-primary shadow-[0_1px_0_rgba(255,255,255,0.88)_inset,0_10px_22px_rgba(24,18,12,0.032)]',
+          isSelected && 'bg-white text-primary shadow-[0_1px_0_rgba(255,255,255,0.88)_inset,0_10px_22px_rgba(24,18,12,0.032)] dark:bg-white/[0.08]',
           entry.kind === 'symlink' && 'cursor-not-allowed opacity-60',
         )}
         style={{ paddingLeft: `${12 + depth * 16}px` }}
@@ -372,7 +372,7 @@ export function WorkspacePanel({ agentId, agentName, onRequestClose }: Workspace
 
     if (!loadingRoot && !workspaceError && workspace && !workspace.exists) {
       return (
-        <div className="m-2 rounded-[1.35rem] border border-dashed border-black/10 bg-white/55 p-4 text-sm text-muted-foreground dark:border-white/10">
+        <div className="m-2 rounded-[1.35rem] border border-dashed border-black/10 bg-white/55 p-4 text-sm text-muted-foreground dark:border-white/10 dark:bg-white/[0.04]">
           <div className="font-medium text-foreground">{t('workspace.missingWorkspace')}</div>
           <div className="mt-1 break-words text-xs">{workspace.hostPath}</div>
         </div>
@@ -381,7 +381,7 @@ export function WorkspacePanel({ agentId, agentName, onRequestClose }: Workspace
 
     if (!loadingRoot && !workspaceError && workspace?.exists && rootEntries.length === 0) {
       return (
-        <div className="m-2 rounded-[1.35rem] border border-dashed border-black/10 bg-white/55 p-4 text-sm text-muted-foreground dark:border-white/10">
+        <div className="m-2 rounded-[1.35rem] border border-dashed border-black/10 bg-white/55 p-4 text-sm text-muted-foreground dark:border-white/10 dark:bg-white/[0.04]">
           {t('workspace.emptyWorkspace')}
         </div>
       );
@@ -419,7 +419,7 @@ export function WorkspacePanel({ agentId, agentName, onRequestClose }: Workspace
     if (!preview) {
       return (
         <div className="flex h-full items-center justify-center">
-          <div className="rounded-[1.75rem] border border-dashed border-black/10 bg-[#fffdf8] px-6 py-8 text-center dark:border-white/10">
+          <div className="rounded-[1.75rem] border border-dashed border-black/10 bg-[#fffdf8] px-6 py-8 text-center dark:border-white/10 dark:bg-white/[0.04]">
             <FileText className="mx-auto mb-3 h-8 w-8 text-muted-foreground" />
             <div className="text-sm font-medium text-foreground">{t('workspace.previewEmptyTitle')}</div>
             <div className="mt-1 text-sm text-muted-foreground">{t('workspace.previewEmptyDescription')}</div>
@@ -516,21 +516,21 @@ export function WorkspacePanel({ agentId, agentName, onRequestClose }: Workspace
               type="button"
               variant="ghost"
               size="icon"
-              className="h-8 w-8 rounded-full border border-slate-300/45 bg-white/68 text-foreground/70 hover:bg-white/86"
+              className="h-8 w-8 rounded-full border border-slate-300/45 bg-white/68 text-foreground/70 hover:bg-white/86 dark:border-white/10 dark:bg-white/[0.06] dark:hover:bg-white/[0.1]"
               data-testid="workspace-close"
               onClick={onRequestClose}
             >
               <X className="h-4 w-4" />
             </Button>
           ) : null}
-          <div className="hidden max-w-[11rem] truncate rounded-full border border-slate-300/45 bg-white/68 px-2.5 py-1 text-[11px] font-medium text-foreground/70 dark:border-white/10 dark:text-foreground/80 md:block">
+          <div className="hidden max-w-[11rem] truncate rounded-full border border-slate-300/45 bg-white/68 px-2.5 py-1 text-[11px] font-medium text-foreground/70 dark:border-white/10 dark:bg-white/[0.06] dark:text-foreground/80 md:block">
             {agentName}
           </div>
             <Button
               type="button"
               variant="ghost"
               size="icon"
-              className="h-8 w-8 rounded-full border border-slate-300/45 bg-white/68 text-foreground/70 hover:bg-white/86"
+              className="h-8 w-8 rounded-full border border-slate-300/45 bg-white/68 text-foreground/70 hover:bg-white/86 dark:border-white/10 dark:bg-white/[0.06] dark:hover:bg-white/[0.1]"
               data-testid="workspace-refresh"
               onClick={() => void refreshWorkspace()}
               disabled={loadingRoot}
@@ -541,7 +541,7 @@ export function WorkspacePanel({ agentId, agentName, onRequestClose }: Workspace
       </div>
 
       <div className="grid min-h-0 flex-1 grid-cols-[minmax(230px,0.86fr)_minmax(0,1.14fr)] gap-0 xl:grid-cols-[minmax(248px,0.92fr)_minmax(0,1.2fr)]">
-        <div className="flex min-h-0 flex-col border-r border-slate-300/45 bg-white/[0.38] dark:border-white/10">
+        <div className="workspace-split-surface flex min-h-0 flex-col border-r border-slate-300/45 dark:border-white/10">
           <div className="shrink-0 border-b border-slate-300/45 px-4 py-3 dark:border-white/10">
             <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
               {t('workspace.treeTitle')}
@@ -556,7 +556,7 @@ export function WorkspacePanel({ agentId, agentName, onRequestClose }: Workspace
           </div>
         </div>
 
-        <div className="flex min-h-0 flex-col bg-white/[0.58]">
+        <div className="workspace-preview-surface flex min-h-0 flex-col">
           <div className="flex shrink-0 items-center justify-between gap-3 border-b border-slate-300/45 px-4 py-3 dark:border-white/10">
             <div className="min-w-0">
               <div

@@ -416,7 +416,7 @@ function AddAgentDialog({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-      <Card className="app-shell-panel w-full max-w-md overflow-hidden rounded-[1.9rem] border border-black/8 shadow-[0_20px_48px_rgba(26,20,12,0.08)] dark:border-white/10">
+      <Card className="app-modal-panel w-full max-w-md overflow-hidden rounded-[1.9rem]">
         <CardHeader className="pb-2">
           <CardTitle className="font-display text-2xl font-semibold tracking-[-0.05em]">
             {t('createDialog.title')}
@@ -535,7 +535,7 @@ function AgentSettingsModal({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-      <Card className="app-shell-panel w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden rounded-[1.9rem] border border-black/8 shadow-[0_20px_48px_rgba(26,20,12,0.08)] dark:border-white/10">
+      <Card className="app-modal-panel w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden rounded-[1.9rem]">
         <CardHeader className="flex flex-row items-start justify-between pb-2 shrink-0">
           <div>
             <CardTitle className="font-display text-2xl font-semibold tracking-[-0.05em]">
@@ -810,7 +810,7 @@ function AgentModelModal({
 
   return (
     <div className="fixed inset-0 z-[60] bg-black/50 flex items-center justify-center p-4">
-      <Card className="app-shell-panel w-full max-w-xl overflow-hidden rounded-[1.9rem] border border-black/8 shadow-[0_20px_48px_rgba(26,20,12,0.08)] dark:border-white/10">
+      <Card className="app-modal-panel w-full max-w-xl overflow-hidden rounded-[1.9rem]">
         <CardHeader className="flex flex-row items-start justify-between pb-2">
           <div>
             <CardTitle className="font-display text-2xl font-semibold tracking-[-0.05em]">
