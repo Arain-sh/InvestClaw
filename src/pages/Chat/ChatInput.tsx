@@ -488,9 +488,9 @@ export function ChatInput({
         <div
           data-testid={isHeroLayout ? 'chat-composer-card' : undefined}
           className={cn(
-            'relative overflow-hidden border transition-all cursor-text',
+            'chat-composer-card relative overflow-hidden border transition-all cursor-text',
             isHeroLayout
-              ? 'rounded-[2.2rem] border-black/8 bg-white/92 p-5 shadow-[0_1px_0_rgba(255,255,255,0.94)_inset,0_14px_30px_rgba(28,22,12,0.032)] dark:bg-card'
+              ? 'rounded-[2.2rem] border-black/8 bg-white/92 p-5 shadow-[0_1px_0_rgba(255,255,255,0.04)_inset,0_14px_30px_rgba(28,22,12,0.032)] dark:bg-card'
               : 'rounded-[1.8rem] border-black/10 bg-white/88 p-1.5 shadow-[0_8px_24px_rgba(28,22,12,0.045)] dark:bg-card',
             dragOver && 'border-primary ring-1 ring-primary'
           )}

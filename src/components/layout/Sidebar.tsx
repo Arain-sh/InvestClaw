@@ -46,44 +46,53 @@ interface NavItemProps {
   label: string;
   badge?: string;
   collapsed?: boolean;
+  active?: boolean;
   onClick?: () => void;
   testId?: string;
 }
 
-function NavItem({ to, icon, label, badge, collapsed, onClick, testId }: NavItemProps) {
+function NavItem({ to, icon, label, badge, collapsed, active, onClick, testId }: NavItemProps) {
   return (
     <NavLink
       to={to}
       onClick={onClick}
       data-testid={testId}
-      className={({ isActive }) =>
-        cn(
+      aria-current={active ? 'page' : undefined}
+      className={({ isActive }) => {
+        const activeState = active ?? isActive;
+        return cn(
           'flex items-center gap-3 rounded-[1rem] px-3 py-2.5 text-[14px] font-medium transition-colors',
-          'hover:bg-white/44 dark:hover:bg-white/5 text-foreground/72',
-          isActive
-            ? 'bg-white/74 text-foreground shadow-[0_8px_18px_rgba(15,23,42,0.032)]'
-            : '',
+          'text-foreground/72',
+          activeState ? 'sidebar-nav-active' : 'hover:bg-white/44 dark:hover:bg-white/5',
           collapsed && 'justify-center px-0'
-        )
-      }
+        );
+      }}
     >
-      {({ isActive }) => (
-        <>
-          <div className={cn("flex shrink-0 items-center justify-center", isActive ? "text-foreground" : "text-muted-foreground")}>
-            {icon}
-          </div>
-          {!collapsed && (
-            <>
-              <span className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap">{label}</span>
-              {badge && (
-                <Badge variant="secondary" className="ml-auto shrink-0">
-                  {badge}
-                </Badge>
+      {({ isActive }) => {
+        const activeState = active ?? isActive;
+        return (
+          <>
+            <div
+              className={cn(
+                'flex shrink-0 items-center justify-center',
+                activeState ? 'text-inherit' : 'text-muted-foreground'
               )}
-            </>
-          )}
-        </>
-      )}
+            >
+              {icon}
+            </div>
+            {!collapsed && (
+              <>
+                <span className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap">{label}</span>
+                {badge && (
+                  <Badge variant="secondary" className="ml-auto shrink-0">
+                    {badge}
+                  </Badge>
+                )}
+              </>
+            )}
+          </>
+        );
+      }}
     </NavLink>
   );
 }
@@ -159,7 +168,13 @@ export function Sidebar() {
   })));
 
   const navigate = useNavigate();
-  const isOnChat = useLocation().pathname === '/';
+  const location = useLocation();
+  const pathname = location.pathname;
+  const isOnChat = pathname === '/';
+  const isRouteActive = useCallback((to: string) => (
+    pathname === to || pathname.startsWith(`${to}/`)
+  ), [pathname]);
+  const settingsActive = isRouteActive('/settings');
 
   const getSessionLabel = (key: string, displayName?: string, label?: string) =>
     sessionLabels[key] ?? label ?? displayName ?? key;
@@ -257,7 +272,7 @@ export function Sidebar() {
     <aside
       data-testid="sidebar"
       className={cn(
-        'app-chrome flex min-h-0 shrink-0 flex-col border-r border-slate-300/45 bg-[linear-gradient(180deg,rgba(255,255,255,0.54),rgba(244,248,253,0.42))] backdrop-blur-2xl transition-[width] duration-200 dark:border-white/10 dark:bg-background/90',
+        'app-chrome app-sidebar flex min-h-0 shrink-0 flex-col border-r border-slate-300/45 transition-[width] duration-200 dark:border-white/10',
         sidebarCollapsed ? 'w-[4.75rem]' : 'w-[15.75rem] xl:w-[16.35rem] 2xl:w-[16.5rem]'
       )}
     >
@@ -300,8 +315,8 @@ export function Sidebar() {
               handleNewChat();
             }
           }}
-        className={cn(
-            'mb-3 flex w-full items-center gap-3 rounded-[1.05rem] border border-white/60 bg-white/68 px-3 py-3 text-[14px] font-medium text-foreground shadow-[0_8px_24px_rgba(15,23,42,0.03)] transition-colors backdrop-blur-md',
+          className={cn(
+            'mb-3 flex w-full items-center gap-3 rounded-[1.05rem] border border-white/60 bg-white/68 px-3 py-3 text-[14px] font-medium text-foreground transition-colors',
             'hover:bg-white/82',
             sidebarCollapsed && 'justify-center px-0',
           )}
@@ -317,6 +332,7 @@ export function Sidebar() {
             key={item.to}
             {...item}
             collapsed={sidebarCollapsed}
+            active={isRouteActive(item.to)}
           />
         ))}
       </nav>
@@ -343,25 +359,35 @@ export function Sidebar() {
       {/* Footer */}
       <div className="mt-auto px-3 pb-3 pt-2">
         <NavLink
-            to="/settings"
-            data-testid="sidebar-nav-settings"
-            className={({ isActive }) =>
-              cn(
-                'flex items-center gap-3 rounded-[1rem] px-3 py-2.5 text-[14px] font-medium transition-colors',
-                'hover:bg-white/44 dark:hover:bg-white/5 text-foreground/78',
-                isActive && 'bg-white/74 text-foreground shadow-[0_8px_18px_rgba(15,23,42,0.032)]',
-                sidebarCollapsed ? 'justify-center px-0' : ''
-              )
-            }
-          >
-          {({ isActive }) => (
-            <>
-              <div className={cn("flex shrink-0 items-center justify-center", isActive ? "text-foreground" : "text-muted-foreground")}>
-                <SettingsIcon className="h-[18px] w-[18px]" strokeWidth={2} />
-              </div>
-              {!sidebarCollapsed && <span className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap">{t('sidebar.settings')}</span>}
-            </>
-          )}
+          to="/settings"
+          data-testid="sidebar-nav-settings"
+          aria-current={settingsActive ? 'page' : undefined}
+          className={({ isActive }) => {
+            const activeState = settingsActive || isActive;
+            return cn(
+              'flex items-center gap-3 rounded-[1rem] px-3 py-2.5 text-[14px] font-medium transition-colors',
+              'text-foreground/78',
+              activeState ? 'sidebar-nav-active' : 'hover:bg-white/44 dark:hover:bg-white/5',
+              sidebarCollapsed ? 'justify-center px-0' : ''
+            );
+          }}
+        >
+          {({ isActive }) => {
+            const activeState = settingsActive || isActive;
+            return (
+              <>
+                <div
+                  className={cn(
+                    'flex shrink-0 items-center justify-center',
+                    activeState ? 'text-inherit' : 'text-muted-foreground'
+                  )}
+                >
+                  <SettingsIcon className="h-[18px] w-[18px]" strokeWidth={2} />
+                </div>
+                {!sidebarCollapsed && <span className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap">{t('sidebar.settings')}</span>}
+              </>
+            );
+          }}
         </NavLink>
 
         <Button
@@ -503,10 +529,9 @@ const SessionListRow = memo(function SessionListRow({
         onClick={handleSelect}
         className={cn(
           'w-full rounded-[1rem] px-2.5 py-2 text-left text-[13px] transition-colors pr-7',
-          'hover:bg-white/60',
           isActive
-            ? 'bg-white/78 text-foreground font-medium shadow-[0_10px_24px_rgba(15,23,42,0.035)]'
-            : 'text-foreground/75',
+            ? 'sidebar-nav-active font-medium'
+            : 'text-foreground/75 hover:bg-white/60',
         )}
       >
         <div className="flex min-w-0 items-center gap-2">

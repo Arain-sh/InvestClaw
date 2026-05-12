@@ -51,20 +51,20 @@ function WindowsTitleBar() {
   };
 
   return (
-    <div className="drag-region app-chrome flex h-9 shrink-0 items-center justify-end border-b border-slate-300/35 bg-white/50 backdrop-blur-xl">
+    <div className="drag-region app-chrome app-titlebar flex h-9 shrink-0 items-center justify-end border-b">
 
       {/* Right: Window Controls */}
       <div className="no-drag flex h-full">
         <button
           onClick={handleMinimize}
-          className="flex h-full w-11 items-center justify-center text-muted-foreground transition-colors hover:bg-black/5"
+          className="flex h-full w-11 items-center justify-center text-muted-foreground transition-colors hover:bg-black/5 dark:hover:bg-white/10"
           title="Minimize"
         >
           <Minus className="h-4 w-4" />
         </button>
         <button
           onClick={handleMaximize}
-          className="flex h-full w-11 items-center justify-center text-muted-foreground transition-colors hover:bg-black/5"
+          className="flex h-full w-11 items-center justify-center text-muted-foreground transition-colors hover:bg-black/5 dark:hover:bg-white/10"
           title={maximized ? 'Restore' : 'Maximize'}
         >
           {maximized ? <Copy className="h-3.5 w-3.5" /> : <Square className="h-3.5 w-3.5" />}

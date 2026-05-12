@@ -283,7 +283,7 @@ export function Chat() {
     >
       <section
         data-testid="chat-main-panel"
-        className="relative flex min-w-0 flex-1 flex-col overflow-hidden rounded-[1.7rem] bg-[linear-gradient(180deg,rgba(255,255,255,0.5),rgba(248,251,255,0.76))]"
+        className="chat-main-surface relative flex min-w-0 flex-1 flex-col overflow-hidden rounded-[1.7rem]"
       >
         <div className="absolute inset-x-0 top-0 z-40 flex items-start justify-end px-4 pt-4 md:px-5 md:pt-5">
           <div className="ml-auto">
@@ -486,7 +486,7 @@ const WelcomeScreen = memo(function WelcomeScreen({
             type="button"
             onClick={() => onSelectPrompt(prompt)}
             data-testid={`chat-quick-action-${key}`}
-            className="inline-flex items-center gap-2.5 rounded-full border border-slate-300/55 bg-white/70 px-4 py-2 text-[13px] font-medium text-foreground/74 shadow-[0_8px_16px_rgba(15,23,42,0.032)] transition-colors hover:bg-white/84"
+            className="inline-flex items-center gap-2.5 rounded-full border border-slate-300/55 bg-white/70 px-4 py-2 text-[13px] font-medium text-foreground/74 shadow-[0_8px_16px_rgba(15,23,42,0.032)] transition-colors hover:bg-white/84 dark:border-white/10 dark:bg-white/[0.06] dark:hover:bg-white/[0.1]"
           >
             <ActionIcon className="h-3.5 w-3.5 text-[#d97745]" />
             {label}
