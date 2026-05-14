@@ -28,7 +28,6 @@ export function Models() {
   const { t } = useTranslation(['dashboard', 'settings']);
   const gatewayStatus = useGatewayStore((state) => state.status);
   const devModeUnlocked = useSettingsStore((state) => state.devModeUnlocked);
-  const isGatewayRunning = gatewayStatus.state === 'running';
   const usageFetchMaxAttempts = getRendererPlatform() === 'win32'
     ? WINDOWS_USAGE_FETCH_MAX_ATTEMPTS
     : DEFAULT_USAGE_FETCH_MAX_ATTEMPTS;
@@ -76,7 +75,7 @@ export function Models() {
   type FetchAction =
     | { type: 'start' }
     | { type: 'done'; data: UsageHistoryEntry[] }
-    | { type: 'reset' };
+    | { type: 'idle' };
 
   const [fetchState, dispatchFetch] = useReducer(
     (state: FetchState, action: FetchAction): FetchState => {
@@ -85,8 +84,8 @@ export function Models() {
           return { status: 'loading', data: state.data };
         case 'done':
           return { status: 'done', data: action.data };
-        case 'reset':
-          return { status: 'idle', data: [] };
+        case 'idle':
+          return { status: 'idle', data: state.data };
         default:
           return state;
       }
@@ -96,6 +95,11 @@ export function Models() {
 
   const usageFetchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const usageFetchGenerationRef = useRef(0);
+  const usageDataRef = useRef<UsageHistoryEntry[]>([]);
+
+  useEffect(() => {
+    usageDataRef.current = fetchState.data;
+  }, [fetchState.data]);
 
   useEffect(() => {
     trackUiEvent('models.page_viewed');
@@ -105,11 +109,6 @@ export function Models() {
     if (usageFetchTimerRef.current) {
       clearTimeout(usageFetchTimerRef.current);
       usageFetchTimerRef.current = null;
-    }
-
-    if (!isGatewayRunning) {
-      dispatchFetch({ type: 'reset' });
-      return;
     }
 
     dispatchFetch({ type: 'start' });
@@ -129,7 +128,10 @@ export function Models() {
         generation,
         restartMarker,
       });
-      dispatchFetch({ type: 'done', data: [] });
+      dispatchFetch({
+        type: 'done',
+        data: usageDataRef.current,
+      });
     }, 30_000);
 
     const fetchUsageHistoryWithRetry = async (attempt: number) => {
@@ -170,7 +172,10 @@ export function Models() {
               restartMarker,
             });
           }
-          dispatchFetch({ type: 'done', data: normalized });
+          dispatchFetch({
+            type: 'done',
+            data: normalized.length > 0 ? normalized : usageDataRef.current,
+          });
         }
       } catch (error) {
         if (usageFetchGenerationRef.current !== generation) return;
@@ -192,7 +197,10 @@ export function Models() {
           }, USAGE_FETCH_RETRY_DELAY_MS);
           return;
         }
-        dispatchFetch({ type: 'done', data: [] });
+        dispatchFetch({
+          type: 'done',
+          data: usageDataRef.current,
+        });
         trackUiEvent('models.token_usage_fetch_exhausted', {
           generation,
           attempt,
@@ -211,13 +219,12 @@ export function Models() {
         usageFetchTimerRef.current = null;
       }
     };
-  }, [isGatewayRunning, gatewayStatus.connectedAt, gatewayStatus.pid, usageFetchMaxAttempts]);
+  }, [gatewayStatus.connectedAt, gatewayStatus.pid, usageFetchMaxAttempts]);
 
-  const visibleUsageHistory = useMemo(() => (
-    isGatewayRunning
-      ? fetchState.data.filter((entry) => !shouldHideUsageEntry(entry))
-      : []
-  ), [fetchState.data, isGatewayRunning]);
+  const visibleUsageHistory = useMemo(
+    () => fetchState.data.filter((entry) => !shouldHideUsageEntry(entry)),
+    [fetchState.data],
+  );
 
   const filteredUsageHistory = useMemo(
     () => filterUsageHistoryByWindow(visibleUsageHistory, usageWindow),
@@ -236,7 +243,7 @@ export function Models() {
     () => filteredUsageHistory.slice((safeUsagePage - 1) * usagePageSize, safeUsagePage * usagePageSize),
     [filteredUsageHistory, safeUsagePage],
   );
-  const usageLoading = isGatewayRunning && fetchState.status === 'loading';
+  const usageLoading = fetchState.status === 'loading';
 
   return (
     <div data-testid="models-page" className="page-view">

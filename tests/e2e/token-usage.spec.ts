@@ -195,4 +195,27 @@ test.describe('InvestClaw token usage history', () => {
     await expect(page.locator('[data-testid="token-usage-entry"]', { hasText: GATEWAY_INJECTED_SESSION_ID })).toHaveCount(0);
     await expect(page.locator('[data-testid="token-usage-entry"]', { hasText: DELIVERY_MIRROR_SESSION_ID })).toHaveCount(0);
   });
+
+  test('keeps recent token usage visible if gateway stops after the models page has loaded', async ({ page, homeDir }) => {
+    await seedTokenUsageTranscripts(homeDir);
+    await completeSetup(page);
+    await waitForGatewayRunning(page);
+    await validateUsageHistory(page);
+    await page.getByTestId('sidebar-nav-models').click();
+    await expect(page.getByTestId('models-page')).toBeVisible();
+
+    const usageEntryRows = page.getByTestId('token-usage-entry');
+    await expect.poll(async () => await usageEntryRows.count()).toBe(2);
+
+    await page.evaluate(async () => {
+      await window.electron.ipcRenderer.invoke('gateway:stop');
+    });
+
+    await expect.poll(async () => {
+      const status = await page.evaluate(async () => window.electron.ipcRenderer.invoke('gateway:status'));
+      return status?.state;
+    }).toBe('stopped');
+
+    await expect.poll(async () => await usageEntryRows.count()).toBe(2);
+  });
 });
